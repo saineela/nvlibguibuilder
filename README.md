@@ -19,11 +19,8 @@ NVLib GUI Builder is a powerful, standalone HTML application that provides a com
 
 No installation is required. This tool is a single, self-contained HTML file.
 
-1.  **Download the File**:
-    Save the `nvlib_gui_builder.html` file to your local machine.
-
-2.  **Open in Browser**:
-    Open the file in any modern web browser (e.g., Google Chrome, Firefox, Microsoft Edge).
+1.  **Open in Browser**:
+    Open this link 
 
 ## Usage
 
