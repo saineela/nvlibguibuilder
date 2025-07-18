@@ -2,7 +2,7 @@
 
 **A Browser-Based Visual GUI Builder for the NVLib Python Library**
 
-NVLib GUI Builder is a powerful, standalone HTML application that provides a complete visual environment for designing user interfaces. It leverages a drag-and-drop canvas to allow developers to create, customize, and lay out GUI components, then export the entire design to a `layout.json` file. This file can be seamlessly integrated into a Python project, allowing the NVLib library to programmatically reconstruct the GUI with pixel-perfect accuracy.
+NVLib GUI Builder is a powerful, standalone HTML application that provides a complete visual environment for designing user interfaces. It leverages a drag-and-drop canvas to allow developers to create, customize, and lay out GUI components, then export the entire design to a `layout.json` file. This file can be seamlessly integrated into a Python project, allowing the NVLib library to programmatically reconstruct the GUI with perfect accuracy.
 
 ## Features
 
