@@ -20,7 +20,7 @@ NVLib GUI Builder is a powerful, standalone HTML application that provides a com
 No installation is required. This tool is a single, self-contained HTML file.
 
 1.  **Open in Browser**:
-    Open this link 
+    Open the URL linked to this Repository
 
 ## Usage
 
