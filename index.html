@@ -275,7 +275,7 @@
                     case 'TextArea': return { text: '', hintText: 'Enter text...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
                     case 'Checkbox': return { text: 'Checkbox', checked: false, checkedColor: '#3b82f6', ...base };
                     case 'RadioButton': return { text: 'Option 1', value: 'option1', group: 'group1', checked: false, checkedColor: '#3b82f6', ...base };
-                    case 'Dropdown': return { text: 'Dropdown', options: 'Option 1\nOption 2', backgroundColor: '#ffffff', ...base };
+                    case 'Dropdown': return { text: 'Dropdown', options: 'Option 1\nOption 2', backgroundColor: '#ffffff', selectionColor: '#dbeafe', ...base };
                     case 'Slider': return { min: 0, max: 100, value: 50 };
                     case 'Panel': return { backgroundColor: '#f3f4f6' };
                     case 'ProgressBar': return { value: 50, progressColor: '#3b82f6', trackColor: '#e5e7eb', showPercentage: true, percentagePosition: 'center', ...base };
@@ -665,6 +665,12 @@
                 previewCanvas.style.width = canvas.style.width;
                 previewCanvas.style.height = canvas.style.height;
 
+                let dynamicStyles = document.getElementById('dynamic-preview-styles');
+                if (dynamicStyles) dynamicStyles.remove();
+                dynamicStyles = document.createElement('style');
+                dynamicStyles.id = 'dynamic-preview-styles';
+                document.head.appendChild(dynamicStyles);
+
                 components.forEach(comp => {
                     const p = comp.properties;
                     const elWrapper = document.createElement('div');
@@ -710,7 +716,7 @@
                         case 'Checkbox':
                         case 'RadioButton':
                             el = document.createElement('div');
-                            el.className = 'flex items-center gap-2';
+                            el.className = 'flex items-center justify-start gap-2';
                             const input = document.createElement('input');
                             input.type = comp.type.toLowerCase() === 'radiobutton' ? 'radio' : 'checkbox';
                             input.checked = p.checked;
@@ -731,6 +737,10 @@
                             break;
                          case 'Dropdown':
                             el = document.createElement('select');
+                            el.className = `preview-dropdown-${comp.id}`;
+                            dynamicStyles.innerHTML += `
+                                .preview-dropdown-${comp.id} option:hover { background-color: ${p.selectionColor} !important; }
+                            `;
                             const options = p.options.split('\n');
                             options.forEach(opt => {
                                 const optionEl = document.createElement('option');
@@ -757,6 +767,36 @@
                                 toggleDiv.style.backgroundColor = e.target.checked ? p.onColor : p.offColor;
                             });
                             el.append(toggleInput, toggleDiv);
+                            break;
+                        case 'Spinner':
+                            el = document.createElement('div');
+                            el.className = 'flex items-center justify-between border border-gray-400 rounded';
+                            el.style.backgroundColor = p.backgroundColor || 'white';
+                            const minusBtn = document.createElement('button');
+                            minusBtn.textContent = '-';
+                            minusBtn.className = 'px-2 text-lg';
+                            const valueSpan = document.createElement('span');
+                            valueSpan.textContent = p.value;
+                            valueSpan.style.color = p.textColor;
+                            valueSpan.style.fontSize = `${p.fontSize}px`;
+                            valueSpan.style.fontFamily = `'${p.fontFamily}', sans-serif`;
+                            const plusBtn = document.createElement('button');
+                            plusBtn.textContent = '+';
+                            plusBtn.className = 'px-2 text-lg';
+                            
+                            minusBtn.addEventListener('click', () => {
+                                let val = parseInt(valueSpan.textContent);
+                                if (val > p.min) {
+                                    valueSpan.textContent = val - 1;
+                                }
+                            });
+                            plusBtn.addEventListener('click', () => {
+                                let val = parseInt(valueSpan.textContent);
+                                if (val < p.max) {
+                                    valueSpan.textContent = val + 1;
+                                }
+                            });
+                            el.append(minusBtn, valueSpan, plusBtn);
                             break;
                         default:
                             el = document.createElement('div');
