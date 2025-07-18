@@ -60,7 +60,7 @@
             background-color: #fee2e2 !important;
             border-color: #ef4444 !important;
         }
-        #font-picker-modal {
+        #font-picker-modal, #preview-modal {
             background-color: rgba(0, 0, 0, 0.5);
         }
         .material-symbols-outlined {
@@ -70,12 +70,25 @@
           'GRAD' 0,
           'opsz' 24
         }
+        .preview-component {
+            position: absolute;
+            box-sizing: border-box;
+        }
+        .preview-component input, .preview-component textarea, .preview-component select, .preview-component button {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        .preview-button:active {
+            transform: scale(0.98);
+            filter: brightness(0.95);
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
     <div class="flex flex-col h-screen">
-        <!-- Header -->
         <header class="bg-white shadow-md p-4 flex justify-between items-center z-20">
             <h1 class="text-2xl font-bold text-gray-800">NVLib GUI Builder</h1>
             <div class="flex items-center space-x-4">
@@ -86,15 +99,14 @@
                     <input type="number" id="canvas-height" value="600" class="w-24 p-2 border border-gray-300 rounded-md">
                     <button id="resize-canvas" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Resize Canvas</button>
                 </div>
+                 <button id="live-preview-btn" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">Live Preview</button>
                 <button id="save-json" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Save to JSON</button>
                 <label for="load-json-input" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 cursor-pointer">Load from JSON</label>
                 <input type="file" id="load-json-input" class="hidden" accept=".json">
             </div>
         </header>
 
-        <!-- Main Content -->
         <div class="flex flex-1 overflow-hidden">
-            <!-- Left Sidebar -->
             <aside class="w-64 bg-white p-4 overflow-y-auto shadow-lg z-10">
                 <h2 class="text-lg font-semibold mb-4">Components</h2>
                 <div class="space-y-4">
@@ -132,12 +144,10 @@
                 </div>
             </aside>
 
-            <!-- Canvas -->
             <main class="flex-1 p-4 bg-gray-200 flex justify-center overflow-y-auto">
                 <div id="canvas" class="canvas shadow-lg" style="width: 800px; height: 600px;"></div>
             </main>
 
-            <!-- Right Sidebar (Property Editor) -->
             <aside id="property-editor" class="w-80 bg-white p-4 overflow-y-auto shadow-lg z-10 hidden">
                 <h2 class="text-lg font-semibold mb-4">Properties</h2>
                 <div id="properties-form" class="space-y-4"></div>
@@ -146,97 +156,108 @@
         </div>
     </div>
 
-    <!-- Font Picker Modal -->
     <div id="font-picker-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
             <div class="p-4 border-b flex justify-between items-center">
                 <h3 class="text-lg font-semibold">Select a Font</h3>
                 <button id="close-font-modal" class="text-gray-500 hover:text-gray-800">&times;</button>
             </div>
-            <div id="font-list" class="p-4 h-96 overflow-y-auto">
-                <!-- Font items will be injected here -->
+            <div id="font-list" class="p-4 h-96 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="preview-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div id="preview-content" class="bg-white rounded-lg shadow-xl flex flex-col w-full h-full max-w-4xl max-h-[80%]">
+            <div class="p-2 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
+                <h3 class="text-lg font-semibold text-gray-700">Live Preview</h3>
+                <div>
+                    <button id="fullscreen-preview-btn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm">Full Screen</button>
+                    <button id="close-preview-btn" class="ml-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm">&times; Close</button>
+                </div>
+            </div>
+            <div class="p-4 flex-1 bg-gray-100 overflow-auto">
+                <div id="preview-canvas" class="bg-white relative shadow-inner"></div>
             </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Element References ---
-            const canvas = document.getElementById('canvas');
-            const addComponentBtn = document.getElementById('add-component');
-            const componentSelect = document.getElementById('component-select');
-            const propertyEditor = document.getElementById('property-editor');
-            const propertiesForm = document.getElementById('properties-form');
-            const saveJsonBtn = document.getElementById('save-json');
-            const loadJsonInput = document.getElementById('load-json-input');
-            const resizeCanvasBtn = document.getElementById('resize-canvas');
-            const canvasWidthInput = document.getElementById('canvas-width');
-            const canvasHeightInput = document.getElementById('canvas-height');
-            const deleteComponentBtn = document.getElementById('delete-component');
-            const fontPickerModal = document.getElementById('font-picker-modal');
-            const closeFontModalBtn = document.getElementById('close-font-modal');
-            const fontList = document.getElementById('font-list');
+            const c = document.getElementById('canvas');
+            const addBtn = document.getElementById('add-component');
+            const sel = document.getElementById('component-select');
+            const pe = document.getElementById('property-editor');
+            const pf = document.getElementById('properties-form');
+            const saveBtn = document.getElementById('save-json');
+            const loadIn = document.getElementById('load-json-input');
+            const resizeBtn = document.getElementById('resize-canvas');
+            const cwIn = document.getElementById('canvas-width');
+            const chIn = document.getElementById('canvas-height');
+            const delBtn = document.getElementById('delete-component');
+            const fontModal = document.getElementById('font-picker-modal');
+            const closeFontBtn = document.getElementById('close-font-modal');
+            const fList = document.getElementById('font-list');
+            const pBtn = document.getElementById('live-preview-btn');
+            const pModal = document.getElementById('preview-modal');
+            const pCanvas = document.getElementById('preview-canvas');
+            const pContent = document.getElementById('preview-content');
+            const closePBtn = document.getElementById('close-preview-btn');
+            const fullPBtn = document.getElementById('fullscreen-preview-btn');
 
-            // --- State Management ---
-            let components = [];
-            let selectedComponent = null;
-            let componentIdCounter = 0;
-            const googleFonts = [
+            let comps = [];
+            let selComp = null;
+            let idCount = 0;
+            const gFonts = [
                 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Oswald', 'Source Sans Pro', 
                 'Raleway', 'Poppins', 'Nunito', 'Merriweather', 'Playfair Display', 'Ubuntu',
                 'Lora', 'PT Sans', 'Slabo 27px'
             ];
 
-            // --- Font Management ---
-            function loadGoogleFont(fontName) {
-                if (!fontName || fontName === 'Inter') return;
-                const fontId = `font-${fontName.replace(/\s/g, '-')}`;
-                if (document.getElementById(fontId)) return;
+            function loadFont(name) {
+                if (!name || name === 'Inter') return;
+                const id = `font-${name.replace(/\s/g, '-')}`;
+                if (document.getElementById(id)) return;
 
                 const link = document.createElement('link');
-                link.id = fontId;
+                link.id = id;
                 link.rel = 'stylesheet';
-                link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s/g, '+')}&display=swap`;
+                link.href = `https://fonts.googleapis.com/css2?family=${name.replace(/\s/g, '+')}&display=swap`;
                 document.head.appendChild(link);
             }
 
-            function openFontPicker() {
-                fontList.innerHTML = '';
-                googleFonts.forEach(font => {
-                    loadGoogleFont(font);
+            function openFonts() {
+                fList.innerHTML = '';
+                gFonts.forEach(font => {
+                    loadFont(font);
                     const item = document.createElement('div');
                     item.textContent = font;
                     item.style.fontFamily = `'${font}', sans-serif`;
                     item.className = 'p-2 text-lg cursor-pointer hover:bg-gray-100 rounded';
                     item.addEventListener('click', () => {
-                        if (selectedComponent) {
-                            updateComponentProperty(selectedComponent.id, 'fontFamily', font);
+                        if (selComp) {
+                            updateProp(selComp.id, 'fontFamily', font);
                         }
-                        closeFontPicker();
+                        closeFonts();
                     });
-                    fontList.appendChild(item);
+                    fList.appendChild(item);
                 });
-                fontPickerModal.style.display = 'flex';
+                fontModal.style.display = 'flex';
             }
 
-            function closeFontPicker() {
-                fontPickerModal.style.display = 'none';
+            function closeFonts() {
+                fontModal.style.display = 'none';
             }
 
-            closeFontModalBtn.addEventListener('click', closeFontPicker);
-            fontPickerModal.addEventListener('click', (e) => {
-                if (e.target === fontPickerModal) closeFontPicker();
+            closeFontBtn.addEventListener('click', closeFonts);
+            fontModal.addEventListener('click', (e) => {
+                if (e.target === fontModal) closeFonts();
             });
 
-            // --- Default Component Properties ---
-            const getComponentDefaults = (type) => {
+            const getDefs = (type) => {
                 const base = {
-                    text: type,
-                    textColor: '#000000',
-                    fontSize: 14,
-                    fontFamily: 'Inter',
+                    text: type, textColor: '#000000', fontSize: 14, fontFamily: 'Inter',
                 };
-                const placeholderImg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNlNWU3ZWIiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSIjY2FkMWQ4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2U8L3RleHQ+PC9zdmc+';
+                const img = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNlNWU3ZWIiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSIjY2FkMWQ4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2U8L3RleHQ+PC9zdmc+';
 
                 switch (type) {
                     case 'Button': return { ...base, backgroundColor: '#ffffff', cornerRadius: 4 };
@@ -253,105 +274,103 @@
                     case 'Spinner': return { min: 0, max: 100, value: 25 };
                     case 'CardView': return { ...base, backgroundColor: '#ffffff', cornerRadius: 8, elevation: 2 };
                     case 'ToggleButton': return { checked: false, onColor: '#34d399', offColor: '#d1d5db' };
-                    case 'Image': return { src: placeholderImg, cornerRadius: 0, opacity: 1, fit: 'cover' };
+                    case 'Image': return { src: img, cornerRadius: 0, opacity: 1, fit: 'cover' };
                     default: return base;
                 }
             };
 
-            // --- Canvas & Component Core Functions ---
-            resizeCanvasBtn.addEventListener('click', () => {
-                canvas.style.width = `${canvasWidthInput.value}px`;
-                canvas.style.height = `${canvasHeightInput.value}px`;
+            resizeBtn.addEventListener('click', () => {
+                c.style.width = `${cwIn.value}px`;
+                c.style.height = `${chIn.value}px`;
             });
 
-            addComponentBtn.addEventListener('click', () => {
-                const componentType = componentSelect.value;
-                let id = `${componentType.toLowerCase()}_${componentIdCounter++}`;
-                while (components.some(c => c.id === id)) {
-                    id = `${componentType.toLowerCase()}_${componentIdCounter++}`;
+            addBtn.addEventListener('click', () => {
+                const type = sel.value;
+                let id = `${type.toLowerCase()}_${idCount++}`;
+                while (comps.some(o => o.id === id)) {
+                    id = `${type.toLowerCase()}_${idCount++}`;
                 }
                 
-                const componentData = {
-                    id: id, type: componentType, x: 50, y: 50,
+                const data = {
+                    id: id, type: type, x: 50, y: 50,
                     width: 150, height: 40,
-                    properties: getComponentDefaults(componentType)
+                    properties: getDefs(type)
                 };
                 
-                if(componentType === 'Image') componentData.height = 100;
-                if(componentType === 'Slider') componentData.width = 200;
-                if(componentType === 'TextArea') componentData.height = 80;
-                if(componentType === 'Panel' || componentType === 'CardView') { componentData.width = 200; componentData.height = 150; }
-                if(componentType === 'ProgressBar' || componentType === 'Slider') componentData.height = 25;
-                if(componentType === 'ToggleButton') { componentData.width = 60; componentData.height = 32; }
-                if(componentType === 'Label') { componentData.width = 40; componentData.height = 40; }
+                if(type === 'Image') data.height = 100;
+                if(type === 'Slider') data.width = 200;
+                if(type === 'TextArea') data.height = 80;
+                if(type === 'Panel' || type === 'CardView') { data.width = 200; data.height = 150; }
+                if(type === 'ProgressBar' || type === 'Slider') data.height = 25;
+                if(type === 'ToggleButton') { data.width = 60; data.height = 32; }
+                if(type === 'Label') { data.width = 40; data.height = 40; }
 
-
-                components.push(componentData);
-                renderComponent(componentData);
-                selectComponent(id);
+                comps.push(data);
+                render(data);
+                select(id);
             });
 
-            function renderComponent(comp) {
-                let el = document.getElementById(comp.id);
+            function render(o) {
+                let el = document.getElementById(o.id);
                 if (!el) {
                     el = document.createElement('div');
-                    el.id = comp.id;
+                    el.id = o.id;
                     el.className = 'component';
-                    canvas.appendChild(el);
+                    c.appendChild(el);
                     
-                    const resizer = document.createElement('div');
-                    resizer.className = 'resizer';
-                    el.appendChild(resizer);
+                    const r = document.createElement('div');
+                    r.className = 'resizer';
+                    el.appendChild(r);
                     
-                    makeDraggable(el);
-                    makeResizable(el, resizer);
+                    drag(el);
+                    resize(el, r);
 
                     el.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        selectComponent(comp.id);
+                        select(o.id);
                     });
                 }
 
-                el.style.left = `${comp.x}px`;
-                el.style.top = `${comp.y}px`;
-                el.style.width = `${comp.width}px`;
-                el.style.height = `${comp.height}px`;
+                el.style.left = `${o.x}px`;
+                el.style.top = `${o.y}px`;
+                el.style.width = `${o.width}px`;
+                el.style.height = `${o.height}px`;
 
-                el.innerHTML = getComponentHTML(comp) + (el.querySelector('.resizer')?.outerHTML || '<div class="resizer"></div>');
-                makeResizable(el, el.querySelector('.resizer'));
+                el.innerHTML = getHTML(o) + (el.querySelector('.resizer')?.outerHTML || '<div class="resizer"></div>');
+                resize(el, el.querySelector('.resizer'));
 
-                if (selectedComponent && selectedComponent.id === comp.id) {
+                if (selComp && selComp.id === o.id) {
                     el.classList.add('selected');
                 }
             }
 
-            function getComponentHTML(comp) {
-                const p = comp.properties;
-                const baseStyles = `color:${p.textColor}; font-size:${p.fontSize}px; font-family:'${p.fontFamily}', sans-serif;`;
-                let wrapperStyles = `background-color:${p.backgroundColor || 'white'}; border-radius:${p.cornerRadius || 0}px;`;
+            function getHTML(o) {
+                const p = o.properties;
+                const styles = `color:${p.textColor}; font-size:${p.fontSize}px; font-family:'${p.fontFamily}', sans-serif;`;
+                let wStyles = `background-color:${p.backgroundColor || 'white'}; border-radius:${p.cornerRadius || 0}px;`;
                 
-                switch(comp.type) {
+                switch(o.type) {
                     case 'Image':
                         return `<div class="component-render-wrapper" style="padding:0; border:none; background:transparent;">
                                     <img src="${p.src}" style="width:100%; height:100%; object-fit:${p.fit}; border-radius:${p.cornerRadius}px; opacity:${p.opacity};" />
                                 </div>`;
                     case 'Button':
-                        return `<div class="component-render-wrapper" style="${wrapperStyles}"><span style="${baseStyles}">${p.text}</span></div>`;
+                        return `<div class="component-render-wrapper" style="${wStyles}"><span style="${styles}">${p.text}</span></div>`;
                     case 'CardView':
-                         wrapperStyles += ` box-shadow: 0 ${p.elevation*2}px ${p.elevation*3}px rgba(0,0,0,0.1);`;
-                         return `<div class="component-render-wrapper" style="${wrapperStyles}"><span style="${baseStyles}">${p.text}</span></div>`;
+                         wStyles += ` box-shadow: 0 ${p.elevation*2}px ${p.elevation*3}px rgba(0,0,0,0.1);`;
+                         return `<div class="component-render-wrapper" style="${wStyles}"><span style="${styles}">${p.text}</span></div>`;
                     case 'Label':
                         if (p.iconName && p.iconName.trim() !== '') {
-                            const iconStyles = `font-family: 'Material Symbols Outlined'; font-size: ${p.fontSize}px; color:${p.textColor};`;
-                            return `<div class="component-render-wrapper" style="border:none; background:transparent;"><span class="material-symbols-outlined" style="${iconStyles}">${p.iconName}</span></div>`;
+                            const iStyles = `font-family: 'Material Symbols Outlined'; font-size: ${p.fontSize}px; color:${p.textColor};`;
+                            return `<div class="component-render-wrapper" style="border:none; background:transparent;"><span class="material-symbols-outlined" style="${iStyles}">${p.iconName}</span></div>`;
                         }
-                        return `<div class="component-render-wrapper" style="border:none; background:transparent;"><span style="${baseStyles}">${p.text}</span></div>`;
+                        return `<div class="component-render-wrapper" style="border:none; background:transparent;"><span style="${styles}">${p.text}</span></div>`;
                     case 'TextBox':
                     case 'TextArea':
                         const hint = `<span style='color:${p.hintColor}; font-family:"Inter", sans-serif;'>${p.hintText}</span>`;
-                        const align = comp.type === 'TextArea' ? 'align-self: flex-start;' : '';
-                        return `<div class="component-render-wrapper" style="${wrapperStyles}">
-                                    <span style="${baseStyles} width: 100%; text-align: left; ${align}">${p.text || hint}</span>
+                        const align = o.type === 'TextArea' ? 'align-self: flex-start;' : '';
+                        return `<div class="component-render-wrapper" style="${wStyles}">
+                                    <span style="${styles} width: 100%; text-align: left; ${align}">${p.text || hint}</span>
                                 </div>`;
                     case 'Checkbox':
                         return `<div class="component-render-wrapper" style="border:none; background:transparent; justify-content:flex-start;">
@@ -359,14 +378,14 @@
                                         <div style="width:16px; height:16px; border:1px solid #9ca3af; display:flex; align-items:center; justify-content:center; background:${p.checked ? '#3b82f6' : 'white'}">
                                             ${p.checked ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>' : ''}
                                         </div>
-                                        <span style="${baseStyles}">${p.text}</span>
+                                        <span style="${styles}">${p.text}</span>
                                     </div>
                                 </div>`;
                     case 'ProgressBar':
-                        const posClass = { center: 'left:50%; transform:translateX(-50%);', left: 'left:5px;', right: 'right:5px;', none: 'display:none;' }[p.percentagePosition] || '';
+                        const pos = { center: 'left:50%; transform:translateX(-50%);', left: 'left:5px;', right: 'right:5px;', none: 'display:none;' }[p.percentagePosition] || '';
                         return `<div style="width:100%; height:100%; background-color:${p.trackColor}; border-radius: 999px; position:relative; display:flex; align-items:center; overflow:hidden;">
                                     <div style="width:${p.value}%; height:100%; background-color:${p.progressColor}; border-radius: 999px;"></div>
-                                    ${p.showPercentage ? `<span style="${baseStyles} position:absolute; ${posClass}">${p.value}%</span>` : ''}
+                                    ${p.showPercentage ? `<span style="${styles} position:absolute; ${pos}">${p.value}%</span>` : ''}
                                 </div>`;
                     case 'Slider':
                         return `<div class="component-render-wrapper" style="border:none; background:transparent;">
@@ -381,119 +400,119 @@
                                     </div>
                                 </div>`;
                     default:
-                        return `<div class="component-render-wrapper" style="${wrapperStyles}"><span style="${baseStyles}">${p.text}</span></div>`;
+                        return `<div class="component-render-wrapper" style="${wStyles}"><span style="${styles}">${p.text}</span></div>`;
                 }
             }
             
-            deleteComponentBtn.addEventListener('click', () => {
-                if (!selectedComponent) return;
-                document.getElementById(selectedComponent.id)?.remove();
-                components = components.filter(c => c.id !== selectedComponent.id);
-                selectedComponent = null;
-                propertyEditor.classList.add('hidden');
+            delBtn.addEventListener('click', () => {
+                if (!selComp) return;
+                document.getElementById(selComp.id)?.remove();
+                comps = comps.filter(o => o.id !== selComp.id);
+                selComp = null;
+                pe.classList.add('hidden');
             });
 
-            function selectComponent(id) {
-                selectedComponent = components.find(c => c.id === id) || null;
+            function select(id) {
+                selComp = comps.find(o => o.id === id) || null;
                 document.querySelectorAll('.component').forEach(el => el.classList.remove('selected'));
-                if (selectedComponent) {
+                if (selComp) {
                     document.getElementById(id)?.classList.add('selected');
-                    propertyEditor.classList.remove('hidden');
-                    populatePropertyEditor(selectedComponent);
+                    pe.classList.remove('hidden');
+                    popProps(selComp);
                 } else {
-                    propertyEditor.classList.add('hidden');
+                    pe.classList.add('hidden');
                 }
             }
 
-            canvas.addEventListener('click', () => selectComponent(null));
+            c.addEventListener('click', () => select(null));
 
-            function populatePropertyEditor(component) {
-                propertiesForm.innerHTML = '';
-                const addField = (parent, type, label, value, key, options = {}) => {
+            function popProps(o) {
+                pf.innerHTML = '';
+                const add = (parent, type, label, val, key, opts = {}) => {
                     const div = document.createElement('div');
-                    const labelEl = document.createElement('label');
-                    labelEl.className = 'block text-sm font-medium text-gray-700';
-                    labelEl.textContent = label;
+                    const l = document.createElement('label');
+                    l.className = 'block text-sm font-medium text-gray-700';
+                    l.textContent = label;
                     
-                    let input;
+                    let i;
                     if (type === 'file-button' || type === 'font-button') {
                         if (type === 'font-button') {
                             const btn = document.createElement('button');
                             btn.type = 'button';
                             btn.textContent = label;
                             btn.className = 'w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer';
-                            btn.addEventListener('click', openFontPicker);
+                            btn.addEventListener('click', openFonts);
                             div.appendChild(btn);
-                        } else { // file-button
-                            labelEl.htmlFor = `file-input-${component.id}`;
-                            labelEl.className += ' w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer';
-                            input = document.createElement('input');
-                            input.type = 'file';
-                            input.id = `file-input-${component.id}`;
-                            input.className = 'hidden';
-                            input.accept = 'image/*';
-                            input.addEventListener('change', (e) => {
+                        } else {
+                            l.htmlFor = `file-input-${o.id}`;
+                            l.className += ' w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer';
+                            i = document.createElement('input');
+                            i.type = 'file';
+                            i.id = `file-input-${o.id}`;
+                            i.className = 'hidden';
+                            i.accept = 'image/*';
+                            i.addEventListener('change', (e) => {
                                 const file = e.target.files[0];
                                 if (!file) return;
                                 const reader = new FileReader();
-                                reader.onload = (readEvent) => {
-                                    updateComponentProperty(component.id, 'src', readEvent.target.result);
+                                reader.onload = (re) => {
+                                    updateProp(o.id, 'src', re.target.result);
                                 };
                                 reader.readAsDataURL(file);
                             });
-                            div.appendChild(labelEl);
-                            div.appendChild(input);
+                            div.appendChild(l);
+                            div.appendChild(i);
                         }
                     } else {
-                       div.appendChild(labelEl);
+                       div.appendChild(l);
                         if (type === 'textarea') {
-                            input = document.createElement('textarea');
-                            input.rows = 3;
+                            i = document.createElement('textarea');
+                            i.rows = 3;
                         } else if (type === 'select') {
-                            input = document.createElement('select');
-                            options.choices.forEach(c => {
+                            i = document.createElement('select');
+                            opts.choices.forEach(c => {
                                 const opt = document.createElement('option');
                                 opt.value = c;
                                 opt.textContent = c.charAt(0).toUpperCase() + c.slice(1);
-                                input.appendChild(opt);
+                                i.appendChild(opt);
                             });
                         } else {
-                            input = document.createElement('input');
-                            input.type = type;
-                            if (options.step) input.step = options.step;
-                            if (options.min) input.min = options.min;
-                            if (options.max) input.max = options.max;
+                            i = document.createElement('input');
+                            i.type = type;
+                            if (opts.step) i.step = opts.step;
+                            if (opts.min) i.min = opts.min;
+                            if (opts.max) i.max = opts.max;
                         }
 
-                        input.value = value;
-                        input.dataset.key = key;
-                        input.className = 'mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500';
-                        if (type === 'color') input.className += ' h-10';
+                        i.value = val;
+                        i.dataset.key = key;
+                        i.className = 'mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500';
+                        if (type === 'color') i.className += ' h-10';
                         if (type === 'checkbox') {
-                           input.checked = value;
-                           input.className = 'h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500';
+                           i.checked = val;
+                           i.className = 'h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500';
                            div.className = 'flex items-center gap-x-2';
-                           div.insertBefore(input, labelEl);
+                           div.insertBefore(i, l);
                         }
 
-                        input.addEventListener(type === 'checkbox' ? 'change' : 'input', (e) => {
-                            const originalId = component.id;
-                            const val = type === 'checkbox' ? e.target.checked : e.target.value;
-                            updateComponentProperty(originalId, key, val, e.target);
+                        i.addEventListener(type === 'checkbox' ? 'change' : 'input', (e) => {
+                            const id = o.id;
+                            const v = type === 'checkbox' ? e.target.checked : e.target.value;
+                            updateProp(id, key, v, e.target);
                         });
-                        div.appendChild(input);
+                        div.appendChild(i);
                     }
                     parent.appendChild(div);
                 };
 
-                addField(propertiesForm, 'text', 'ID', component.id, 'id');
+                add(pf, 'text', 'ID', o.id, 'id');
 
-                const p = component.properties;
-                if (component.type === 'Image') {
-                    addField(propertiesForm, 'file-button', 'Upload Image', null, 'src');
-                    addField(propertiesForm, 'number', 'Corner Radius (px)', p.cornerRadius, 'cornerRadius', {min: 0});
-                    addField(propertiesForm, 'range', `Opacity (${p.opacity})`, p.opacity, 'opacity', {min: 0, max: 1, step: 0.1});
-                    addField(propertiesForm, 'select', 'Image Fit', p.fit, 'fit', { choices: ['fill', 'contain', 'cover', 'none', 'scale-down'] });
+                const p = o.properties;
+                if (o.type === 'Image') {
+                    add(pf, 'file-button', 'Upload Image', null, 'src');
+                    add(pf, 'number', 'Corner Radius (px)', p.cornerRadius, 'cornerRadius', {min: 0});
+                    add(pf, 'range', `Opacity (${p.opacity})`, p.opacity, 'opacity', {min: 0, max: 1, step: 0.1});
+                    add(pf, 'select', 'Image Fit', p.fit, 'fit', { choices: ['fill', 'contain', 'cover', 'none', 'scale-down'] });
                 } else {
                     for (const key in p) {
                         const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
@@ -504,192 +523,308 @@
                         else if (key === 'options') type = 'textarea';
                         
                         if (key === 'fontFamily') {
-                             if(component.type === 'Label' && p.iconName) {
-                                // Don't show font picker if label is an icon
-                             } else {
-                                addField(propertiesForm, 'font-button', `Font: ${p[key]}`, p[key], key);
+                             if(o.type === 'Label' && p.iconName) {} 
+                             else {
+                                add(pf, 'font-button', `Font: ${p[key]}`, p[key], key);
                              }
-                        } else if (component.type === 'ProgressBar' && key === 'percentagePosition') {
-                             addField(propertiesForm, 'select', label, p[key], key, { choices: ['center', 'left', 'right', 'none'] });
+                        } else if (o.type === 'ProgressBar' && key === 'percentagePosition') {
+                             add(pf, 'select', label, p[key], key, { choices: ['center', 'left', 'right', 'none'] });
                         } else {
-                             addField(propertiesForm, type, label, p[key], key);
+                             add(pf, type, label, p[key], key);
                         }
                     }
                 }
             }
 
-            function updateComponentProperty(id, key, value, targetElement) {
-                const component = components.find(c => c.id === id);
-                if (!component) return;
+            function updateProp(id, key, val, el) {
+                const o = comps.find(c => c.id === id);
+                if (!o) return;
                 
                 if (key === 'id') {
-                    const isDuplicate = components.some(c => c.id === value && c.id !== id);
-                    if (isDuplicate || value.trim() === '') {
-                        if(targetElement) targetElement.classList.add('id-error');
+                    const isDup = comps.some(c => c.id === val && c.id !== id);
+                    if (isDup || val.trim() === '') {
+                        if(el) el.classList.add('id-error');
                         return;
                     }
-                    if(targetElement) targetElement.classList.remove('id-error');
+                    if(el) el.classList.remove('id-error');
                     
-                    document.getElementById(id).id = value;
-                    component.id = value;
-                    if(selectedComponent.id === id) selectedComponent.id = value;
+                    document.getElementById(id).id = val;
+                    o.id = val;
+                    if(selComp.id === id) selComp.id = val;
                     return;
                 }
 
                 if (key === 'fontFamily') {
-                    loadGoogleFont(value);
+                    loadFont(val);
                 }
 
-                if (typeof component.properties[key] === 'number') {
-                    value = parseFloat(value) || 0;
+                if (typeof o.properties[key] === 'number') {
+                    val = parseFloat(val) || 0;
                 }
-                component.properties[key] = value;
-                renderComponent(component);
+                o.properties[key] = val;
+                render(o);
                 
-                if ((key === 'fontFamily' || (component.type === 'Label' && key === 'iconName')) && selectedComponent && selectedComponent.id === id) {
-                    populatePropertyEditor(component);
+                if ((key === 'fontFamily' || (o.type === 'Label' && key === 'iconName')) && selComp && selComp.id === id) {
+                    popProps(o);
                 }
 
-                if (targetElement && targetElement.type === 'range') {
-                    const label = targetElement.closest('div').querySelector('label');
-                    if (label) {
-                        label.textContent = `${label.textContent.split('(')[0].trim()} (${value})`;
+                if (el && el.type === 'range') {
+                    const l = el.closest('div').querySelector('label');
+                    if (l) {
+                        l.textContent = `${l.textContent.split('(')[0].trim()} (${val})`;
                     }
                 }
             }
 
-            // --- Drag, Drop, and Resize ---
-            function makeDraggable(element) {
-                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-                element.onmousedown = dragMouseDown;
-
-                function dragMouseDown(e) {
+            function drag(el) {
+                let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
+                el.onmousedown = e => {
                     if (e.target.classList.contains('resizer')) return;
                     e.preventDefault();
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    document.onmouseup = closeDragElement;
-                    document.onmousemove = elementDrag;
-                }
+                    p3 = e.clientX;
+                    p4 = e.clientY;
+                    document.onmouseup = () => {
+                        document.onmouseup = null;
+                        document.onmousemove = null;
+                        const o = comps.find(c => c.id === el.id);
+                        if (o) {
+                            o.x = el.offsetLeft;
+                            o.y = el.offsetTop;
+                        }
+                    };
+                    document.onmousemove = me => {
+                        me.preventDefault();
+                        p1 = p3 - me.clientX;
+                        p2 = p4 - me.clientY;
+                        p3 = me.clientX;
+                        p4 = me.clientY;
+                        
+                        let top = el.offsetTop - p2;
+                        let left = el.offsetLeft - p1;
 
-                function elementDrag(e) {
-                    e.preventDefault();
-                    pos1 = pos3 - e.clientX;
-                    pos2 = pos4 - e.clientY;
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    
-                    let newTop = element.offsetTop - pos2;
-                    let newLeft = element.offsetLeft - pos1;
+                        if (left < 0) left = 0;
+                        if (top < 0) top = 0;
+                        if (left + el.offsetWidth > c.offsetWidth) left = c.offsetWidth - el.offsetWidth;
+                        if (top + el.offsetHeight > c.offsetHeight) top = c.offsetHeight - el.offsetHeight;
 
-                    if (newLeft < 0) newLeft = 0;
-                    if (newTop < 0) newTop = 0;
-                    if (newLeft + element.offsetWidth > canvas.offsetWidth) newLeft = canvas.offsetWidth - element.offsetWidth;
-                    if (newTop + element.offsetHeight > canvas.offsetHeight) newTop = canvas.offsetHeight - element.offsetHeight;
-
-                    element.style.top = `${newTop}px`;
-                    element.style.left = `${newLeft}px`;
-                }
-
-                function closeDragElement() {
-                    document.onmouseup = null;
-                    document.onmousemove = null;
-                    const component = components.find(c => c.id === element.id);
-                    if (component) {
-                        component.x = element.offsetLeft;
-                        component.y = element.offsetTop;
-                    }
-                }
-            }
-
-            function makeResizable(element, resizer) {
-                if (!resizer) return;
-                resizer.addEventListener('mousedown', initResize, false);
-
-                function initResize(e) {
-                    e.stopPropagation();
-                    window.addEventListener('mousemove', resize, false);
-                    window.addEventListener('mouseup', stopResize, false);
-                }
-
-                function resize(e) {
-                    let newWidth = (e.clientX - element.getBoundingClientRect().left);
-                    let newHeight = (e.clientY - element.getBoundingClientRect().top);
-                    if (newWidth < 20) newWidth = 20;
-                    if (newHeight < 20) newHeight = 20;
-                    element.style.width = `${newWidth}px`;
-                    element.style.height = `${newHeight}px`;
-                }
-
-                function stopResize() {
-                    window.removeEventListener('mousemove', resize, false);
-                    window.removeEventListener('mouseup', stopResize, false);
-                    const component = components.find(c => c.id === element.id);
-                    if (component) {
-                        component.width = element.offsetWidth;
-                        component.height = element.offsetHeight;
-                    }
-                }
-            }
-
-            // --- Save/Load JSON ---
-            saveJsonBtn.addEventListener('click', () => {
-                const layout = {
-                    canvas: { width: canvas.offsetWidth, height: canvas.offsetHeight },
-                    components: components
+                        el.style.top = `${top}px`;
+                        el.style.left = `${left}px`;
+                    };
                 };
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(layout, null, 2));
+            }
+
+            function resize(el, r) {
+                if (!r) return;
+                r.addEventListener('mousedown', e => {
+                    e.stopPropagation();
+                    window.addEventListener('mousemove', move);
+                    window.addEventListener('mouseup', stop);
+                });
+
+                function move(e) {
+                    let w = (e.clientX - el.getBoundingClientRect().left);
+                    let h = (e.clientY - el.getBoundingClientRect().top);
+                    if (w < 20) w = 20;
+                    if (h < 20) h = 20;
+                    el.style.width = `${w}px`;
+                    el.style.height = `${h}px`;
+                }
+
+                function stop() {
+                    window.removeEventListener('mousemove', move);
+                    window.removeEventListener('mouseup', stop);
+                    const o = comps.find(c => c.id === el.id);
+                    if (o) {
+                        o.width = el.offsetWidth;
+                        o.height = el.offsetHeight;
+                    }
+                }
+            }
+
+            function openPreview() {
+                pCanvas.innerHTML = '';
+                pCanvas.style.width = c.style.width;
+                pCanvas.style.height = c.style.height;
+
+                comps.forEach(o => {
+                    const p = o.properties;
+                    const wrap = document.createElement('div');
+                    wrap.className = 'preview-component';
+                    wrap.style.left = `${o.x}px`;
+                    wrap.style.top = `${o.y}px`;
+                    wrap.style.width = `${o.width}px`;
+                    wrap.style.height = `${o.height}px`;
+
+                    let el;
+                    switch(o.type) {
+                        case 'Button':
+                            el = document.createElement('button');
+                            el.textContent = p.text;
+                            el.className = 'preview-button';
+                            el.style.transition = 'transform 0.1s ease, filter 0.1s ease';
+                            el.style.backgroundColor = p.backgroundColor;
+                            el.style.color = p.textColor;
+                            el.style.fontSize = `${p.fontSize}px`;
+                            el.style.fontFamily = `'${p.fontFamily}', sans-serif`;
+                            el.style.borderRadius = `${p.cornerRadius}px`;
+                            el.style.border = '1px solid #9ca3af';
+                            break;
+                        case 'TextBox':
+                            el = document.createElement('input');
+                            el.type = 'text';
+                            el.placeholder = p.hintText;
+                            el.value = p.text;
+                            el.style.color = p.textColor;
+                            el.style.backgroundColor = p.backgroundColor;
+                            el.style.fontSize = `${p.fontSize}px`;
+                            el.style.fontFamily = `'${p.fontFamily}', sans-serif`;
+                            break;
+                        case 'TextArea':
+                             el = document.createElement('textarea');
+                             el.placeholder = p.hintText;
+                             el.value = p.text;
+                             el.style.color = p.textColor;
+                             el.style.backgroundColor = p.backgroundColor;
+                             el.style.fontSize = `${p.fontSize}px`;
+                             el.style.fontFamily = `'${p.fontFamily}', sans-serif`;
+                             break;
+                        case 'Checkbox':
+                            el = document.createElement('div');
+                            el.className = 'flex items-center gap-2';
+                            const check = document.createElement('input');
+                            check.type = 'checkbox';
+                            check.checked = p.checked;
+                            const label = document.createElement('label');
+                            label.textContent = p.text;
+                            label.style.color = p.textColor;
+                            label.style.fontSize = `${p.fontSize}px`;
+                            label.style.fontFamily = `'${p.fontFamily}', sans-serif`;
+                            el.append(check, label);
+                            break;
+                        case 'Slider':
+                            el = document.createElement('input');
+                            el.type = 'range';
+                            el.min = p.min;
+                            el.max = p.max;
+                            el.value = p.value;
+                            break;
+                         case 'Dropdown':
+                            el = document.createElement('select');
+                            const opts = p.options.split('\n');
+                            opts.forEach(opt => {
+                                const optEl = document.createElement('option');
+                                optEl.value = opt;
+                                optEl.textContent = opt;
+                                el.appendChild(optEl);
+                            });
+                             el.style.backgroundColor = p.backgroundColor;
+                             el.style.color = p.textColor;
+                             el.style.fontSize = `${p.fontSize}px`;
+                             el.style.fontFamily = `'${p.fontFamily}', sans-serif`;
+                            break;
+                        default:
+                            el = document.createElement('div');
+                            el.innerHTML = getHTML(o);
+                            const iEl = el.firstElementChild;
+                            iEl.style.width = '100%';
+                            iEl.style.height = '100%';
+                            el = iEl;
+                    }
+                    
+                    if (el) {
+                        wrap.appendChild(el);
+                        pCanvas.appendChild(wrap);
+                    }
+                });
+
+                pModal.style.display = 'flex';
+            }
+
+            function closePreview() {
+                pModal.style.display = 'none';
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+            }
+
+            function toggleFull() {
+                if (!document.fullscreenElement) {
+                    pContent.requestFullscreen().catch(err => {
+                        alert(`Error: ${err.message}`);
+                    });
+                     fullPBtn.textContent = 'Exit Full Screen';
+                } else {
+                    document.exitFullscreen();
+                     fullPBtn.textContent = 'Full Screen';
+                }
+            }
+            
+            pBtn.addEventListener('click', openPreview);
+            closePBtn.addEventListener('click', closePreview);
+            fullPBtn.addEventListener('click', toggleFull);
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement) {
+                    fullPBtn.textContent = 'Full Screen';
+                }
+            });
+
+            saveBtn.addEventListener('click', () => {
+                const layout = {
+                    canvas: { width: c.offsetWidth, height: c.offsetHeight },
+                    components: comps
+                };
+                const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(layout, null, 2));
                 const a = document.createElement('a');
-                a.href = dataStr;
+                a.href = data;
                 a.download = "layout.json";
                 a.click();
             });
 
-            loadJsonInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
+            loadIn.addEventListener('change', (e) => {
+                const file = e.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = (re) => {
                     try {
-                        const layout = JSON.parse(e.target.result);
-                        loadLayout(layout);
+                        const layout = JSON.parse(re.target.result);
+                        load(layout);
                     } catch (error) {
                         alert("Invalid JSON file.");
                     }
                 };
                 reader.readAsText(file);
-                event.target.value = '';
+                e.target.value = '';
             });
 
-            function loadLayout(layout) {
-                canvas.style.width = `${layout.canvas.width}px`;
-                canvas.style.height = `${layout.canvas.height}px`;
-                canvasWidthInput.value = layout.canvas.width;
-                canvasHeightInput.value = layout.canvas.height;
+            function load(layout) {
+                c.style.width = `${layout.canvas.width}px`;
+                c.style.height = `${layout.canvas.height}px`;
+                cwIn.value = layout.canvas.width;
+                chIn.value = layout.canvas.height;
                 
-                canvas.innerHTML = '';
-                components = layout.components;
+                c.innerHTML = '';
+                comps = layout.components;
 
-                const idSet = new Set();
-                const duplicateIds = new Set();
-                components.forEach(c => {
-                    if (idSet.has(c.id)) {
-                        duplicateIds.add(c.id);
+                const ids = new Set();
+                const dups = new Set();
+                comps.forEach(o => {
+                    if (ids.has(o.id)) {
+                        dups.add(o.id);
                     }
-                    idSet.add(c.id);
-                    if (c.properties.fontFamily && c.properties.fontFamily !== 'Inter') {
-                        loadGoogleFont(c.properties.fontFamily);
+                    ids.add(o.id);
+                    if (o.properties.fontFamily && o.properties.fontFamily !== 'Inter') {
+                        loadFont(o.properties.fontFamily);
                     }
                 });
 
-                if (duplicateIds.size > 0) {
-                    alert(`Warning: Duplicate IDs found in JSON file: ${Array.from(duplicateIds).join(', ')}. Please correct them.`);
+                if (dups.size > 0) {
+                    alert(`Warning: Duplicate IDs found: ${Array.from(dups).join(', ')}.`);
                 }
                 
-                componentIdCounter = components.length ? Math.max(0, ...components.map(c => parseInt(c.id.split('_').pop()) || 0).filter(Number.isFinite)) + 1 : 0;
+                idCount = comps.length ? Math.max(0, ...comps.map(o => parseInt(o.id.split('_').pop()) || 0).filter(Number.isFinite)) + 1 : 0;
                 
-                components.forEach(comp => renderComponent(comp));
-                selectComponent(null);
+                comps.forEach(o => render(o));
+                select(null);
             }
         });
     </script>
