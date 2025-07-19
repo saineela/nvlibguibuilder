@@ -276,7 +276,7 @@
                     case 'Checkbox': return { text: 'Checkbox', checked: false, checkedColor: '#3b82f6', ...base };
                     case 'RadioButton': return { text: 'Option 1', value: 'option1', group: 'group1', checked: false, checkedColor: '#3b82f6', ...base };
                     case 'Dropdown': return { text: 'Dropdown', options: 'Option 1\nOption 2', backgroundColor: '#ffffff', selectionColor: '#dbeafe', ...base };
-                    case 'Slider': return { min: 0, max: 100, value: 50 };
+                    case 'Slider': return { min: 0, max: 100, value: 50, progressColor: '#3b82f6', buttonColor: '#3b82f6' };
                     case 'Panel': return { backgroundColor: '#f3f4f6' };
                     case 'ProgressBar': return { value: 50, progressColor: '#3b82f6', trackColor: '#e5e7eb', showPercentage: true, percentagePosition: 'center', ...base };
                     case 'Spinner': return { min: 0, max: 100, value: 25, ...base };
@@ -401,9 +401,11 @@
                                     ${p.showPercentage ? `<span style="${baseStyles} position:absolute; ${posClass}">${p.value}%</span>` : ''}
                                 </div>`;
                     case 'Slider':
+                        const sliderPercent = (p.value - p.min) / (p.max - p.min) * 100;
                         return `<div class="component-render-wrapper" style="border:none; background:transparent;">
                                     <div style="width:100%; height:6px; background:#e5e7eb; border-radius:3px; position:relative;">
-                                        <div style="position:absolute; left:${(p.value - p.min) / (p.max - p.min) * 100}%; transform:translateX(-50%); top:-6px; width:18px; height:18px; background:#3b82f6; border-radius:50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></div>
+                                        <div style="position:absolute; left:0; top:0; height:100%; width:${sliderPercent}%; background:${p.progressColor}; border-radius:3px;"></div>
+                                        <div style="position:absolute; left:${sliderPercent}%; transform:translateX(-50%); top:-6px; width:18px; height:18px; background:${p.buttonColor}; border-radius:50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></div>
                                     </div>
                                 </div>`;
                     case 'ToggleButton':
@@ -734,6 +736,23 @@
                             el.min = p.min;
                             el.max = p.max;
                             el.value = p.value;
+                            el.className = `preview-slider-${comp.id}`;
+                            el.style.height = '6px'; // Fix for vertical alignment
+                            el.style.margin = 'auto 0'; // Center vertically
+
+                            const updateSliderStyle = (target) => {
+                                const newPercent = ((target.value - p.min) / (p.max - p.min)) * 100;
+                                target.style.background = `linear-gradient(to right, ${p.progressColor} 0%, ${p.progressColor} ${newPercent}%, #e5e7eb ${newPercent}%, #e5e7eb 100%)`;
+                            };
+                            
+                            dynamicStyles.innerHTML += `
+                                .preview-slider-${comp.id} { -webkit-appearance: none; appearance: none; width: 100%; border-radius: 3px; outline: none; }
+                                .preview-slider-${comp.id}::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: ${p.buttonColor}; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+                                .preview-slider-${comp.id}::-moz-range-thumb { width: 18px; height: 18px; background: ${p.buttonColor}; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+                            `;
+                            
+                            el.addEventListener('input', (e) => updateSliderStyle(e.target));
+                            setTimeout(() => updateSliderStyle(el), 0);
                             break;
                          case 'Dropdown':
                             el = document.createElement('select');
