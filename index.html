@@ -121,7 +121,7 @@
                             <option>TextBox</option>
                             <option>TextArea</option>
                             <option>Checkbox</option>
-                            <option>RadioButton</option>
+                            <option>RadioGroup</option>
                             <option>Dropdown</option>
                             <option>Slider</option>
                             <option>Panel</option>
@@ -274,12 +274,12 @@
                     case 'TextBox': return { text: '', hintText: 'Enter text...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
                     case 'TextArea': return { text: '', hintText: 'Enter text...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
                     case 'Checkbox': return { text: 'Checkbox', checked: false, checkedColor: '#3b82f6', ...base };
-                    case 'RadioButton': return { text: 'Option 1', value: 'option1', group: 'group1', checked: false, checkedColor: '#3b82f6', ...base };
+                    case 'RadioGroup': return { label: 'Select an Option', options: 'Option 1\nOption 2', checkedValue: 'Option 1', checkedColor: '#3b82f6', ...base };
                     case 'Dropdown': return { text: 'Dropdown', options: 'Option 1\nOption 2', backgroundColor: '#ffffff', selectionColor: '#dbeafe', ...base };
                     case 'Slider': return { min: 0, max: 100, value: 50, progressColor: '#3b82f6', buttonColor: '#3b82f6' };
                     case 'Panel': return { backgroundColor: '#f3f4f6' };
                     case 'ProgressBar': return { value: 50, progressColor: '#3b82f6', trackColor: '#e5e7eb', showPercentage: true, percentagePosition: 'center', ...base };
-                    case 'Spinner': return { min: 0, max: 100, value: 25, ...base };
+                    case 'Spinner': return { min: 0, max: 100, value: 25, backgroundColor: '#ffffff', ...base };
                     case 'CardView': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 8, elevation: 2 };
                     case 'ToggleButton': return { checked: false, onColor: '#34d399', offColor: '#d1d5db' };
                     case 'Image': return { src: placeholderImg, cornerRadius: 0, opacity: 1, fit: 'cover' };
@@ -305,7 +305,7 @@
                     properties: getComponentDefaults(componentType)
                 };
                 
-                if(componentType === 'Image') componentData.height = 100;
+                if(componentType === 'Image' || componentType === 'RadioGroup') componentData.height = 100;
                 if(componentType === 'Slider') componentData.width = 200;
                 if(componentType === 'TextArea') componentData.height = 80;
                 if(componentType === 'Panel' || componentType === 'CardView') { componentData.width = 200; componentData.height = 150; }
@@ -383,17 +383,27 @@
                                     <span style="${baseStyles} width: 100%; text-align: left; ${align}">${p.text || hint}</span>
                                 </div>`;
                     case 'Checkbox':
-                    case 'RadioButton':
-                        const type = comp.type.toLowerCase();
                         return `<div class="component-render-wrapper" style="border:none; background:transparent; justify-content:flex-start;">
                                     <div style="display:flex; align-items:center; gap:8px;">
-                                        <div style="width:16px; height:16px; border:1px solid #9ca3af; display:flex; align-items:center; justify-content:center; background:${p.checked ? p.checkedColor : 'white'}; border-radius:${type === 'radiobutton' ? '50%' : '2px'}">
-                                            ${p.checked && type === 'checkbox' ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>' : ''}
-                                            ${p.checked && type === 'radiobutton' ? `<div style="width:8px; height:8px; background:white; border-radius:50%;"></div>` : ''}
+                                        <div style="width:16px; height:16px; border:1px solid #9ca3af; display:flex; align-items:center; justify-content:center; background:${p.checked ? p.checkedColor : 'white'}; border-radius: 2px">
+                                            ${p.checked ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>' : ''}
                                         </div>
                                         <span style="${baseStyles}">${p.text}</span>
                                     </div>
                                 </div>`;
+                    case 'RadioGroup':
+                        let radioHTML = `<div style="${baseStyles} margin-bottom: 8px;">${p.label}</div>`;
+                        const options = p.options.split('\n');
+                        options.forEach(opt => {
+                            const isChecked = opt === p.checkedValue;
+                            radioHTML += `<div style="display:flex; align-items:center; gap:8px; margin-bottom: 4px;">
+                                            <div style="width:16px; height:16px; border:1px solid #9ca3af; display:flex; align-items:center; justify-content:center; background:${isChecked ? p.checkedColor : 'white'}; border-radius:50%">
+                                                ${isChecked ? `<div style="width:8px; height:8px; background:white; border-radius:50%;"></div>` : ''}
+                                            </div>
+                                            <span style="${baseStyles}">${opt}</span>
+                                        </div>`;
+                        });
+                        return `<div class="component-render-wrapper" style="border:none; background:transparent; flex-direction: column; align-items: flex-start;">${radioHTML}</div>`;
                     case 'ProgressBar':
                         const posClass = { center: 'left:50%; transform:translateX(-50%);', left: 'left:5px;', right: 'right:5px;', none: 'display:none;' }[p.percentagePosition] || '';
                         return `<div style="width:100%; height:100%; background-color:${p.trackColor}; border-radius: 999px; position:relative; display:flex; align-items:center; overflow:hidden;">
@@ -415,10 +425,10 @@
                                     </div>
                                 </div>`;
                     case 'Spinner':
-                        return `<div class="component-render-wrapper" style="justify-content:space-between; padding:0;">
-                                    <button class="h-full px-2 text-lg">-</button>
+                        return `<div class="component-render-wrapper" style="background-color:${p.backgroundColor}; justify-content:space-between; padding:0;">
+                                    <button class="h-full px-2" style="font-size:${p.fontSize}px; color:${p.textColor};">-</button>
                                     <span style="${baseStyles}">${p.value}</span>
-                                    <button class="h-full px-2 text-lg">+</button>
+                                    <button class="h-full px-2" style="font-size:${p.fontSize}px; color:${p.textColor};">+</button>
                                 </div>`;
                     default:
                         return `<div class="component-render-wrapper" style="${wrapperStyles}"><span style="${baseStyles}">${p.text}</span></div>`;
@@ -716,19 +726,45 @@
                              el.style.fontFamily = `'${p.fontFamily}', sans-serif`;
                              break;
                         case 'Checkbox':
-                        case 'RadioButton':
                             el = document.createElement('div');
                             el.className = 'flex items-center justify-start gap-2';
                             const input = document.createElement('input');
-                            input.type = comp.type.toLowerCase() === 'radiobutton' ? 'radio' : 'checkbox';
+                            input.type = 'checkbox';
                             input.checked = p.checked;
-                            input.name = p.group; // Group radio buttons
                             const label = document.createElement('label');
                             label.textContent = p.text;
                             label.style.color = p.textColor;
                             label.style.fontSize = `${p.fontSize}px`;
                             label.style.fontFamily = `'${p.fontFamily}', sans-serif`;
                             el.append(input, label);
+                            break;
+                        case 'RadioGroup':
+                            el = document.createElement('div');
+                            el.className = 'flex flex-col items-start justify-center gap-2';
+                            const groupLabel = document.createElement('label');
+                            groupLabel.textContent = p.label;
+                            groupLabel.style.color = p.textColor;
+                            groupLabel.style.fontSize = `${p.fontSize}px`;
+                            groupLabel.style.fontFamily = `'${p.fontFamily}', sans-serif`;
+                            groupLabel.style.marginBottom = '4px';
+                            el.appendChild(groupLabel);
+                            p.options.split('\n').forEach(opt => {
+                                const optionWrapper = document.createElement('div');
+                                optionWrapper.className = 'flex items-center gap-2';
+                                const radioInput = document.createElement('input');
+                                radioInput.type = 'radio';
+                                radioInput.name = comp.id;
+                                radioInput.value = opt;
+                                radioInput.checked = opt === p.checkedValue;
+                                const optionLabel = document.createElement('label');
+                                optionLabel.textContent = opt;
+                                optionLabel.style.color = p.textColor;
+                                optionLabel.style.fontSize = `${p.fontSize}px`;
+                                optionLabel.style.fontFamily = `'${p.fontFamily}', sans-serif`;
+                                optionLabel.style.whiteSpace = 'nowrap';
+                                optionWrapper.append(radioInput, optionLabel);
+                                el.appendChild(optionWrapper);
+                            });
                             break;
                         case 'Slider':
                             el = document.createElement('input');
@@ -793,7 +829,9 @@
                             el.style.backgroundColor = p.backgroundColor || 'white';
                             const minusBtn = document.createElement('button');
                             minusBtn.textContent = '-';
-                            minusBtn.className = 'px-2 text-lg';
+                            minusBtn.className = 'px-2';
+                            minusBtn.style.fontSize = `${p.fontSize}px`;
+                            minusBtn.style.color = p.textColor;
                             const valueSpan = document.createElement('span');
                             valueSpan.textContent = p.value;
                             valueSpan.style.color = p.textColor;
@@ -801,7 +839,9 @@
                             valueSpan.style.fontFamily = `'${p.fontFamily}', sans-serif`;
                             const plusBtn = document.createElement('button');
                             plusBtn.textContent = '+';
-                            plusBtn.className = 'px-2 text-lg';
+                            plusBtn.className = 'px-2';
+                            plusBtn.style.fontSize = `${p.fontSize}px`;
+                            plusBtn.style.color = p.textColor;
                             
                             minusBtn.addEventListener('click', () => {
                                 let val = parseInt(valueSpan.textContent);
