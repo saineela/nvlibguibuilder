@@ -278,7 +278,7 @@
                     case 'Dropdown': return { text: 'Dropdown', options: 'Option 1\nOption 2', backgroundColor: '#ffffff', selectionColor: '#dbeafe', ...base };
                     case 'Slider': return { min: 0, max: 100, value: 50, progressColor: '#3b82f6', buttonColor: '#3b82f6' };
                     case 'Panel': return { backgroundColor: '#f3f4f6' };
-                    case 'ProgressBar': return { value: 50, progressColor: '#3b82f6', trackColor: '#e5e7eb', showPercentage: true, percentagePosition: 'center', ...base };
+                    case 'ProgressBar': return { value: 50, progressColor: '#3b82f6', trackColor: '#e5e7eb', ...base };
                     case 'Spinner': return { min: 0, max: 100, value: 25, backgroundColor: '#ffffff', ...base };
                     case 'CardView': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 8, elevation: 2 };
                     case 'ToggleButton': return { checked: false, onColor: '#34d399', offColor: '#d1d5db' };
@@ -405,10 +405,8 @@
                         });
                         return `<div class="component-render-wrapper" style="border:none; background:transparent; flex-direction: column; align-items: flex-start;">${radioHTML}</div>`;
                     case 'ProgressBar':
-                        const posClass = { center: 'left:50%; transform:translateX(-50%);', left: 'left:5px;', right: 'right:5px;', none: 'display:none;' }[p.percentagePosition] || '';
                         return `<div style="width:100%; height:100%; background-color:${p.trackColor}; border-radius: 999px; position:relative; display:flex; align-items:center; overflow:hidden;">
                                     <div style="width:${p.value}%; height:100%; background-color:${p.progressColor}; border-radius: 999px;"></div>
-                                    ${p.showPercentage ? `<span style="${baseStyles} position:absolute; ${posClass}">${p.value}%</span>` : ''}
                                 </div>`;
                     case 'Slider':
                         const sliderPercent = (p.value - p.min) / (p.max - p.min) * 100;
