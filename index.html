@@ -139,12 +139,9 @@
                     <p class="text-sm text-gray-600 mt-2">
                         1. Select a component and click "Add Component".<br>
                         2. Drag components to position them.<br>
-                        3. Click a component to edit its specific properties.<br>
-                        4. Use the handle to resize components.<br>
-                        5. Save your layout to a JSON file.<br>
-                        6. Create you project in VSCode.<br>
-                        7. Read the Readme file in github.com/saineela/NVLib and integrate it with you code.<br>
-                        8. BOOM!! You're Done!.<br>
+                        3. Click a component to edit its properties.<br>
+                        4. Right-click for layering options.<br>
+                        5. Save your layout to a JSON file.
                     </p>
                 </div>
             </aside>
@@ -162,6 +159,16 @@
             </aside>
         </div>
     </div>
+    
+    <!-- Custom Context Menu -->
+    <div id="context-menu" class="hidden absolute bg-white shadow-lg rounded-md py-1 z-50">
+        <a href="#" data-action="bring-forward" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bring Forward</a>
+        <a href="#" data-action="send-backward" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send Backward</a>
+        <div class="border-t my-1"></div>
+        <a href="#" data-action="bring-to-front" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bring to Front</a>
+        <a href="#" data-action="send-to-back" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send to Back</a>
+    </div>
+
 
     <!-- Font Picker Modal -->
     <div id="font-picker-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
@@ -212,10 +219,12 @@
             const previewContent = document.getElementById('preview-content');
             const closePreviewBtn = document.getElementById('close-preview-btn');
             const fullscreenPreviewBtn = document.getElementById('fullscreen-preview-btn');
+            const contextMenu = document.getElementById('context-menu');
 
             let components = [];
             let selectedComponent = null;
             let componentIdCounter = 0;
+            let contextComponentId = null;
             const googleFonts = [
                 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Oswald', 'Source Sans Pro', 
                 'Raleway', 'Poppins', 'Nunito', 'Merriweather', 'Playfair Display', 'Ubuntu',
@@ -306,6 +315,7 @@
                 const componentData = {
                     id: id, type: componentType, x: 50, y: 50,
                     width: 150, height: 40,
+                    zIndex: components.length,
                     properties: getComponentDefaults(componentType)
                 };
                 
@@ -319,11 +329,23 @@
 
 
                 components.push(componentData);
-                renderComponent(componentData);
+                renderAllComponents();
                 selectComponent(id);
             });
+            
+            function reorderZIndexes() {
+                components.sort((a, b) => a.zIndex - b.zIndex);
+                components.forEach((c, index) => c.zIndex = index);
+                renderAllComponents();
+            }
 
-            function renderComponent(comp) {
+            function renderAllComponents() {
+                components.sort((a, b) => a.zIndex - b.zIndex);
+                canvas.innerHTML = '';
+                components.forEach(comp => renderComponent(comp, true));
+            }
+
+            function renderComponent(comp, isBatchRender = false) {
                 let el = document.getElementById(comp.id);
                 if (!el) {
                     el = document.createElement('div');
@@ -342,12 +364,23 @@
                         e.stopPropagation();
                         selectComponent(comp.id);
                     });
+
+                    el.addEventListener('contextmenu', e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        contextComponentId = comp.id;
+                        contextMenu.style.top = `${e.clientY}px`;
+                        contextMenu.style.left = `${e.clientX}px`;
+                        contextMenu.classList.remove('hidden');
+                        selectComponent(comp.id);
+                    });
                 }
 
                 el.style.left = `${comp.x}px`;
                 el.style.top = `${comp.y}px`;
                 el.style.width = `${comp.width}px`;
                 el.style.height = `${comp.height}px`;
+                el.style.zIndex = comp.zIndex;
 
                 el.innerHTML = getComponentHTML(comp) + (el.querySelector('.resizer')?.outerHTML || '<div class="resizer"></div>');
                 makeResizable(el, el.querySelector('.resizer'));
@@ -458,6 +491,8 @@
             }
 
             canvas.addEventListener('click', () => selectComponent(null));
+            document.addEventListener('click', () => contextMenu.classList.add('hidden'));
+
 
             function populatePropertyEditor(component) {
                 propertiesForm.innerHTML = '';
@@ -673,6 +708,44 @@
                     }
                 }
             }
+
+            contextMenu.addEventListener('click', e => {
+                e.preventDefault();
+                const action = e.target.dataset.action;
+                if (!action || !contextComponentId) {
+                    contextMenu.classList.add('hidden');
+                    return;
+                };
+
+                const clickedComp = components.find(c => c.id === contextComponentId);
+                if (!clickedComp) return;
+
+                const sorted = [...components].sort((a,b) => a.zIndex - b.zIndex);
+                const currentIndex = sorted.findIndex(c => c.id === contextComponentId);
+
+                switch (action) {
+                    case 'bring-forward':
+                        if (currentIndex < sorted.length - 1) {
+                           const nextComp = sorted[currentIndex + 1];
+                           [clickedComp.zIndex, nextComp.zIndex] = [nextComp.zIndex, clickedComp.zIndex];
+                        }
+                        break;
+                    case 'send-backward':
+                        if (currentIndex > 0) {
+                            const prevComp = sorted[currentIndex - 1];
+                           [clickedComp.zIndex, prevComp.zIndex] = [prevComp.zIndex, clickedComp.zIndex];
+                        }
+                        break;
+                    case 'bring-to-front':
+                        clickedComp.zIndex = components.length;
+                        break;
+                    case 'send-to-back':
+                         clickedComp.zIndex = -1;
+                        break;
+                }
+                reorderZIndexes();
+                contextMenu.classList.add('hidden');
+            });
 
             function openPreview() {
                 previewCanvas.innerHTML = '';
@@ -916,9 +989,10 @@
             });
 
             saveJsonBtn.addEventListener('click', () => {
+                const sortedComponents = [...components].sort((a,b) => a.zIndex - b.zIndex);
                 const layout = {
                     canvas: { width: canvas.offsetWidth, height: canvas.offsetHeight },
-                    components: components
+                    components: sortedComponents
                 };
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(layout, null, 2));
                 const a = document.createElement('a');
@@ -954,7 +1028,8 @@
 
                 const idSet = new Set();
                 const duplicateIds = new Set();
-                components.forEach(c => {
+                components.forEach((c, index) => {
+                    if (c.zIndex === undefined) c.zIndex = index;
                     if (idSet.has(c.id)) {
                         duplicateIds.add(c.id);
                     }
@@ -970,7 +1045,7 @@
                 
                 componentIdCounter = components.length ? Math.max(0, ...components.map(c => parseInt(c.id.split('_').pop()) || 0).filter(Number.isFinite)) + 1 : 0;
                 
-                components.forEach(comp => renderComponent(comp));
+                renderAllComponents();
                 selectComponent(null);
             }
         });
@@ -978,3 +1053,4 @@
 
 </body>
 </html>
+
