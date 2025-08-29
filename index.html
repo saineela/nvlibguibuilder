@@ -84,6 +84,12 @@
             transform: scale(0.98);
             filter: brightness(0.95);
         }
+        #context-menu {
+            width: 160px;
+        }
+        .submenu-container:hover .submenu {
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -165,11 +171,21 @@
     
     <!-- Custom Context Menu -->
     <div id="context-menu" class="hidden absolute bg-white shadow-lg rounded-md py-1 z-50">
-        <a href="#" data-action="bring-forward" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bring Forward</a>
-        <a href="#" data-action="send-backward" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send Backward</a>
+        <a href="#" data-action="duplicate" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Duplicate</a>
         <div class="border-t my-1"></div>
-        <a href="#" data-action="bring-to-front" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bring to Front</a>
-        <a href="#" data-action="send-to-back" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send to Back</a>
+        <div class="submenu-container relative">
+            <a href="#" class="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <span>Layout</span>
+                <span class="text-xs">&gt;</span>
+            </a>
+            <div class="submenu hidden absolute left-full top-0 mt-[-5px] bg-white shadow-lg rounded-md py-1 w-40">
+                <a href="#" data-action="bring-forward" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bring Forward</a>
+                <a href="#" data-action="send-backward" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send Backward</a>
+                <div class="border-t my-1"></div>
+                <a href="#" data-action="bring-to-front" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bring to Front</a>
+                <a href="#" data-action="send-to-back" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send to Back</a>
+            </div>
+        </div>
     </div>
 
 
@@ -745,10 +761,35 @@
                     case 'send-to-back':
                          clickedComp.zIndex = -1;
                         break;
+                    case 'duplicate':
+                        duplicateComponent(contextComponentId);
+                        break;
                 }
                 reorderZIndexes();
                 contextMenu.classList.add('hidden');
             });
+            
+            function duplicateComponent(id) {
+                const originalComp = components.find(c => c.id === id);
+                if (!originalComp) return;
+
+                const newComp = JSON.parse(JSON.stringify(originalComp));
+                
+                let copyCount = 1;
+                let newId = `${originalComp.id}_copy_${copyCount}`;
+                while (components.some(c => c.id === newId)) {
+                    copyCount++;
+                    newId = `${originalComp.id}_copy_${copyCount}`;
+                }
+                newComp.id = newId;
+                newComp.x += 10;
+                newComp.y += 10;
+                newComp.zIndex = components.length;
+                components.push(newComp);
+                renderAllComponents();
+                selectComponent(newId);
+            }
+
 
             function openPreview() {
                 previewCanvas.innerHTML = '';
