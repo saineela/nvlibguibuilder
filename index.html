@@ -100,15 +100,19 @@
             <h1 class="text-2xl font-bold text-gray-800">NVLib GUI Builder</h1>
             <div class="flex items-center space-x-4">
                 <div class="flex items-center space-x-2">
+                    <label for="window-title" class="text-sm font-medium">Window Title:</label>
+                    <input type="text" id="window-title" value="My GUI" class="w-48 p-2 border border-gray-300 rounded-md">
+                </div>
+                <div class="flex items-center space-x-2">
                     <label for="canvas-width" class="text-sm font-medium">Canvas Width:</label>
                     <input type="number" id="canvas-width" value="800" class="w-24 p-2 border border-gray-300 rounded-md">
                     <label for="canvas-height" class="text-sm font-medium">Height:</label>
                     <input type="number" id="canvas-height" value="600" class="w-24 p-2 border border-gray-300 rounded-md">
-                    <button id="resize-canvas" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Resize Canvas</button>
+                    <button id="resize-canvas" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Resize</button>
                 </div>
                  <button id="live-preview-btn" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">Live Preview</button>
-                <button id="save-json" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Save to JSON</button>
-                <label for="load-json-input" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 cursor-pointer">Load from JSON</label>
+                <button id="save-json" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Save JSON</button>
+                <label for="load-json-input" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 cursor-pointer">Load JSON</label>
                 <input type="file" id="load-json-input" class="hidden" accept=".json">
             </div>
         </header>
@@ -145,12 +149,9 @@
                     <p class="text-sm text-gray-600 mt-2">
                         1. Select a component and click "Add Component".<br>
                         2. Drag components to position them.<br>
-                        3. Click a component to edit its specific properties.<br>
-                        4. Use the handle to resize components.<br>
-                        5. Save your layout to a JSON file.<br>
-                        6. Create you project in VSCode.<br>
-                        7. Read the Readme file in github.com/saineela/NVLib and integrate it with you code.<br>
-                        8. BOOM!! You're Done!.<br>
+                        3. Click a component to edit its properties.<br>
+                        4. Right-click for layering options.<br>
+                        5. Save your layout to a JSON file.
                     </p>
                 </div>
             </aside>
@@ -239,6 +240,8 @@
             const closePreviewBtn = document.getElementById('close-preview-btn');
             const fullscreenPreviewBtn = document.getElementById('fullscreen-preview-btn');
             const contextMenu = document.getElementById('context-menu');
+            const windowTitleInput = document.getElementById('window-title');
+
 
             let components = [];
             let selectedComponent = null;
@@ -1035,7 +1038,11 @@
             saveJsonBtn.addEventListener('click', () => {
                 const sortedComponents = [...components].sort((a,b) => a.zIndex - b.zIndex);
                 const layout = {
-                    canvas: { width: canvas.offsetWidth, height: canvas.offsetHeight },
+                    canvas: { 
+                        width: canvas.offsetWidth, 
+                        height: canvas.offsetHeight,
+                        title: windowTitleInput.value
+                    },
                     components: sortedComponents
                 };
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(layout, null, 2));
@@ -1066,6 +1073,7 @@
                 canvas.style.height = `${layout.canvas.height}px`;
                 canvasWidthInput.value = layout.canvas.width;
                 canvasHeightInput.value = layout.canvas.height;
+                windowTitleInput.value = layout.canvas.title || 'My GUI';
                 
                 canvas.innerHTML = '';
                 components = layout.components;
@@ -1097,5 +1105,4 @@
 
 </body>
 </html>
-
 
