@@ -36,6 +36,6 @@ The workflow is designed to be simple and efficient.
     Move the `layout.json` file into your Python project. Use a script to load and parse this file, then use your NVLib library to dynamically generate the user interface.
 
 ## Acknowledgments
-* **Vercel**: For letting me host use its platform and attach my custom domain for free
+* **Vercel**: For letting me host use its platform, along with Custom Domain option provided free of charge.
 * **Tailwind CSS**: For providing the utility-first CSS framework.
 * **Google Fonts**: For the dynamic font and icon integration.
