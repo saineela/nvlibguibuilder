@@ -1,4 +1,4 @@
-<!-- START OF FILE Paste January 18, 2026 - 01:15PM -->
+<!-- START OF FILE Paste January 18, 2026 - 01:30PM -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -67,13 +67,13 @@
         .btn-bounce:active { transform: scale(0.95); }
         .btn-bounce:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        /* Toast Notification Styles */
+        /* Toast Styles */
         #toast-container {
             position: fixed;
-            bottom: 24px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 11000;
+            z-index: 99999;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -81,20 +81,21 @@
         }
 
         .toast {
-            background: rgba(30, 41, 59, 0.9);
+            background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(8px);
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 50px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 10px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            gap: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             opacity: 0;
             transform: translateY(20px);
-            animation: slideUpFade 0.3s forwards;
+            animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         @keyframes slideUpFade {
@@ -124,25 +125,19 @@
             </div>
         </div>
 
-        <!-- Center Toolbar -->
         <div class="flex items-center gap-3 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10">
-            <!-- Undo/Redo -->
             <div class="flex items-center gap-1 border-r border-white/20 pr-3 mr-1">
-                <button id="undo-btn" class="btn-bounce p-1.5 hover:bg-white/20 rounded-full transition text-white disabled:opacity-30" title="Undo (Ctrl+Z)">
+                <button id="undo-btn" class="btn-bounce p-1.5 hover:bg-white/20 rounded-full transition text-white disabled:opacity-30" title="Undo">
                     <span class="material-symbols-rounded text-xl">undo</span>
                 </button>
-                <button id="redo-btn" class="btn-bounce p-1.5 hover:bg-white/20 rounded-full transition text-white disabled:opacity-30" title="Redo (Ctrl+Y)">
+                <button id="redo-btn" class="btn-bounce p-1.5 hover:bg-white/20 rounded-full transition text-white disabled:opacity-30" title="Redo">
                     <span class="material-symbols-rounded text-xl">redo</span>
                 </button>
             </div>
-
-            <!-- Title -->
             <div class="flex items-center gap-2 border-r border-white/20 pr-3">
                 <span class="material-symbols-rounded text-indigo-200 text-lg">title</span>
-                <input type="text" id="window-title" value="My App" class="bg-transparent border-none text-white placeholder-indigo-200 text-sm font-medium focus:ring-0 focus:outline-none w-28" placeholder="App Title">
+                <input type="text" id="window-title" value="My App" class="bg-transparent border-none text-white placeholder-indigo-200 text-sm font-medium focus:ring-0 focus:outline-none w-28">
             </div>
-            
-            <!-- Canvas Size -->
             <div class="flex items-center gap-2 text-sm font-mono">
                 <input type="number" id="canvas-width" value="800" class="w-14 bg-black/20 border-none rounded-md text-center py-1 text-white focus:ring-1 focus:ring-white/50">
                 <span class="text-indigo-200">×</span>
@@ -153,7 +148,6 @@
             </div>
         </div>
 
-        <!-- Right Toolbar -->
         <div class="flex items-center gap-3 pr-2">
             <button id="live-preview-btn" class="btn-bounce flex items-center gap-2 px-5 py-2 bg-emerald-400 hover:bg-emerald-300 text-emerald-900 text-sm font-bold rounded-full shadow-lg transition-all">
                 <span class="material-symbols-rounded text-lg">play_arrow</span> Preview
@@ -170,8 +164,6 @@
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        
-        <!-- Components Sidebar -->
         <aside class="w-72 bg-white border-r border-gray-200 flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
             <div class="p-5">
                 <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 ml-1">UI Components</h2>
@@ -209,26 +201,21 @@
             </div>
         </aside>
 
-        <!-- Canvas -->
         <main class="flex-1 bg-gray-100/50 overflow-auto flex items-center justify-center p-10 relative">
             <div id="canvas" class="canvas shadow-2xl transition-all duration-300" style="width: 800px; height: 600px;"></div>
         </main>
 
-        <!-- Properties Sidebar -->
         <aside id="property-editor" class="w-80 bg-white border-l border-gray-200 overflow-y-auto hidden z-20 shadow-[-4px_0_24px_rgba(0,0,0,0.02)] flex flex-col">
-            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 sticky top-0 backdrop-blur-md z-10">
                 <div class="flex items-center gap-2 text-gray-700 font-bold">
                     <span class="material-symbols-rounded text-indigo-500">tune</span> Properties
                 </div>
-                <!-- APPLY BUTTON -->
                 <button id="apply-props-btn" class="btn-bounce px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-full shadow-md transition flex items-center gap-1">
                     <span class="material-symbols-rounded text-sm">check</span> APPLY
                 </button>
             </div>
             
-            <div id="properties-form" class="p-5 space-y-5 flex-1">
-                <!-- Properties injected here -->
-            </div>
+            <div id="properties-form" class="p-5 space-y-5 flex-1"></div>
 
             <div class="p-5 border-t border-gray-100 bg-red-50/30">
                 <button id="delete-component" class="btn-bounce w-full py-2.5 bg-white border border-red-200 text-red-500 font-bold rounded-xl hover:bg-red-500 hover:text-white transition shadow-sm flex items-center justify-center gap-2">
@@ -239,7 +226,7 @@
     </div>
 
     <!-- Context Menu -->
-    <div id="context-menu" class="hidden fixed bg-white/95 backdrop-blur-md shadow-2xl rounded-2xl p-1.5 z-[9999] border border-gray-100 w-56 text-sm transform transition-all scale-100 origin-top-left">
+    <div id="context-menu" class="hidden fixed bg-white/95 backdrop-blur-md shadow-2xl rounded-2xl p-1.5 z-[9999] border border-gray-100 w-56 text-sm">
         <a href="#" data-action="duplicate" class="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-xl transition font-medium">
             <span class="material-symbols-rounded text-lg text-gray-400">content_copy</span> Duplicate
         </a>
@@ -274,12 +261,10 @@
         </div>
     </div>
 
-    <!-- Toast Container -->
-    <div id="toast-container"></div>
-
+    <!-- Script -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Elements
+            // -- Elements --
             const canvas = document.getElementById('canvas');
             const addComponentBtn = document.getElementById('add-component');
             const componentSelect = document.getElementById('component-select');
@@ -295,77 +280,32 @@
             const windowTitleInput = document.getElementById('window-title');
             const applyPropsBtn = document.getElementById('apply-props-btn');
             
-            // Undo/Redo
             const undoBtn = document.getElementById('undo-btn');
             const redoBtn = document.getElementById('redo-btn');
 
-            // Preview
             const livePreviewBtn = document.getElementById('live-preview-btn');
             const previewModal = document.getElementById('preview-modal');
             const previewCanvas = document.getElementById('preview-canvas');
             const closePreviewBtn = document.getElementById('close-preview-btn');
             const fullscreenPreviewBtn = document.getElementById('fullscreen-preview-btn');
 
-            // --- STATE MANAGEMENT ---
-            let components = [];
-            let selectedComponent = null;
-            let componentIdCounter = 0;
-            let contextComponentId = null;
+            // -- Toast System --
+            const toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            document.body.appendChild(toastContainer);
 
-            // Undo/Redo History
-            let history = [];
-            let historyStep = -1;
-
-            function saveState() {
-                if (historyStep < history.length - 1) {
-                    history = history.slice(0, historyStep + 1);
-                }
-                history.push(JSON.parse(JSON.stringify(components)));
-                historyStep++;
-                updateUndoRedoUI();
-            }
-
-            function updateUndoRedoUI() {
-                undoBtn.disabled = historyStep <= 0;
-                redoBtn.disabled = historyStep >= history.length - 1;
-            }
-
-            undoBtn.addEventListener('click', () => {
-                if (historyStep > 0) {
-                    historyStep--;
-                    components = JSON.parse(JSON.stringify(history[historyStep]));
-                    renderAllComponents();
-                    selectComponent(null); 
-                    updateUndoRedoUI();
-                    showToast("Undo", "info");
-                }
-            });
-
-            redoBtn.addEventListener('click', () => {
-                if (historyStep < history.length - 1) {
-                    historyStep++;
-                    components = JSON.parse(JSON.stringify(history[historyStep]));
-                    renderAllComponents();
-                    selectComponent(null);
-                    updateUndoRedoUI();
-                    showToast("Redo", "info");
-                }
-            });
-
-            saveState(); 
-
-            // --- TOAST SYSTEM ---
             function showToast(message, type = 'success') {
-                const container = document.getElementById('toast-container');
                 const toast = document.createElement('div');
                 toast.className = 'toast';
                 
                 let icon = 'check_circle';
-                if(type === 'error') icon = 'error';
-                else if(type === 'info') icon = 'info';
+                let colorClass = 'text-emerald-400';
+                
+                if(type === 'error') { icon = 'error'; colorClass = 'text-red-400'; }
+                if(type === 'info') { icon = 'info'; colorClass = 'text-blue-400'; }
 
-                toast.innerHTML = `<span class="material-symbols-rounded">${icon}</span> ${message}`;
-                container.appendChild(toast);
+                toast.innerHTML = `<span class="material-symbols-rounded ${colorClass} text-xl">${icon}</span> <span>${message}</span>`;
+                toastContainer.appendChild(toast);
 
                 setTimeout(() => {
                     toast.style.animation = 'fadeOut 0.3s forwards';
@@ -373,19 +313,25 @@
                 }, 2000);
             }
 
-            // --- DEFAULTS ---
+            // -- State --
+            let components = [];
+            let selectedComponent = null;
+            let componentIdCounter = 0;
+            let contextComponentId = null;
+            let history = [];
+            let historyStep = -1;
+
+            // -- Defaults --
             const getComponentDefaults = (type) => {
                 const base = { textColor: '#1f2937', fontSize: 14, bold: false };
                 const textBase = { ...base, text: type };
-                
                 switch (type) {
                     case 'Button': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 12 };
                     case 'Label': return { ...textBase, iconName: '' };
-                    case 'TextBox': 
-                    case 'TextArea': return { text: '', hintText: 'Type here...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
+                    case 'TextBox': case 'TextArea': return { text: '', hintText: 'Type here...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
                     case 'Checkbox': return { text: 'Checkbox', checked: false, checkedColor: '#6366f1', ...base };
-                    case 'RadioGroup': return { label: 'Choose One', options: 'Option A\nOption B', checkedValue: 'Option A', checkedColor: '#6366f1', ...base };
-                    case 'Dropdown': return { text: 'Select Option', options: 'Item 1\nItem 2', backgroundColor: '#ffffff', selectionColor: '#e0e7ff', ...base };
+                    case 'RadioGroup': return { label: 'Group', options: 'Option A\nOption B', checkedValue: 'Option A', checkedColor: '#6366f1', ...base };
+                    case 'Dropdown': return { text: 'Select...', options: 'Item 1\nItem 2', backgroundColor: '#ffffff', selectionColor: '#e0e7ff', ...base };
                     case 'Slider': return { min: 0, max: 100, value: 50, progressColor: '#6366f1', buttonColor: '#6366f1' };
                     case 'Panel': return { backgroundColor: '#f9fafb', cornerRadius: 16 };
                     case 'ProgressBar': return { value: 60, progressColor: '#6366f1', textColor: '#1f2937', textPosition: 'right' };
@@ -397,8 +343,37 @@
                 }
             };
 
-            // --- ACTIONS ---
+            // -- History --
+            function saveState() {
+                if (historyStep < history.length - 1) history = history.slice(0, historyStep + 1);
+                history.push(JSON.parse(JSON.stringify(components)));
+                historyStep++;
+                undoBtn.disabled = historyStep <= 0;
+                redoBtn.disabled = historyStep >= history.length - 1;
+            }
 
+            undoBtn.addEventListener('click', () => {
+                if (historyStep > 0) {
+                    historyStep--;
+                    components = JSON.parse(JSON.stringify(history[historyStep]));
+                    renderAllComponents();
+                    selectComponent(null);
+                    showToast("Undo", "info");
+                }
+            });
+
+            redoBtn.addEventListener('click', () => {
+                if (historyStep < history.length - 1) {
+                    historyStep++;
+                    components = JSON.parse(JSON.stringify(history[historyStep]));
+                    renderAllComponents();
+                    selectComponent(null);
+                    showToast("Redo", "info");
+                }
+            });
+            saveState();
+
+            // -- Core Logic --
             resizeCanvasBtn.addEventListener('click', () => {
                 canvas.style.width = `${canvasWidthInput.value}px`;
                 canvas.style.height = `${canvasHeightInput.value}px`;
@@ -408,27 +383,20 @@
             addComponentBtn.addEventListener('click', () => {
                 const type = componentSelect.value;
                 let id = `${type.toLowerCase()}_${componentIdCounter++}`;
-                while (components.some(c => c.id === id)) {
-                    id = `${type.toLowerCase()}_${componentIdCounter++}`;
-                }
+                while(components.some(c => c.id === id)) id = `${type.toLowerCase()}_${componentIdCounter++}`;
                 
                 const comp = {
                     id: id, type: type, x: 50, y: 50, width: 140, height: 45,
-                    zIndex: components.length,
-                    properties: getComponentDefaults(type)
+                    zIndex: components.length, properties: getComponentDefaults(type)
                 };
-
                 if(type === 'Panel' || type === 'CardView') { comp.width = 240; comp.height = 160; }
                 if(type === 'Image') { comp.width = 120; comp.height = 120; }
-                if(type === 'RadioGroup') { comp.width = 160; comp.height = 100; }
                 if(type === 'Slider') { comp.width = 200; comp.height = 30; }
-                if(type === 'ToggleButton') { comp.width = 60; comp.height = 32; }
-                if(type === 'Spinner') { comp.width = 120; comp.height = 40; }
-
                 components.push(comp);
                 renderAllComponents();
                 selectComponent(id);
                 saveState();
+                showToast("Component Added");
             });
 
             function renderAllComponents() {
@@ -438,17 +406,13 @@
             }
 
             function renderComponent(comp) {
-                // If exists, reuse (preserves visual state better)
                 let el = document.getElementById(comp.id);
-                const alreadySelected = el && el.classList.contains('selected');
-                
                 if (!el) {
                     el = document.createElement('div');
                     el.id = comp.id;
                     el.className = 'component';
                     canvas.appendChild(el);
                     
-                    // Attach Listeners
                     el.addEventListener('mousedown', (e) => startDrag(e, el));
                     el.addEventListener('click', (e) => { e.stopPropagation(); selectComponent(comp.id); });
                     el.addEventListener('contextmenu', (e) => {
@@ -462,6 +426,7 @@
                 }
                 
                 if (selectedComponent && selectedComponent.id === comp.id) el.classList.add('selected');
+                else el.classList.remove('selected');
 
                 el.style.left = `${comp.x}px`;
                 el.style.top = `${comp.y}px`;
@@ -470,9 +435,8 @@
                 el.style.zIndex = comp.zIndex;
                 el.style.borderRadius = (comp.properties.cornerRadius || 0) + 'px';
 
-                // Clear children
-                el.innerHTML = '';
-
+                el.innerHTML = ''; // Clear for rebuild
+                
                 const resizer = document.createElement('div');
                 resizer.className = 'resizer';
                 resizer.addEventListener('mousedown', (e) => startResize(e, el));
@@ -490,180 +454,126 @@
                 const baseTxt = `color:${p.textColor}; font-size:${p.fontSize}px; font-weight:${p.bold ? '700' : '500'};`;
                 
                 switch(comp.type) {
-                    case 'Button':
-                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,0.05); ${baseTxt}">${p.text}</div>`;
-                    case 'Label':
+                    case 'Button': return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,0.05); ${baseTxt}">${p.text}</div>`;
+                    case 'Label': 
                         if(p.iconName) return `<div class="component-render-wrapper" style="${baseTxt}"><span class="material-symbols-rounded" style="font-size:${p.fontSize}px;">${p.iconName}</span></div>`;
                         return `<div class="component-render-wrapper" style="${baseTxt}">${p.text}</div>`;
-                    case 'TextBox':
-                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border:1px solid #d1d5db; border-radius:8px; padding:0 12px; justify-content:flex-start; ${baseTxt}">${p.text || `<span style="color:${p.hintColor}">${p.hintText}</span>`}</div>`;
-                    case 'Checkbox':
-                        return `<div class="component-render-wrapper" style="justify-content:flex-start; gap:10px;">
-                            <div style="width:20px; height:20px; border:2px solid ${p.checked ? p.checkedColor : '#d1d5db'}; background:${p.checked ? p.checkedColor : 'white'}; border-radius:6px; display:flex; align-items:center; justify-content:center;">${p.checked ? '<span style="color:white; font-size:14px; font-weight:bold;">✓</span>' : ''}</div>
-                            <span style="${baseTxt}">${p.text}</span>
-                        </div>`;
-                    case 'Panel':
-                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; border:1px dashed #d1d5db;"></div>`;
-                    case 'CardView':
-                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; box-shadow:0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); ${baseTxt}">${p.text || ''}</div>`;
-                    case 'Image':
+                    case 'TextBox': return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border:1px solid #d1d5db; border-radius:8px; padding:0 12px; justify-content:flex-start; ${baseTxt}">${p.text || `<span style="color:${p.hintColor}">${p.hintText}</span>`}</div>`;
+                    case 'Checkbox': return `<div class="component-render-wrapper" style="justify-content:flex-start; gap:10px;"><div style="width:20px; height:20px; border:2px solid ${p.checked ? p.checkedColor : '#d1d5db'}; background:${p.checked ? p.checkedColor : 'white'}; border-radius:6px; display:flex; align-items:center; justify-content:center;">${p.checked ? '<span style="color:white; font-size:14px; font-weight:bold;">✓</span>' : ''}</div><span style="${baseTxt}">${p.text}</span></div>`;
+                    case 'Panel': return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; border:1px dashed #d1d5db;"></div>`;
+                    case 'CardView': return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); ${baseTxt}">${p.text || ''}</div>`;
+                    case 'Image': 
                         const src = p.src || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Y2EzYWYiIHN0cm9rZS13aWR0aD0iMiI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMiIgcnk9IjIiPjwvcmVjdD48Y2lyY2xlIGN4PSI4LjUiIGN5PSI4LjUiIHI9IjEuNSI+PC9jaXJjbGU+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUgMTYgMTAgNSAyMSI+PC9wb2x5bGluZT48L3N2Zz4=';
                         return `<img src="${src}" style="width:100%; height:100%; object-fit:${p.fit}; border-radius:${p.cornerRadius}px; opacity:${p.opacity}; background:${p.backgroundColor};">`;
-                    default:
-                        return `<div class="component-render-wrapper" style="border:1px dashed #9ca3af; color:#9ca3af; border-radius:8px; font-size:12px;">${comp.type}</div>`;
+                    default: return `<div class="component-render-wrapper" style="border:1px dashed #9ca3af; color:#9ca3af; border-radius:8px; font-size:12px;">${comp.type}</div>`;
                 }
             }
 
-            // --- DRAG / RESIZE (WITH STATE SAVE) ---
+            // -- Drag / Resize --
             function startDrag(e, el) {
                 if(e.target.className === 'resizer') return;
-                const startX = e.clientX;
-                const startY = e.clientY;
-                const startLeft = el.offsetLeft;
-                const startTop = el.offsetTop;
-                let hasMoved = false;
-
-                const onMove = (mv) => {
-                    hasMoved = true;
-                    let newLeft = startLeft + (mv.clientX - startX);
-                    let newTop = startTop + (mv.clientY - startY);
-                    newLeft = Math.round(newLeft / 10) * 10;
-                    newTop = Math.round(newTop / 10) * 10;
-                    el.style.left = `${newLeft}px`;
-                    el.style.top = `${newTop}px`;
+                const startX = e.clientX, startY = e.clientY;
+                const startLeft = el.offsetLeft, startTop = el.offsetTop;
+                let moved = false;
+                const move = (m) => {
+                    moved = true;
+                    el.style.left = `${Math.round((startLeft + m.clientX - startX)/10)*10}px`;
+                    el.style.top = `${Math.round((startTop + m.clientY - startY)/10)*10}px`;
                 };
-
-                const onUp = () => {
-                    document.removeEventListener('mousemove', onMove);
-                    document.removeEventListener('mouseup', onUp);
-                    if(hasMoved) {
+                const up = () => {
+                    document.removeEventListener('mousemove', move);
+                    document.removeEventListener('mouseup', up);
+                    if(moved) {
                         const c = components.find(x => x.id === el.id);
-                        if(c) { 
-                            c.x = el.offsetLeft; 
-                            c.y = el.offsetTop; 
-                            saveState(); 
-                        }
+                        if(c) { c.x = el.offsetLeft; c.y = el.offsetTop; saveState(); }
                     }
                 };
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onUp);
+                document.addEventListener('mousemove', move);
+                document.addEventListener('mouseup', up);
             }
 
             function startResize(e, el) {
                 e.stopPropagation();
-                const startX = e.clientX;
-                const startY = e.clientY;
-                const startW = el.offsetWidth;
-                const startH = el.offsetHeight;
-                let hasResized = false;
-
-                const onMove = (mv) => {
-                    hasResized = true;
-                    let newW = startW + (mv.clientX - startX);
-                    let newH = startH + (mv.clientY - startY);
-                    if(newW < 20) newW = 20;
-                    if(newH < 20) newH = 20;
-                    newW = Math.round(newW / 10) * 10;
-                    newH = Math.round(newH / 10) * 10;
-                    el.style.width = `${newW}px`;
-                    el.style.height = `${newH}px`;
+                const startX = e.clientX, startY = e.clientY;
+                const startW = el.offsetWidth, startH = el.offsetHeight;
+                let resized = false;
+                const move = (m) => {
+                    resized = true;
+                    let w = startW + (m.clientX - startX);
+                    let h = startH + (m.clientY - startY);
+                    if(w<20) w=20; if(h<20) h=20;
+                    el.style.width = `${Math.round(w/10)*10}px`;
+                    el.style.height = `${Math.round(h/10)*10}px`;
                 };
-
-                const onUp = () => {
-                    document.removeEventListener('mousemove', onMove);
-                    document.removeEventListener('mouseup', onUp);
-                    if(hasResized) {
+                const up = () => {
+                    document.removeEventListener('mousemove', move);
+                    document.removeEventListener('mouseup', up);
+                    if(resized) {
                         const c = components.find(x => x.id === el.id);
-                        if(c) { 
-                            c.width = el.offsetWidth; 
-                            c.height = el.offsetHeight; 
-                            saveState(); 
-                        }
+                        if(c) { c.width = el.offsetWidth; c.height = el.offsetHeight; saveState(); }
                     }
                 };
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onUp);
+                document.addEventListener('mousemove', move);
+                document.addEventListener('mouseup', up);
             }
 
-            // --- PROPERTIES (APPLY LOGIC) ---
+            // -- Properties & Apply --
             function selectComponent(id) {
                 document.querySelectorAll('.component').forEach(c => c.classList.remove('selected'));
-                if (!id) {
-                    selectedComponent = null;
-                    propertyEditor.classList.add('hidden');
-                    return;
-                }
+                if(!id) { selectedComponent = null; propertyEditor.classList.add('hidden'); return; }
                 const el = document.getElementById(id);
                 if(el) el.classList.add('selected');
                 selectedComponent = components.find(c => c.id === id);
                 propertyEditor.classList.remove('hidden');
                 renderProperties();
             }
-            
             document.getElementById('close-props').addEventListener('click', () => selectComponent(null));
 
-            // Apply Button Logic
             applyPropsBtn.addEventListener('click', () => {
                 if(!selectedComponent) return;
                 
                 const inputs = propertiesForm.querySelectorAll('[data-prop-key]');
                 let idChanged = false;
 
-                // Validate ID first
                 const idInput = propertiesForm.querySelector('[data-prop-key="id"]');
-                if(idInput) {
-                    const newId = idInput.value;
-                    if(newId !== selectedComponent.id) {
-                        if(components.some(c => c.id === newId)) {
-                            alert("ID must be unique!");
-                            return;
-                        }
-                        const oldId = selectedComponent.id;
-                        selectedComponent.id = newId;
-                        document.getElementById(oldId).id = newId;
-                        idChanged = true;
-                    }
+                if(idInput && idInput.value !== selectedComponent.id) {
+                    if(components.some(c => c.id === idInput.value)) { alert("ID must be unique!"); return; }
+                    const oldId = selectedComponent.id;
+                    const el = document.getElementById(oldId);
+                    selectedComponent.id = idInput.value;
+                    el.id = idInput.value;
+                    idChanged = true;
                 }
 
-                // Update Properties
                 inputs.forEach(input => {
                     const key = input.dataset.propKey;
                     if(key === 'id') return;
-                    
-                    let val;
+                    let val = input.value;
                     if(input.type === 'checkbox') val = input.checked;
-                    else if(input.type === 'number') val = parseFloat(input.value);
-                    else val = input.value;
-                    
+                    if(input.type === 'number') val = parseFloat(input.value) || 0;
                     selectedComponent.properties[key] = val;
                 });
 
-                // Immediate Re-render on Canvas
                 renderComponent(selectedComponent);
-                
                 if(idChanged) selectComponent(selectedComponent.id);
                 else {
-                    // Ensure visual highlight persists
                     const el = document.getElementById(selectedComponent.id);
                     if(el) el.classList.add('selected');
                 }
                 
-                saveState(); // Save to Undo history
-                showToast("Changes Applied Successfully", "success");
+                saveState();
+                showToast("Changes Applied Successfully");
             });
 
             function renderProperties() {
                 propertiesForm.innerHTML = '';
                 if(!selectedComponent) return;
-
-                const title = document.createElement('h3');
-                title.className = "text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100";
-                title.textContent = selectedComponent.type;
-                propertiesForm.appendChild(title);
-
-                // ID
+                const h3 = document.createElement('h3');
+                h3.className = "text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100";
+                h3.textContent = selectedComponent.type;
+                propertiesForm.appendChild(h3);
+                
                 createPropField('text', 'Unique ID', selectedComponent.id, 'id');
-
                 const p = selectedComponent.properties;
                 Object.keys(p).forEach(key => {
                     if(key === 'visible') return; 
@@ -673,7 +583,6 @@
                     if(key.toLowerCase().includes('color')) type = 'color';
                     if(key === 'options' || (key === 'text' && selectedComponent.type === 'TextArea')) type = 'textarea';
                     if(key === 'src' && selectedComponent.type === 'Image') type = 'file';
-
                     createPropField(type, key, p[key], key);
                 });
             }
@@ -681,95 +590,72 @@
             function createPropField(type, label, value, key) {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'mb-4';
-                
                 const lbl = document.createElement('label');
                 lbl.className = 'block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wide';
                 lbl.textContent = label.replace(/([A-Z])/g, ' $1').trim();
                 
                 let input;
-                
-                if (type === 'file') {
-                    // Files update immediately because we need the FileReader
+                if(type === 'file') {
                     wrapper.appendChild(lbl);
                     input = document.createElement('input');
                     input.type = 'file';
-                    input.className = 'w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100';
+                    input.className = 'w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:bg-indigo-50 file:text-indigo-700';
                     input.addEventListener('change', (e) => {
                         const f = e.target.files[0];
                         if(f) {
-                            const reader = new FileReader();
-                            reader.onload = (re) => {
+                            const r = new FileReader();
+                            r.onload = (re) => {
                                 selectedComponent.properties[key] = re.target.result;
-                                // Auto-render images for preview
-                                renderComponent(selectedComponent);
+                                renderComponent(selectedComponent); 
                                 document.getElementById(selectedComponent.id).classList.add('selected');
                             };
-                            reader.readAsDataURL(f);
+                            r.readAsDataURL(f);
                         }
                     });
-                    wrapper.appendChild(input);
                 } else if(type === 'checkbox') {
                     const row = document.createElement('div');
                     row.className = 'flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100';
                     input = document.createElement('input');
                     input.type = 'checkbox';
                     input.checked = value;
-                    input.className = 'w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500';
+                    input.className = 'w-5 h-5 text-indigo-600 rounded';
                     input.dataset.propKey = key; 
-                    row.appendChild(input);
-                    row.appendChild(lbl);
-                    wrapper.appendChild(row);
-                } else if(type === 'textarea') {
-                    input = document.createElement('textarea');
-                    input.rows = 3;
-                    input.className = 'w-full p-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:border-indigo-500 focus:bg-white outline-none transition';
-                    input.value = value;
-                    input.dataset.propKey = key;
-                    wrapper.appendChild(lbl);
-                    wrapper.appendChild(input);
+                    row.appendChild(input); row.appendChild(lbl); wrapper.appendChild(row);
                 } else {
                     wrapper.appendChild(lbl);
-                    input = document.createElement('input');
-                    input.type = type;
+                    input = type === 'textarea' ? document.createElement('textarea') : document.createElement('input');
+                    if(type !== 'textarea') input.type = type;
                     input.value = value;
-                    input.className = 'w-full p-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:border-indigo-500 focus:bg-white outline-none transition';
-                    if(type === 'color') input.className = 'w-full h-10 p-1 cursor-pointer bg-white border border-gray-200 rounded-lg';
+                    input.className = 'w-full p-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:border-indigo-500 outline-none';
+                    if(type === 'color') input.className = 'w-full h-10 p-1 bg-white border border-gray-200 rounded-lg cursor-pointer';
                     input.dataset.propKey = key;
-                    wrapper.appendChild(input);
                 }
-                
-                propertiesForm.appendChild(wrapper);
+                if(type !== 'checkbox' && type !== 'file') wrapper.appendChild(input);
+                if(type !== 'checkbox') propertiesForm.appendChild(wrapper);
             }
 
-            // --- DELETION ---
-            function deleteSelected() {
+            // -- Delete --
+            deleteComponentBtn.addEventListener('click', () => {
                 if(selectedComponent) {
                     components = components.filter(c => c.id !== selectedComponent.id);
                     renderAllComponents();
                     selectComponent(null);
                     saveState();
-                    showToast("Component Deleted", "error");
+                    showToast("Deleted", "error");
                 }
-            }
-            deleteComponentBtn.addEventListener('click', deleteSelected);
+            });
 
-            // --- JSON I/O ---
+            // -- JSON --
             saveJsonBtn.addEventListener('click', () => {
                 const layout = {
-                    canvas: {
-                        width: parseInt(canvasWidthInput.value),
-                        height: parseInt(canvasHeightInput.value),
-                        title: windowTitleInput.value
-                    },
+                    canvas: { width: parseInt(canvasWidthInput.value), height: parseInt(canvasHeightInput.value), title: windowTitleInput.value },
                     components: [...components].sort((a,b) => a.zIndex - b.zIndex)
                 };
                 const blob = new Blob([JSON.stringify(layout, null, 2)], {type: 'application/json'});
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = 'layout.json';
-                a.click();
-                showToast("JSON Saved Successfully");
+                a.href = url; a.download = 'layout.json'; a.click();
+                showToast("JSON Saved");
             });
 
             loadJsonInput.addEventListener('change', (e) => {
@@ -779,8 +665,6 @@
                 r.onload = (re) => {
                     try {
                         const json = JSON.parse(re.target.result);
-                        
-                        // Parse Canvas
                         if(json.canvas) {
                             canvasWidthInput.value = json.canvas.width;
                             canvasHeightInput.value = json.canvas.height;
@@ -788,25 +672,15 @@
                             canvas.style.width = `${json.canvas.width}px`;
                             canvas.style.height = `${json.canvas.height}px`;
                         }
-                        
-                        // Parse Components & Reset ID Counter
                         if(json.components) {
-                            components = json.components.map((c, i) => ({
-                                ...c,
-                                zIndex: c.zIndex !== undefined ? c.zIndex : i
-                            }));
-                            
-                            // Find highest ID to resume counter
-                            const maxId = components.reduce((max, c) => {
-                                const parts = c.id.split('_');
-                                const num = parseInt(parts[parts.length-1]);
+                            components = json.components.map((c, i) => ({ ...c, zIndex: c.zIndex !== undefined ? c.zIndex : i }));
+                            componentIdCounter = components.reduce((max, c) => {
+                                const num = parseInt(c.id.split('_').pop());
                                 return (!isNaN(num) && num > max) ? num : max;
-                            }, 0);
-                            componentIdCounter = maxId + 1;
-                            
+                            }, 0) + 1;
                             renderAllComponents();
-                            saveState(); // Save loaded state to history
-                            showToast("Layout Loaded Successfully");
+                            saveState();
+                            showToast("Loaded");
                         }
                     } catch(err) { alert("Invalid JSON"); }
                 };
@@ -814,17 +688,14 @@
                 e.target.value = '';
             });
 
-            // --- CONTEXT MENU ---
+            // -- Context Menu --
             document.addEventListener('click', () => contextMenu.classList.add('hidden'));
-            
             contextMenu.addEventListener('click', (e) => {
                 const action = e.target.closest('a')?.dataset.action;
                 if(!action || !contextComponentId) return;
-                
                 const comp = components.find(c => c.id === contextComponentId);
                 const sorted = [...components].sort((a,b) => a.zIndex - b.zIndex);
                 const idx = sorted.indexOf(comp);
-
                 if(action === 'bring-to-front') comp.zIndex = components.length + 10;
                 else if(action === 'send-to-back') comp.zIndex = -1;
                 else if(action === 'bring-forward') { if(idx < sorted.length-1) { const upper = sorted[idx+1]; const t = upper.zIndex; upper.zIndex = comp.zIndex; comp.zIndex = t; } }
@@ -832,28 +703,24 @@
                 else if(action === 'duplicate') {
                     const clone = JSON.parse(JSON.stringify(comp));
                     clone.id = comp.id + '_copy_' + Math.floor(Math.random()*1000);
-                    clone.x += 20; clone.y += 20;
-                    clone.zIndex = components.length + 10;
+                    clone.x += 20; clone.y += 20; clone.zIndex = components.length + 10;
                     components.push(clone);
-                }
-                else if(action === 'delete') {
+                } else if(action === 'delete') {
                     components = components.filter(c => c.id !== contextComponentId);
                     if(selectedComponent && selectedComponent.id === contextComponentId) selectComponent(null);
-                    showToast("Component Deleted", "error");
+                    showToast("Deleted", "error");
                 }
-
                 components.sort((a,b) => a.zIndex - b.zIndex).forEach((c, i) => c.zIndex = i);
                 renderAllComponents();
                 saveState();
                 contextMenu.classList.add('hidden');
             });
 
-            // --- PREVIEW ---
+            // -- Preview --
             livePreviewBtn.addEventListener('click', () => {
                 previewCanvas.innerHTML = '';
                 previewCanvas.style.width = canvas.style.width;
                 previewCanvas.style.height = canvas.style.height;
-                
                 [...components].sort((a,b) => a.zIndex - b.zIndex).forEach(c => {
                     const el = document.createElement('div');
                     el.style.position = 'absolute';
@@ -861,20 +728,15 @@
                     el.style.top = `${c.y}px`;
                     el.style.width = `${c.width}px`;
                     el.style.height = `${c.height}px`;
+                    el.style.zIndex = c.zIndex;
                     el.style.borderRadius = (c.properties.cornerRadius || 0) + 'px';
                     el.innerHTML = getComponentHTML(c);
                     previewCanvas.appendChild(el);
                 });
                 previewModal.classList.remove('hidden');
             });
-            closePreviewBtn.addEventListener('click', () => {
-                previewModal.classList.add('hidden');
-                if(document.fullscreenElement) document.exitFullscreen();
-            });
-            fullscreenPreviewBtn.addEventListener('click', () => {
-                if(!document.fullscreenElement) previewCanvas.parentElement.requestFullscreen();
-                else document.exitFullscreen();
-            });
+            closePreviewBtn.addEventListener('click', () => { previewModal.classList.add('hidden'); if(document.fullscreenElement) document.exitFullscreen(); });
+            fullscreenPreviewBtn.addEventListener('click', () => { if(!document.fullscreenElement) previewCanvas.parentElement.requestFullscreen(); else document.exitFullscreen(); });
         });
     </script>
 </body>
