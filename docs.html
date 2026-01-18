@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoGUI Docs</title>
+    <title>NVLib v4 Docs</title>
     <style>
         :root {
-            --primary-color: #2563eb;
+            --primary-color: #4f46e5; /* Updated to a slightly deeper purple/blue for v4 */
             --sidebar-bg: #f8fafc;
             --sidebar-border: #e2e8f0;
             --text-color: #334155;
@@ -91,6 +91,8 @@
             color: var(--heading-color);
             margin-top: 30px;
             font-size: 1.3rem;
+            display: flex;
+            align-items: center;
         }
 
         p {
@@ -108,15 +110,17 @@
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 0.9rem;
             margin-bottom: 20px;
+            border: 1px solid #334155;
         }
 
         code.inline {
             background-color: #f1f5f9;
-            color: #2563eb;
+            color: var(--primary-color);
             padding: 2px 6px;
             border-radius: 4px;
             font-family: monospace;
             font-size: 0.95em;
+            font-weight: 600;
         }
 
         /* Tables */
@@ -154,6 +158,7 @@
         }
         .badge.json { background-color: #dbeafe; color: #1e40af; }
         .badge.py { background-color: #fce7f3; color: #9d174d; }
+        .badge.new { background-color: #dcfce7; color: #166534; }
 
         /* Footer */
         footer {
@@ -169,10 +174,11 @@
 <body>
 
 <aside>
-    <h1>AutoGUI <span style="font-size:0.8rem; color:#64748b;">v2.0</span></h1>
+    <h1>NVLib <span style="font-size:0.8rem; color:#64748b;">v4.0</span></h1>
     <nav>
         <a href="#intro">Introduction</a>
         <a href="#setup">Setup & Initialization</a>
+        <a href="#screens">Screen Management <span class="badge new" style="transform: scale(0.8);">New</span></a>
         <a href="#canvas">Canvas configuration</a>
 
         <div class="section-title">Components</div>
@@ -195,23 +201,22 @@
     <section id="intro">
         <h2>Introduction</h2>
         <p>
-            <strong>AutoGUI</strong> is a Python library that bridges JSON-based design with the power of Kivy/KivyMD.
-            Define user interfaces declaratively using JSON files, then interact with them using a simple, pythonic API.
+            <strong>NVLib AutoGUI</strong> is a high-level wrapper around KivyMD, allowing developers to create persistent, multi-screen applications using simple JSON definitions and Pythonic logic.
         </p>
         <p>
-            <strong>Runtime-aligned features:</strong>
+            <strong>Version 4 Features:</strong>
             <ul>
-                <li>Responsive scaling based on window size</li>
-                <li>Material-styled components via KivyMD</li>
-                <li>Minimum window size locking</li>
-                <li>Absolute positioning with FloatLayout</li>
+                <li><strong>Multi-Screen Support:</strong> Register multiple JSON layouts as screens.</li>
+                <li><strong>State Persistence:</strong> Form inputs and widget states are preserved when switching screens.</li>
+                <li><strong>Namespaced Access:</strong> Access widgets safely via <code>app.screenName.widgetID</code>.</li>
+                <li><strong>Secure Loading:</strong> Built-in asset protection.</li>
             </ul>
         </p>
     </section>
 
     <section id="setup">
         <h2>Setup & Initialization</h2>
-        <p>Create a Python script (e.g., <code class="inline">main.py</code>) and a JSON layout file.</p>
+        <p>Create a Python script (e.g., <code class="inline">main.py</code>) and your JSON layout files.</p>
 
         <h3>Python code</h3>
         <pre><code>from NVLib.Components.GUI.AutoGUI import AutoGUI
@@ -219,27 +224,61 @@
 # 1. Initialize the App
 app = AutoGUI()
 
-# 2. Configure (Optional)
-app.set_title("My Application")
-app.set_background("#ffffff")
+# 2. Register Screens
+# 'main=True' defines the starting screen.
+app.register_screen("home", "home.json", main=True)
+app.register_screen("settings", "settings.json")
 
-# 3. Load Layout
-app.build_gui("layout.json")
+# 3. Configure Window
+app.set_title("NVLib v4 App")
 
-# 4. Define Logic
-def on_submit():
-    print(f"User typed: {app.my_input.text()}")
+# 4. Define Logic (Navigation)
+def go_settings():
+    # Access widgets via app.screenName.componentId
+    print(f"User: {app.home.txt_username.text()}") 
+    app.switch_screen("settings")
+
+def go_home():
+    app.switch_screen("home")
 
 # 5. Bind Events
-app.my_button.on_click(on_submit)
+app.home.btn_settings.on_click(go_settings)
+app.settings.btn_back.on_click(go_home)
 
 # 6. Run
 app.run()</code></pre>
     </section>
 
+    <section id="screens">
+        <h2>Screen Management <span class="badge new">v4</span></h2>
+        <p>NVLib v4 introduces a robust screen manager that keeps screens alive in memory to preserve user input.</p>
+
+        <h3>1. Registering Screens</h3>
+        <p>Use <code>register_screen</code> instead of the old <code>build_gui</code>.</p>
+        <pre><code>app.register_screen(unique_name, json_path, main=False)</code></pre>
+        <ul>
+            <li><strong>unique_name:</strong> A string ID for the screen (e.g., "login", "dashboard").</li>
+            <li><strong>json_path:</strong> Path to the .json layout file.</li>
+            <li><strong>main:</strong> Set to <code>True</code> for the first screen to show on launch.</li>
+        </ul>
+
+        <h3>2. Switching Screens</h3>
+        <pre><code>app.switch_screen("unique_name")</code></pre>
+        <p>This hides the current screen and shows the target screen. <strong>Note:</strong> The previous screen is hidden, not destroyed. All typed text, toggles, and scroll positions remain intact.</p>
+
+        <h3>3. Accessing Widgets</h3>
+        <p>Widgets are now namespaced to prevent ID collisions between screens.</p>
+        <pre><code># Syntax
+app.{screen_name}.{widget_id}.method()
+
+# Example
+app.login.username_input.text()
+app.dashboard.logout_btn.on_click(logout_func)</code></pre>
+    </section>
+
     <section id="canvas">
         <h2>Canvas configuration</h2>
-        <p>The root object in your JSON file. Defines the initial window properties.</p>
+        <p>The root object in your JSON file. Defines the initial dimensions.</p>
         <pre><code>{
   "canvas": {
     "width": 800,
@@ -253,7 +292,7 @@ app.run()</code></pre>
     <hr>
 
     <h2 id="components">Component reference</h2>
-    <p>Each component lists supported JSON properties <span class="badge json">JSON</span> and pythonic methods <span class="badge py">Python</span>. This page is validated to match the current runtime behavior.</p>
+    <p>Components support JSON properties <span class="badge json">JSON</span> and Python methods <span class="badge py">Python</span>.</p>
 
     <!-- BUTTON -->
     <section id="button">
@@ -268,8 +307,8 @@ app.run()</code></pre>
             <tr><td>backgroundColor</td><td>Hex</td><td>Button background color.</td></tr>
             <tr><td>textColor</td><td>Hex</td><td>Button text color.</td></tr>
             <tr><td>fontSize</td><td>Int</td><td>Font size (default 14).</td></tr>
-            <tr><td>cornerRadius</td><td>Int</td><td>Rounded corners for button container.</td></tr>
-            <tr><td>bold</td><td>Bool</td><td>Emphasize label (mapped to a larger style).</td></tr>
+            <tr><td>cornerRadius</td><td>Int</td><td>Rounded corners.</td></tr>
+            <tr><td>bold</td><td>Bool</td><td>Emphasize label.</td></tr>
         </table>
 
         <h4>Python API</h4>
@@ -278,10 +317,6 @@ app.run()</code></pre>
             <tr><td><code>.on_click(func)</code></td><td>Bind a function to the click event.</td></tr>
             <tr><td><code>.text(new_text=None)</code></td><td>Get or set the button label.</td></tr>
             <tr><td><code>.set_visible(bool)</code></td><td>Show or hide the button.</td></tr>
-            <tr><td><code>.bg_color(hex)</code></td><td>Set background color.</td></tr>
-            <tr><td><code>.text_color(hex)</code></td><td>Set label color.</td></tr>
-            <tr><td><code>.font_size(int)</code></td><td>Set font size.</td></tr>
-            <tr><td><code>.bold(bool)</code></td><td>Apply emphasis.</td></tr>
         </table>
     </section>
 
@@ -294,10 +329,9 @@ app.run()</code></pre>
         <table>
             <tr><th>Property</th><th>Type</th><th>Description</th></tr>
             <tr><td>type</td><td>String</td><td>"Label"</td></tr>
-            <tr><td>text</td><td>String</td><td>Text content (ignored if iconName is set).</td></tr>
-            <tr><td>iconName</td><td>String</td><td>Material icon name (optional).</td></tr>
+            <tr><td>text</td><td>String</td><td>Text content.</td></tr>
+            <tr><td>iconName</td><td>String</td><td>Material icon name (e.g. "home").</td></tr>
             <tr><td>textColor</td><td>Hex</td><td>Text/icon color.</td></tr>
-            <tr><td>backgroundColor</td><td>Hex</td><td>Background color.</td></tr>
             <tr><td>fontSize</td><td>Int</td><td>Font size.</td></tr>
             <tr><td>bold</td><td>Bool</td><td>Bold text (for text labels).</td></tr>
         </table>
@@ -306,18 +340,14 @@ app.run()</code></pre>
         <table>
             <tr><th>Method</th><th>Description</th></tr>
             <tr><td><code>.text(new_text=None)</code></td><td>Get or set label text.</td></tr>
-            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide the label.</td></tr>
-            <tr><td><code>.bg_color(hex)</code></td><td>Set background color.</td></tr>
             <tr><td><code>.text_color(hex)</code></td><td>Set text/icon color.</td></tr>
-            <tr><td><code>.font_size(int)</code></td><td>Set font size.</td></tr>
-            <tr><td><code>.bold(bool)</code></td><td>Apply bold to text labels.</td></tr>
         </table>
     </section>
 
     <!-- TEXTBOX -->
     <section id="textbox">
         <h3>TextBox / TextArea</h3>
-        <p>Input fields for user text. <code class="inline">TextBox</code> is single-line, <code class="inline">TextArea</code> is multi-line.</p>
+        <p>Input fields. <code class="inline">TextBox</code> is single-line, <code class="inline">TextArea</code> is multi-line.</p>
 
         <h4>JSON properties</h4>
         <table>
@@ -325,40 +355,30 @@ app.run()</code></pre>
             <tr><td>type</td><td>String</td><td>"TextBox" or "TextArea"</td></tr>
             <tr><td>text</td><td>String</td><td>Initial text value.</td></tr>
             <tr><td>hintText</td><td>String</td><td>Placeholder text.</td></tr>
-            <tr><td>hintColor</td><td>Hex</td><td>Placeholder color.</td></tr>
             <tr><td>textColor</td><td>Hex</td><td>Input text color.</td></tr>
             <tr><td>backgroundColor</td><td>Hex</td><td>Field background.</td></tr>
-            <tr><td>fontSize</td><td>Int</td><td>Font size.</td></tr>
-            <tr><td>bold</td><td>Bool</td><td>Bold text.</td></tr>
         </table>
 
         <h4>Python API</h4>
         <table>
             <tr><th>Method</th><th>Description</th></tr>
             <tr><td><code>.text(new_text=None)</code></td><td>Get or set current text.</td></tr>
-            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide the field.</td></tr>
-            <tr><td><code>.bg_color(hex)</code></td><td>Set background color.</td></tr>
-            <tr><td><code>.text_color(hex)</code></td><td>Set text color.</td></tr>
-            <tr><td><code>.font_size(int)</code></td><td>Set font size.</td></tr>
-            <tr><td><code>.bold(bool)</code></td><td>Apply bold.</td></tr>
+            <tr><td><code>.set_enabled(bool)</code></td><td>Enable or disable typing.</td></tr>
         </table>
     </section>
 
     <!-- CHECKBOX -->
     <section id="checkbox">
         <h3>Checkbox</h3>
-        <p>A box that can be checked or unchecked with an optional label.</p>
+        <p>A persistent toggle box.</p>
 
         <h4>JSON properties</h4>
         <table>
             <tr><th>Property</th><th>Type</th><th>Description</th></tr>
             <tr><td>type</td><td>String</td><td>"Checkbox"</td></tr>
             <tr><td>checked</td><td>Bool</td><td>Initial checked state.</td></tr>
-            <tr><td>text</td><td>String</td><td>Optional label text.</td></tr>
-            <tr><td>checkedColor</td><td>Hex</td><td>Active color for the control.</td></tr>
-            <tr><td>textColor</td><td>Hex</td><td>Label color (if present).</td></tr>
-            <tr><td>fontSize</td><td>Int</td><td>Label font size.</td></tr>
-            <tr><td>bold</td><td>Bool</td><td>Bold label text.</td></tr>
+            <tr><td>text</td><td>String</td><td>Optional label text next to box.</td></tr>
+            <tr><td>checkedColor</td><td>Hex</td><td>Active color.</td></tr>
         </table>
 
         <h4>Python API</h4>
@@ -366,7 +386,6 @@ app.run()</code></pre>
             <tr><th>Method</th><th>Description</th></tr>
             <tr><td><code>.is_checked()</code></td><td>Returns True if checked.</td></tr>
             <tr><td><code>.on_toggle(func)</code></td><td>Bind a callback when state changes.</td></tr>
-            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide.</td></tr>
         </table>
     </section>
 
@@ -389,14 +408,13 @@ app.run()</code></pre>
             <tr><th>Method</th><th>Description</th></tr>
             <tr><td><code>.is_on()</code></td><td>Returns True if active.</td></tr>
             <tr><td><code>.on_toggle(func)</code></td><td>Bind a callback when switched.</td></tr>
-            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide.</td></tr>
         </table>
     </section>
 
     <!-- SPINNER -->
     <section id="spinner">
         <h3>Spinner</h3>
-        <p>A numeric input with decrement (-) and increment (+) buttons.</p>
+        <p>Numeric input with +/- buttons.</p>
 
         <h4>JSON properties</h4>
         <table>
@@ -405,10 +423,6 @@ app.run()</code></pre>
             <tr><td>min</td><td>Int</td><td>Minimum value.</td></tr>
             <tr><td>max</td><td>Int</td><td>Maximum value.</td></tr>
             <tr><td>value</td><td>Int</td><td>Initial value.</td></tr>
-            <tr><td>textColor</td><td>Hex</td><td>Number and button text color.</td></tr>
-            <tr><td>backgroundColor</td><td>Hex</td><td>Background color.</td></tr>
-            <tr><td>fontSize</td><td>Int</td><td>Number/button font size.</td></tr>
-            <tr><td>bold</td><td>Bool</td><td>Bold number text.</td></tr>
         </table>
 
         <h4>Python API</h4>
@@ -416,14 +430,13 @@ app.run()</code></pre>
             <tr><th>Method</th><th>Description</th></tr>
             <tr><td><code>.get()</code></td><td>Returns current integer value.</td></tr>
             <tr><td><code>.set(int)</code></td><td>Set numeric value.</td></tr>
-            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide.</td></tr>
         </table>
     </section>
 
     <!-- SLIDER -->
     <section id="slider">
         <h3>Slider</h3>
-        <p>A draggable slider for selecting a value from a range.</p>
+        <p>A draggable slider range.</p>
 
         <h4>JSON properties</h4>
         <table>
@@ -433,7 +446,6 @@ app.run()</code></pre>
             <tr><td>max</td><td>Int</td><td>Maximum value.</td></tr>
             <tr><td>value</td><td>Int</td><td>Initial position.</td></tr>
             <tr><td>progressColor</td><td>Hex</td><td>Active track color.</td></tr>
-            <tr><td>buttonColor</td><td>Hex</td><td>Thumb color.</td></tr>
         </table>
 
         <h4>Python API</h4>
@@ -441,40 +453,13 @@ app.run()</code></pre>
             <tr><th>Method</th><th>Description</th></tr>
             <tr><td><code>.get()</code></td><td>Returns current value (float).</td></tr>
             <tr><td><code>.set(val)</code></td><td>Set slider position.</td></tr>
-            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide.</td></tr>
         </table>
-    </section>
-
-    <!-- PROGRESSBAR -->
-    <section id="progress">
-        <h3>ProgressBar</h3>
-        <p>Determinate progress with optional percentage label in different positions.</p>
-
-        <h4>JSON properties</h4>
-        <table>
-            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
-            <tr><td>type</td><td>String</td><td>"ProgressBar"</td></tr>
-            <tr><td>value</td><td>Int</td><td>Initial percentage value.</td></tr>
-            <tr><td>progressColor</td><td>Hex</td><td>Bar color.</td></tr>
-            <tr><td>textColor</td><td>Hex</td><td>Label color.</td></tr>
-            <tr><td>textPosition</td><td>String</td><td>"right" | "left" | "top" | "bottom".</td></tr>
-            <tr><td>fontSize</td><td>Int</td><td>Label font size.</td></tr>
-        </table>
-
-        <h4>Python API</h4>
-        <table>
-            <tr><th>Method</th><th>Description</th></tr>
-            <tr><td><code>.set(val)</code></td><td>Set progress percentage (updates label).</td></tr>
-            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide.</td></tr>
-        </table>
-
-        <p><em>Note:</em> The track background is transparent by default and not styled via JSON.</p>
     </section>
 
     <!-- DROPDOWN -->
     <section id="dropdown">
         <h3>Dropdown</h3>
-        <p>A button that opens a floating menu of options.</p>
+        <p>A button that opens a selection menu.</p>
 
         <h4>JSON properties</h4>
         <table>
@@ -482,11 +467,7 @@ app.run()</code></pre>
             <tr><td>type</td><td>String</td><td>"Dropdown"</td></tr>
             <tr><td>options</td><td>String</td><td>New-line <code class="inline">\n</code> separated entries.</td></tr>
             <tr><td>text</td><td>String</td><td>Initial selected text.</td></tr>
-            <tr><td>backgroundColor</td><td>Hex</td><td>Button background.</td></tr>
-            <tr><td>textColor</td><td>Hex</td><td>Button text color.</td></tr>
             <tr><td>selectionColor</td><td>Hex</td><td>Menu item hover/selection tint.</td></tr>
-            <tr><td>fontSize</td><td>Int</td><td>Button font size.</td></tr>
-            <tr><td>bold</td><td>Bool</td><td>Emphasize button text.</td></tr>
         </table>
 
         <h4>Python API</h4>
@@ -494,14 +475,13 @@ app.run()</code></pre>
             <tr><th>Method</th><th>Description</th></tr>
             <tr><td><code>.get()</code></td><td>Returns current selected text.</td></tr>
             <tr><td><code>.on_select(func)</code></td><td>Bind callback receiving selected text.</td></tr>
-            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide.</td></tr>
         </table>
     </section>
 
     <!-- RADIO GROUP -->
     <section id="radiogroup">
         <h3>RadioGroup</h3>
-        <p>Mutually exclusive options with an optional group label.</p>
+        <p>Mutually exclusive options list.</p>
 
         <h4>JSON properties</h4>
         <table>
@@ -510,10 +490,6 @@ app.run()</code></pre>
             <tr><td>options</td><td>String</td><td>New-line <code class="inline">\n</code> separated list.</td></tr>
             <tr><td>checkedValue</td><td>String</td><td>Option pre-selected.</td></tr>
             <tr><td>label</td><td>String</td><td>Group header.</td></tr>
-            <tr><td>textColor</td><td>Hex</td><td>Option label color.</td></tr>
-            <tr><td>checkedColor</td><td>Hex</td><td>Active radio color.</td></tr>
-            <tr><td>fontSize</td><td>Int</td><td>Label/option font size.</td></tr>
-            <tr><td>bold</td><td>Bool</td><td>Bold labels.</td></tr>
         </table>
 
         <h4>Python API</h4>
@@ -521,14 +497,13 @@ app.run()</code></pre>
             <tr><th>Method</th><th>Description</th></tr>
             <tr><td><code>.get()</code></td><td>Returns the selected option string.</td></tr>
             <tr><td><code>.on_select(func)</code></td><td>Bind callback receiving selected option.</td></tr>
-            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide.</td></tr>
         </table>
     </section>
 
     <!-- LAYOUTS -->
     <section id="layout">
         <h3>Panel / CardView</h3>
-        <p>Container elements used for grouping other widgets and creating backgrounds.</p>
+        <p>Containers for backgrounds and grouping.</p>
 
         <h4>JSON properties</h4>
         <table>
@@ -536,24 +511,17 @@ app.run()</code></pre>
             <tr><td>type</td><td>String</td><td>"Panel" or "CardView"</td></tr>
             <tr><td>backgroundColor</td><td>Hex</td><td>Background fill color.</td></tr>
             <tr><td>cornerRadius</td><td>Int</td><td>Roundness of corners.</td></tr>
-            <tr><td>elevation</td><td>Int</td><td>(CardView only) Card elevation.</td></tr>
-            <tr><td>text</td><td>String</td><td>(CardView optional) Centered label text.</td></tr>
-            <tr><td>textColor</td><td>Hex</td><td>(CardView optional) Label color.</td></tr>
-            <tr><td>fontSize</td><td>Int</td><td>(CardView optional) Label font size.</td></tr>
-            <tr><td>bold</td><td>Bool</td><td>(CardView optional) Bold label.</td></tr>
+            <tr><td>elevation</td><td>Int</td><td>(CardView only) Shadow depth.</td></tr>
             <tr><td>borderColor</td><td>Hex</td><td>(CardView only) Border color.</td></tr>
             <tr><td>borderWidth</td><td>Int</td><td>(CardView only) Border width.</td></tr>
-            <tr><td>opacity</td><td>Float</td><td>Container opacity.</td></tr>
             <tr><td>visible</td><td>Bool</td><td>Initial visibility.</td></tr>
         </table>
-        <p><em>Note:</em> Place Panel/CardView before other components in the JSON list to ensure they render behind content. Components inside a container are detected by absolute bounds.</p>
 
         <h4>Python API</h4>
         <table>
             <tr><th>Method</th><th>Description</th></tr>
             <tr><td><code>.set_visible(bool)</code></td><td>Show or hide.</td></tr>
             <tr><td><code>.bg_color(hex)</code></td><td>Set background color.</td></tr>
-            <tr><td><code>.opacity(float)</code></td><td>Set opacity.</td></tr>
             <tr><td><code>.border(width, hex, visible=True)</code></td><td>(CardView) Configure border.</td></tr>
         </table>
     </section>
@@ -561,33 +529,27 @@ app.run()</code></pre>
     <!-- IMAGE -->
     <section id="image">
         <h3>Image</h3>
-        <p>Base64 image rendering inside a Card container.</p>
+        <p>Base64 image rendering.</p>
 
         <h4>JSON properties</h4>
         <table>
             <tr><th>Property</th><th>Type</th><th>Description</th></tr>
             <tr><td>type</td><td>String</td><td>"Image"</td></tr>
-            <tr><td>src</td><td>String</td><td>Base64 data URL (e.g., <code class="inline">data:image/png;base64,...</code>).</td></tr>
+            <tr><td>src</td><td>String</td><td>Base64 data URL.</td></tr>
             <tr><td>fit</td><td>String</td><td>"fill" | "contain" | "cover" | "none".</td></tr>
-            <tr><td>cornerRadius</td><td>Int</td><td>Card corner radius.</td></tr>
-            <tr><td>backgroundColor</td><td>Hex</td><td>Card background color.</td></tr>
-            <tr><td>opacity</td><td>Float</td><td>Card opacity.</td></tr>
-            <tr><td>visible</td><td>Bool</td><td>Initial visibility.</td></tr>
+            <tr><td>cornerRadius</td><td>Int</td><td>Corner radius.</td></tr>
         </table>
 
         <h4>Python API</h4>
         <table>
             <tr><th>Method</th><th>Description</th></tr>
             <tr><td><code>.set_visible(bool)</code></td><td>Show or hide.</td></tr>
-            <tr><td><code>.bg_color(hex)</code></td><td>Set card background color.</td></tr>
-            <tr><td><code>.opacity(float)</code></td><td>Set card opacity.</td></tr>
+            <tr><td><code>.opacity(float)</code></td><td>Set image opacity.</td></tr>
         </table>
-
-        <p><em>Note:</em> If <code class="inline">src</code> is invalid, a simple “Image Error” label is shown.</p>
     </section>
 
     <footer>
-        <p>NVLib • Based on Kivy for backend</p>
+        <p>NVLib AutoGUI v4 • Powered by KivyMD</p>
     </footer>
 </main>
 
