@@ -1,15 +1,16 @@
-<!-- START OF FILE Paste January 18, 2026 - 12:00PM -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NVLib v4 GUI Builder</title>
+    <title>NVLib v4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
         .canvas {
             background-color: #f9fafb;
             border: 1px solid #d1d5db;
@@ -23,35 +24,35 @@
         .component {
             position: absolute;
             cursor: move;
-            border: 1px solid transparent; /* Visual aid for selection */
+            border: 1px solid transparent;
             user-select: none;
             font-size: 14px;
             box-sizing: border-box;
         }
         .component.selected {
-            outline: 2px solid #4f46e5; /* NVLib v4 Primary Color */
-            box-shadow: 0 0 10px rgba(79, 70, 229, 0.4);
-            z-index: 1000 !important; /* Bring selected temporarily to front for editing */
+            outline: 2px solid #2563eb;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
         .resizer {
             width: 10px;
             height: 10px;
-            background: #4f46e5;
+            background: #2563eb;
             border: 1px solid white;
             position: absolute;
             right: -5px;
             bottom: -5px;
             cursor: se-resize;
-            display: none;
+            z-index: 10;
         }
-        .component.selected .resizer { display: block; }
-        
         .component-render-wrapper {
             width: 100%;
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
+            border: none; /* align with Python runtime (no general borders) */
+            background-color: #fff;
+            padding: 0 8px;
             overflow: hidden;
             box-sizing: border-box;
         }
@@ -60,162 +61,157 @@
             border-color: #ef4444 !important;
         }
         .material-symbols-outlined {
-          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24
         }
-        /* Preview Modal Styles */
-        .preview-component { position: absolute; box-sizing: border-box; }
-        .preview-button:active { transform: scale(0.98); filter: brightness(0.95); }
-        
-        /* Context Menu */
-        #context-menu { width: 160px; }
-        .submenu-container:hover .submenu { display: block; }
+        .preview-component {
+            position: absolute;
+            box-sizing: border-box;
+        }
+        .preview-component input, .preview-component textarea, .preview-component select, .preview-component button {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        .preview-button:active {
+            transform: scale(0.98);
+            filter: brightness(0.95);
+        }
+        #context-menu {
+            width: 160px;
+        }
+        .submenu-container:hover .submenu {
+            display: block;
+        }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 h-screen flex flex-col">
+<body class="bg-gray-100 text-gray-800">
 
-    <!-- Header -->
-    <header class="bg-white shadow-md p-4 flex justify-between items-center z-20">
-        <div class="flex items-center gap-4">
-            <h1 class="text-2xl font-bold text-indigo-700">NVLib v4 Builder</h1>
-            <a href="docs.html" target="_blank" class="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
-                <span class="material-symbols-outlined text-lg">menu_book</span> Docs
+    <div class="flex flex-col h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-md p-4 flex justify-between items-center z-20">
+            <h1 class="text-2xl font-bold text-gray-800">NVLib v4</h1>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <label for="window-title" class="text-sm font-medium">Window Title:</label>
+                    <input type="text" id="window-title" value="My GUI" class="w-48 p-2 border border-gray-300 rounded-md">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label for="canvas-width" class="text-sm font-medium">Canvas Width:</label>
+                    <input type="number" id="canvas-width" value="800" class="w-24 p-2 border border-gray-300 rounded-md">
+                    <label for="canvas-height" class="text-sm font-medium">Height:</label>
+                    <input type="number" id="canvas-height" value="600" class="w-24 p-2 border border-gray-300 rounded-md">
+                    <button id="resize-canvas" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Resize</button>
+                </div>
+                <button id="live-preview-btn" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">Live Preview</button>
+                <button id="save-json" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Save JSON</button>
+                <label for="load-json-input" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 cursor-pointer">Load JSON</label>
+                <input type="file" id="load-json-input" class="hidden" accept=".json">
+                
+                <!-- Docs Button Added Here -->
+                <a href="docs.html" target="_blank" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center">
+                    <span class="material-symbols-outlined text-sm mr-1">description</span> Docs
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Left Sidebar -->
+            <aside class="w-64 bg-white p-4 overflow-y-auto shadow-lg z-10">
+                <h2 class="text-lg font-semibold mb-4">Components</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="component-select" class="block text-sm font-medium text-gray-700">Select a component</label>
+                        <select id="component-select" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option>Button</option>
+                            <option>Label</option>
+                            <option>TextBox</option>
+                            <option>TextArea</option>
+                            <option>Checkbox</option>
+                            <option>RadioGroup</option>
+                            <option>Dropdown</option>
+                            <option>Slider</option>
+                            <option>Panel</option>
+                            <option>ProgressBar</option>
+                            <option>Spinner</option>
+                            <option>CardView</option>
+                            <option>ToggleButton</option>
+                            <option>Image</option>
+                        </select>
+                    </div>
+                    <button id="add-component" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Add Component</button>
+                </div>
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-semibold text-gray-800">Instructions</h3>
+                    <p class="text-sm text-gray-600 mt-2">
+                        1. Select a component and click "Add Component".<br>
+                        2. Drag components to position them.<br>
+                        3. Click a component to edit its specific properties.<br>
+                        4. Use the handle to resize components.<br>
+                        5. Save your layout to a JSON file.<br>
+                        6. Create your project in VSCode.<br>
+                        7. Read the <b>docs.html</b> or README and integrate it.<br>
+                        8. Done!<br>
+                    </p>
+                </div>
+            </aside>
+
+            <!-- Canvas -->
+            <main class="flex-1 p-4 bg-gray-200 flex justify-center overflow-y-auto">
+                <div id="canvas" class="canvas shadow-lg" style="width: 800px; height: 600px;"></div>
+            </main>
+
+            <!-- Right Sidebar (Property Editor) -->
+            <aside id="property-editor" class="w-80 bg-white p-4 overflow-y-auto shadow-lg z-10 hidden">
+                <h2 class="text-lg font-semibold mb-4">Properties</h2>
+                <div id="properties-form" class="space-y-4"></div>
+                <button id="delete-component" class="w-full mt-6 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Delete Component</button>
+            </aside>
+        </div>
+    </div>
+    
+    <!-- Custom Context Menu -->
+    <div id="context-menu" class="hidden absolute bg-white shadow-lg rounded-md py-1 z-50">
+        <a href="#" data-action="duplicate" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Duplicate</a>
+        <div class="border-t my-1"></div>
+        <div class="submenu-container relative">
+            <a href="#" class="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <span>Layout</span>
+                <span class="text-xs">&gt;</span>
             </a>
+            <div class="submenu hidden absolute left-full top-0 mt-[-5px] bg-white shadow-lg rounded-md py-1 w-40">
+                <a href="#" data-action="bring-forward" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bring Forward</a>
+                <a href="#" data-action="send-backward" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send Backward</a>
+                <div class="border-t my-1"></div>
+                <a href="#" data-action="bring-to-front" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bring to Front</a>
+                <a href="#" data-action="send-to-back" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send to Back</a>
+            </div>
         </div>
-
-        <div class="flex items-center space-x-3">
-            <div class="flex items-center space-x-2 border-r pr-4 mr-2">
-                <label for="window-title" class="text-xs font-bold uppercase text-gray-500">Title</label>
-                <input type="text" id="window-title" value="My NVLib App" class="w-40 p-1.5 text-sm border border-gray-300 rounded focus:border-indigo-500 outline-none">
-            </div>
-            
-            <div class="flex items-center space-x-2">
-                <input type="number" id="canvas-width" value="800" class="w-16 p-1.5 text-sm border border-gray-300 rounded text-center">
-                <span class="text-gray-400">x</span>
-                <input type="number" id="canvas-height" value="600" class="w-16 p-1.5 text-sm border border-gray-300 rounded text-center">
-                <button id="resize-canvas" class="p-1.5 bg-gray-200 hover:bg-gray-300 rounded text-gray-700">
-                    <span class="material-symbols-outlined text-lg block">aspect_ratio</span>
-                </button>
-            </div>
-
-            <div class="h-6 w-px bg-gray-300 mx-2"></div>
-
-            <button id="live-preview-btn" class="flex items-center gap-1 px-3 py-1.5 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition shadow">
-                <span class="material-symbols-outlined text-sm">play_arrow</span> Preview
-            </button>
-            <button id="save-json" class="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 transition shadow">
-                <span class="material-symbols-outlined text-sm">save</span> Save JSON
-            </button>
-            <label for="load-json-input" class="flex items-center gap-1 px-3 py-1.5 bg-gray-700 text-white text-sm rounded hover:bg-gray-800 transition shadow cursor-pointer">
-                <span class="material-symbols-outlined text-sm">upload</span> Load
-            </label>
-            <input type="file" id="load-json-input" class="hidden" accept=".json">
-        </div>
-    </header>
-
-    <!-- Main Workspace -->
-    <div class="flex flex-1 overflow-hidden">
-        
-        <!-- Left Sidebar: Components -->
-        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col z-10 shadow-sm">
-            <div class="p-4 border-b border-gray-100">
-                <h2 class="text-sm font-bold uppercase text-gray-500 mb-3">Toolbox</h2>
-                <select id="component-select" class="w-full p-2 mb-3 text-sm border border-gray-300 rounded bg-gray-50 focus:border-indigo-500 outline-none">
-                    <option value="Button">Button</option>
-                    <option value="Label">Label</option>
-                    <option value="TextBox">TextBox</option>
-                    <option value="TextArea">TextArea</option>
-                    <option value="Checkbox">Checkbox</option>
-                    <option value="RadioGroup">RadioGroup</option>
-                    <option value="Dropdown">Dropdown</option>
-                    <option value="Slider">Slider</option>
-                    <option value="ProgressBar">ProgressBar</option>
-                    <option value="Spinner">Spinner</option>
-                    <option value="ToggleButton">ToggleButton</option>
-                    <option disabled>--- Containers ---</option>
-                    <option value="Panel">Panel (Background)</option>
-                    <option value="CardView">CardView (Shadow)</option>
-                    <option value="Image">Image</option>
-                </select>
-                <button id="add-component" class="w-full py-2 bg-indigo-100 text-indigo-700 font-semibold rounded hover:bg-indigo-200 transition">
-                    + Add to Canvas
-                </button>
-            </div>
-            
-            <div class="flex-1 overflow-y-auto p-4">
-                <div class="bg-blue-50 border border-blue-100 rounded p-3 text-xs text-blue-800 leading-relaxed">
-                    <strong>NVLib v4 Workflow:</strong>
-                    <ol class="list-decimal ml-4 mt-2 space-y-1">
-                        <li>Design your screen here.</li>
-                        <li>Save as <code class="bg-blue-100 px-1 rounded">screen1.json</code>.</li>
-                        <li>In Python:
-                            <pre class="mt-1 bg-white p-1 rounded border border-blue-100 overflow-x-auto">app.register_screen("s1", "screen1.json")</pre>
-                        </li>
-                    </ol>
-                </div>
-                <div class="mt-4 text-xs text-gray-400">
-                    <p>Right-click components to manage layers (Bring to Front / Send to Back).</p>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Center: Canvas -->
-        <main class="flex-1 bg-gray-100 overflow-auto flex items-center justify-center p-8 relative" id="canvas-container">
-            <div id="canvas" class="canvas shadow-xl bg-white transition-all duration-200" style="width: 800px; height: 600px;"></div>
-        </main>
-
-        <!-- Right Sidebar: Properties -->
-        <aside id="property-editor" class="w-80 bg-white border-l border-gray-200 overflow-y-auto hidden z-10 shadow-sm flex flex-col">
-            <div class="p-4 border-b border-gray-100 flex justify-between items-center">
-                <h2 class="text-sm font-bold uppercase text-gray-500">Properties</h2>
-                <button id="close-props" class="text-gray-400 hover:text-gray-600"><span class="material-symbols-outlined text-sm">close</span></button>
-            </div>
-            
-            <div id="properties-form" class="p-4 space-y-4 flex-1">
-                <!-- Dynamic Inputs go here -->
-            </div>
-
-            <div class="p-4 border-t border-gray-100 bg-gray-50">
-                <button id="delete-component" class="w-full py-2 bg-red-100 text-red-600 font-semibold rounded hover:bg-red-200 transition flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-sm">delete</span> Delete
-                </button>
-            </div>
-        </aside>
     </div>
 
-    <!-- Context Menu -->
-    <div id="context-menu" class="hidden fixed bg-white shadow-xl rounded-lg py-1 z-50 border border-gray-100 w-48 text-sm">
-        <a href="#" data-action="duplicate" class="block px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-            <span class="material-symbols-outlined text-base text-gray-400">content_copy</span> Duplicate
-        </a>
-        <div class="border-t my-1"></div>
-        <a href="#" data-action="bring-to-front" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Bring to Front</a>
-        <a href="#" data-action="send-to-back" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Send to Back</a>
-        <div class="border-t my-1"></div>
-        <a href="#" data-action="bring-forward" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Step Forward</a>
-        <a href="#" data-action="send-backward" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Step Backward</a>
-    </div>
-
-    <!-- Preview Modal -->
-    <div id="preview-modal" class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-50 backdrop-blur-sm flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl flex flex-col w-full h-full max-w-5xl max-h-[90vh] overflow-hidden">
-            <div class="px-4 py-3 border-b flex justify-between items-center bg-gray-50">
-                <h3 class="font-bold text-gray-700 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-purple-600">preview</span> Live Preview
-                </h3>
-                <div class="flex gap-2">
-                    <button id="fullscreen-preview-btn" class="px-3 py-1 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 text-xs font-medium uppercase">Fullscreen</button>
-                    <button id="close-preview-btn" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs font-medium uppercase">Close</button>
+    <!-- Live Preview Modal -->
+    <div id="preview-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div id="preview-content" class="bg-white rounded-lg shadow-xl flex flex-col w-full h-full max-w-4xl max-h-[80%]">
+            <div class="p-2 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
+                <h3 class="text-lg font-semibold text-gray-700">Live Preview</h3>
+                <div>
+                    <button id="fullscreen-preview-btn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm">Full Screen</button>
+                    <button id="close-preview-btn" class="ml-2 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm">&times; Close</button>
                 </div>
             </div>
-            <div class="flex-1 bg-gray-200 overflow-auto p-8 flex justify-center">
-                <div id="preview-canvas" class="bg-white shadow-lg transition-all relative"></div>
+            <div class="p-4 flex-1 bg-gray-100 overflow-auto">
+                <div id="preview-canvas" class="bg-white relative shadow-inner"></div>
             </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // -- Elements --
             const canvas = document.getElementById('canvas');
             const addComponentBtn = document.getElementById('add-component');
             const componentSelect = document.getElementById('component-select');
@@ -227,93 +223,123 @@
             const canvasWidthInput = document.getElementById('canvas-width');
             const canvasHeightInput = document.getElementById('canvas-height');
             const deleteComponentBtn = document.getElementById('delete-component');
-            const contextMenu = document.getElementById('context-menu');
-            const windowTitleInput = document.getElementById('window-title');
-            
-            // Preview Elements
             const livePreviewBtn = document.getElementById('live-preview-btn');
             const previewModal = document.getElementById('preview-modal');
             const previewCanvas = document.getElementById('preview-canvas');
+            const previewContent = document.getElementById('preview-content');
             const closePreviewBtn = document.getElementById('close-preview-btn');
             const fullscreenPreviewBtn = document.getElementById('fullscreen-preview-btn');
+            const contextMenu = document.getElementById('context-menu');
+            const windowTitleInput = document.getElementById('window-title');
 
-            // -- State --
             let components = [];
             let selectedComponent = null;
             let componentIdCounter = 0;
             let contextComponentId = null;
 
-            // -- Defaults (Synced with AutoGUI.py v4) --
             const getComponentDefaults = (type) => {
-                const base = { textColor: '#000000', fontSize: 14, bold: false };
-                const textBase = { ...base, text: type };
-                
-                switch (type) {
-                    case 'Button': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 4 };
-                    case 'Label': return { ...textBase, iconName: '' };
-                    case 'TextBox': 
-                    case 'TextArea': return { text: '', hintText: 'Enter text...', hintColor: '#888888', backgroundColor: '#ffffff', ...base };
-                    case 'Checkbox': return { text: 'Option', checked: false, checkedColor: '#4f46e5', ...base };
-                    case 'RadioGroup': return { label: 'Group Label', options: 'Option 1\nOption 2', checkedValue: 'Option 1', checkedColor: '#4f46e5', ...base };
-                    case 'Dropdown': return { text: 'Select...', options: 'Option 1\nOption 2', backgroundColor: '#ffffff', selectionColor: '#e0e7ff', ...base };
-                    case 'Slider': return { min: 0, max: 100, value: 50, progressColor: '#4f46e5', buttonColor: '#4f46e5' };
-                    case 'Panel': return { backgroundColor: '#f0f0f0', cornerRadius: 0 };
-                    case 'ProgressBar': return { value: 50, progressColor: '#4f46e5', textColor: '#000000', textPosition: 'right' };
-                    case 'Spinner': return { min: 0, max: 100, value: 0, backgroundColor: '#f0f0f0', ...base };
-                    case 'CardView': return { ...textBase, text: '', backgroundColor: '#ffffff', cornerRadius: 8, elevation: 4 };
-                    case 'ToggleButton': return { checked: false, onColor: '#4f46e5', offColor: '#d1d5db' };
-                    case 'Image': return { src: '', cornerRadius: 0, opacity: 1.0, fit: 'cover', backgroundColor: '#e5e7eb' };
-                    default: return textBase;
-                }
-            };
+    const base = {
+        textColor: '#000000',
+        fontSize: 14,
+        bold: false,
+    };
+    const textBase = { ...base, text: type };
+    const placeholderImg = 'data:image/svg+xml;base64,...';
 
-            // -- Resize Canvas --
+    switch (type) {
+        case 'Button': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 4 };
+        case 'Label': return { ...textBase, iconName: '' };
+        case 'TextBox': return { text: '', hintText: 'Enter text...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
+        case 'TextArea': return { text: '', hintText: 'Enter text...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
+        case 'Checkbox': return { text: 'Checkbox', checked: false, checkedColor: '#3b82f6', ...base };
+        case 'RadioGroup': return { label: 'Select an Option', options: 'Option 1\nOption 2', checkedValue: 'Option 1', checkedColor: '#3b82f6', ...base };
+        case 'Dropdown': return { text: 'Dropdown', options: 'Option 1\nOption 2', backgroundColor: '#ffffff', selectionColor: '#dbeafe', ...base };
+        case 'Slider': return { min: 0, max: 100, value: 50, progressColor: '#3b82f6', buttonColor: '#3b82f6' };
+        case 'Panel': return { backgroundColor: '#f3f4f6', cornerRadius: 0 };
+        case 'ProgressBar': return { value: 50, progressColor: '#3b82f6', textColor: '#000000', textPosition: 'right' };
+        case 'Spinner': return { min: 0, max: 100, value: 25, backgroundColor: '#ffffff', ...base };
+        case 'CardView': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 8, elevation: 2 };
+        case 'ToggleButton': return { checked: false, onColor: '#34d399', offColor: '#d1d5db' };
+        case 'Image': return { src: placeholderImg, cornerRadius: 0, opacity: 1, fit: 'cover', backgroundColor: '#ffffff' };
+        default: return textBase;
+    }
+};
+
+
             resizeCanvasBtn.addEventListener('click', () => {
                 canvas.style.width = `${canvasWidthInput.value}px`;
                 canvas.style.height = `${canvasHeightInput.value}px`;
             });
 
-            // -- Add Component --
             addComponentBtn.addEventListener('click', () => {
-                const type = componentSelect.value;
-                let id = `${type.toLowerCase()}_${componentIdCounter++}`;
-                // Ensure unique ID
+                const componentType = componentSelect.value;
+                let id = `${componentType.toLowerCase()}_${componentIdCounter++}`;
                 while (components.some(c => c.id === id)) {
-                    id = `${type.toLowerCase()}_${componentIdCounter++}`;
+                    id = `${componentType.toLowerCase()}_${componentIdCounter++}`;
                 }
                 
-                const comp = {
-                    id: id, type: type, x: 50, y: 50, width: 120, height: 40,
+                const componentData = {
+                    id: id, type: componentType, x: 50, y: 50,
+                    width: 150, height: 40,
                     zIndex: components.length,
-                    properties: getComponentDefaults(type)
+                    properties: getComponentDefaults(componentType)
                 };
+                
+                if(componentType === 'Image' || componentType === 'RadioGroup') componentData.height = 100;
+                if(componentType === 'Slider') componentData.width = 200;
+                if(componentType === 'TextArea') componentData.height = 80;
+                if(componentType === 'Panel' || componentType === 'CardView') { componentData.width = 200; componentData.height = 150; }
+                if(componentType === 'ProgressBar' || componentType === 'Slider') componentData.height = 25;
+                if(componentType === 'ToggleButton') { componentData.width = 60; componentData.height = 32; }
+                if(componentType === 'Label') { componentData.width = 40; componentData.height = 40; }
 
-                // Adjust default sizes based on type
-                if(type === 'Panel' || type === 'CardView') { comp.width = 200; comp.height = 150; }
-                if(type === 'Image') { comp.width = 100; comp.height = 100; }
-                if(type === 'RadioGroup') { comp.width = 150; comp.height = 100; }
-                if(type === 'Slider') { comp.width = 200; comp.height = 30; }
-                if(type === 'ToggleButton') { comp.width = 60; comp.height = 30; }
-                if(type === 'Spinner') { comp.width = 120; comp.height = 40; }
-
-                components.push(comp);
+                components.push(componentData);
                 renderAllComponents();
                 selectComponent(id);
             });
-
-            // -- Rendering --
-            function renderAllComponents() {
-                // Sort by zIndex for visual stacking
+            
+            function reorderZIndexes() {
                 components.sort((a, b) => a.zIndex - b.zIndex);
-                canvas.innerHTML = '';
-                components.forEach(comp => renderComponent(comp));
+                components.forEach((c, index) => c.zIndex = index);
+                renderAllComponents();
             }
 
-            function renderComponent(comp) {
-                const el = document.createElement('div');
-                el.id = comp.id;
-                el.className = 'component';
-                if (selectedComponent && selectedComponent.id === comp.id) el.classList.add('selected');
+            function renderAllComponents() {
+                components.sort((a, b) => a.zIndex - b.zIndex);
+                canvas.innerHTML = '';
+                components.forEach(comp => renderComponent(comp, true));
+            }
+
+            function renderComponent(comp, isBatchRender = false) {
+                let el = document.getElementById(comp.id);
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = comp.id;
+                    el.className = 'component';
+                    canvas.appendChild(el);
+                    
+                    const resizer = document.createElement('div');
+                    resizer.className = 'resizer';
+                    el.appendChild(resizer);
+                    
+                    makeDraggable(el);
+                    makeResizable(el, resizer);
+
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectComponent(comp.id);
+                    });
+
+                    el.addEventListener('contextmenu', e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        contextComponentId = comp.id;
+                        contextMenu.style.top = `${e.clientY}px`;
+                        contextMenu.style.left = `${e.clientX}px`;
+                        contextMenu.classList.remove('hidden');
+                        selectComponent(comp.id);
+                    });
+                }
 
                 el.style.left = `${comp.x}px`;
                 el.style.top = `${comp.y}px`;
@@ -321,381 +347,668 @@
                 el.style.height = `${comp.height}px`;
                 el.style.zIndex = comp.zIndex;
 
-                // Add Drag/Resize Logic
-                const resizer = document.createElement('div');
-                resizer.className = 'resizer';
-                el.appendChild(resizer);
+                el.innerHTML = getComponentHTML(comp) + (el.querySelector('.resizer')?.outerHTML || '<div class="resizer"></div>');
+                makeResizable(el, el.querySelector('.resizer'));
 
-                // Content
-                const content = document.createElement('div');
-                content.style.width = '100%';
-                content.style.height = '100%';
-                content.innerHTML = getComponentHTML(comp);
-                el.appendChild(content);
-
-                // Events
-                el.addEventListener('mousedown', (e) => startDrag(e, el));
-                resizer.addEventListener('mousedown', (e) => startResize(e, el));
-                el.addEventListener('click', (e) => { e.stopPropagation(); selectComponent(comp.id); });
-                el.addEventListener('contextmenu', (e) => {
-                    e.preventDefault(); e.stopPropagation();
-                    contextComponentId = comp.id;
-                    contextMenu.style.left = `${e.clientX}px`;
-                    contextMenu.style.top = `${e.clientY}px`;
-                    contextMenu.classList.remove('hidden');
-                    selectComponent(comp.id);
-                });
-
-                canvas.appendChild(el);
+                if (selectedComponent && selectedComponent.id === comp.id) {
+                    el.classList.add('selected');
+                }
             }
 
-            // HTML Generator for Editor View (Simplified approximation of KivyMD)
             function getComponentHTML(comp) {
                 const p = comp.properties;
-                const baseTxt = `color:${p.textColor}; font-size:${p.fontSize}px; font-weight:${p.bold ? '700' : '400'};`;
+                const baseStyles = `color:${p.textColor}; font-size:${p.fontSize}px; font-weight:${p.bold ? 'bold' : 'normal'};`;
+                let wrapperStyles = `background-color:${p.backgroundColor || 'white'}; border-radius:${p.cornerRadius || 0}px;`;
                 
                 switch(comp.type) {
-                    case 'Button':
-                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; border:1px solid #ddd; ${baseTxt}">${p.text}</div>`;
-                    case 'Label':
-                        if(p.iconName) return `<div class="component-render-wrapper" style="${baseTxt}"><span class="material-symbols-outlined" style="font-size:${p.fontSize}px;">${p.iconName}</span></div>`;
-                        return `<div class="component-render-wrapper" style="${baseTxt}">${p.text}</div>`;
-                    case 'TextBox':
-                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border:1px solid #ccc; border-radius:4px; padding:0 8px; justify-content:flex-start; ${baseTxt}">${p.text || `<span style="color:${p.hintColor}">${p.hintText}</span>`}</div>`;
-                    case 'Checkbox':
-                        return `<div class="component-render-wrapper" style="justify-content:flex-start; gap:8px;">
-                            <div style="width:18px; height:18px; border:2px solid ${p.checked ? p.checkedColor : '#999'}; background:${p.checked ? p.checkedColor : 'transparent'}; border-radius:2px;"></div>
-                            <span style="${baseTxt}">${p.text}</span>
-                        </div>`;
-                    case 'Panel':
-                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; border:1px dashed #ccc;"></div>`;
-                    case 'CardView':
-                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; box-shadow:0 2px 5px rgba(0,0,0,0.2); ${baseTxt}">${p.text || ''}</div>`;
                     case 'Image':
-                        const src = p.src || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjY2MiIHN0cm9rZS13aWR0aD0iMiI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMiIgcnk9IjIiPjwvcmVjdD48Y2lyY2xlIGN4PSI4LjUiIGN5PSI4LjUiIHI9IjEuNSI+PC9jaXJjbGU+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUgMTYgMTAgNSAyMSI+PC9wb2x5bGluZT48L3N2Zz4=';
-                        return `<img src="${src}" style="width:100%; height:100%; object-fit:${p.fit}; border-radius:${p.cornerRadius}px; opacity:${p.opacity}; background:${p.backgroundColor};">`;
+                        return `<div class="component-render-wrapper" style="padding:0; border:none; background:transparent;">
+                                    <img src="${p.src}" style="width:100%; height:100%; object-fit:${p.fit}; border-radius:${p.cornerRadius}px; opacity:${p.opacity};" />
+                                </div>`;
+                    case 'Button':
+                    case 'CardView':
+                         if(comp.type === 'CardView') wrapperStyles += ` box-shadow: 0 ${p.elevation*2}px ${p.elevation*3}px rgba(0,0,0,0.1);`;
+                         return `<div class="component-render-wrapper" style="${wrapperStyles}"><span style="${baseStyles}">${p.text}</span></div>`;
+                    case 'Panel':
+                         return `<div class="component-render-wrapper" style="${wrapperStyles}"></div>`;
+                    case 'Label':
+                        if (p.iconName && p.iconName.trim() !== '') {
+                            const iconStyles = `font-family: 'Material Symbols Outlined'; font-size: ${p.fontSize}px; color:${p.textColor};`;
+                            return `<div class="component-render-wrapper" style="border:none; background:transparent;"><span class="material-symbols-outlined" style="${iconStyles}">${p.iconName}</span></div>`;
+                        }
+                        return `<div class="component-render-wrapper" style="border:none; background:transparent;"><span style="${baseStyles}">${p.text}</span></div>`;
+                    case 'TextBox':
+                    case 'TextArea':
+                        const hint = `<span style='color:${p.hintColor};'>${p.hintText}</span>`;
+                        const align = comp.type === 'TextArea' ? 'align-self: flex-start;' : '';
+                        return `<div class="component-render-wrapper" style="${wrapperStyles}">
+                                    <span style="${baseStyles} width: 100%; text-align: left; ${align}">${p.text || hint}</span>
+                                </div>`;
+                    case 'Checkbox':
+                        return `<div class="component-render-wrapper" style="border:none; background:transparent; justify-content:flex-start;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <div style="width:16px; height:16px; border:1px solid #9ca3af; display:flex; align-items:center; justify-content:center; background:${p.checked ? p.checkedColor : 'white'}; border-radius: 2px">
+                                            ${p.checked ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>' : ''}
+                                        </div>
+                                        <span style="${baseStyles}">${p.text}</span>
+                                    </div>
+                                </div>`;
+                    case 'RadioGroup':
+                        let radioHTML = `<div style="${baseStyles} margin-bottom: 8px;">${p.label}</div>`;
+                        const options = p.options.split('\n');
+                        options.forEach(opt => {
+                            const isChecked = opt === p.checkedValue;
+                            radioHTML += `<div style="display:flex; align-items:center; gap:8px; margin-bottom: 4px;">
+                                            <div style="width:16px; height:16px; border:1px solid #9ca3af; display:flex; align-items:center; justify-content:center; background:${isChecked ? p.checkedColor : 'white'}; border-radius:50%">
+                                                ${isChecked ? `<div style="width:8px; height:8px; background:white; border-radius:50%;"></div>` : ''}
+                                            </div>
+                                            <span style="${baseStyles}">${opt}</span>
+                                        </div>`;
+                        });
+                        return `<div class="component-render-wrapper" style="border:none; background:transparent; flex-direction: column; align-items: flex-start;">${radioHTML}</div>`;
+                    case 'ProgressBar':
+                        return `<div style="width:100%; height:100%; border-radius: 999px; position:relative; display:flex; align-items:center; overflow:hidden;">
+                                    <div style="width:${p.value}%; height:100%; background-color:${p.progressColor}; border-radius: 999px;"></div>
+                                </div>`;
+                    case 'Slider':
+                        const sliderPercent = (p.value - p.min) / (p.max - p.min) * 100;
+                        return `<div class="component-render-wrapper" style="border:none; background:transparent;">
+                                    <div style="width:100%; height:6px; background:#e5e7eb; border-radius:3px; position:relative;">
+                                        <div style="position:absolute; left:0; top:0; height:100%; width:${sliderPercent}%; background:${p.progressColor}; border-radius:3px;"></div>
+                                        <div style="position:absolute; left:${sliderPercent}%; transform:translateX(-50%); top:-6px; width:18px; height:18px; background:${p.buttonColor}; border-radius:50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></div>
+                                    </div>
+                                </div>`;
+                    case 'ToggleButton':
+                        return `<div class="component-render-wrapper" style="border:none; background:transparent;">
+                                    <div style="width:100%; height:100%; background-color:${p.checked ? p.onColor : p.offColor}; border-radius:999px; position:relative; transition: background-color 0.2s ease;">
+                                        <div style="position:absolute; top:4px; left:4px; width:24px; height:24px; background:white; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s ease; transform: ${p.checked ? 'translateX(28px)' : 'translateX(0)'};"></div>
+                                    </div>
+                                </div>`;
+                    case 'Spinner':
+                        return `<div class="component-render-wrapper" style="background-color:${p.backgroundColor}; justify-content:space-between; padding:0;">
+                                    <button class="h-full px-2" style="font-size:${p.fontSize}px; color:${p.textColor};">-</button>
+                                    <span style="${baseStyles}">${p.value}</span>
+                                    <button class="h-full px-2" style="font-size:${p.fontSize}px; color:${p.textColor};">+</button>
+                                </div>`;
                     default:
-                        return `<div class="component-render-wrapper" style="border:1px dashed #999; ${baseTxt}">${comp.type}</div>`;
+                        return `<div class="component-render-wrapper" style="${wrapperStyles}"><span style="${baseStyles}">${p.text}</span></div>`;
                 }
-            }
-
-            // -- Dragging Logic --
-            function startDrag(e, el) {
-                if(e.target.className === 'resizer') return;
-                const startX = e.clientX;
-                const startY = e.clientY;
-                const startLeft = el.offsetLeft;
-                const startTop = el.offsetTop;
-                
-                const onMove = (mv) => {
-                    let newLeft = startLeft + (mv.clientX - startX);
-                    let newTop = startTop + (mv.clientY - startY);
-                    
-                    // Simple snapping (10px grid)
-                    newLeft = Math.round(newLeft / 10) * 10;
-                    newTop = Math.round(newTop / 10) * 10;
-                    
-                    el.style.left = `${newLeft}px`;
-                    el.style.top = `${newTop}px`;
-                };
-
-                const onUp = () => {
-                    document.removeEventListener('mousemove', onMove);
-                    document.removeEventListener('mouseup', onUp);
-                    // Update data
-                    const c = components.find(x => x.id === el.id);
-                    if(c) { c.x = el.offsetLeft; c.y = el.offsetTop; }
-                };
-                
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onUp);
-            }
-
-            // -- Resizing Logic --
-            function startResize(e, el) {
-                e.stopPropagation();
-                const startX = e.clientX;
-                const startY = e.clientY;
-                const startW = el.offsetWidth;
-                const startH = el.offsetHeight;
-
-                const onMove = (mv) => {
-                    let newW = startW + (mv.clientX - startX);
-                    let newH = startH + (mv.clientY - startY);
-                    if(newW < 20) newW = 20;
-                    if(newH < 20) newH = 20;
-                    
-                    // Snap
-                    newW = Math.round(newW / 10) * 10;
-                    newH = Math.round(newH / 10) * 10;
-
-                    el.style.width = `${newW}px`;
-                    el.style.height = `${newH}px`;
-                };
-
-                const onUp = () => {
-                    document.removeEventListener('mousemove', onMove);
-                    document.removeEventListener('mouseup', onUp);
-                    const c = components.find(x => x.id === el.id);
-                    if(c) { c.width = el.offsetWidth; c.height = el.offsetHeight; }
-                };
-
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onUp);
-            }
-
-            // -- Property Editor --
-            function selectComponent(id) {
-                document.querySelectorAll('.component').forEach(c => c.classList.remove('selected'));
-                if (!id) {
-                    selectedComponent = null;
-                    propertyEditor.classList.add('hidden');
-                    return;
-                }
-                
-                const el = document.getElementById(id);
-                if(el) el.classList.add('selected');
-                
-                selectedComponent = components.find(c => c.id === id);
-                propertyEditor.classList.remove('hidden');
-                renderProperties();
             }
             
-            document.getElementById('close-props').addEventListener('click', () => selectComponent(null));
+            deleteComponentBtn.addEventListener('click', () => {
+                if (!selectedComponent) return;
+                document.getElementById(selectedComponent.id)?.remove();
+                components = components.filter(c => c.id !== selectedComponent.id);
+                selectedComponent = null;
+                propertyEditor.classList.add('hidden');
+            });
 
-            function renderProperties() {
+            function selectComponent(id) {
+                selectedComponent = components.find(c => c.id === id) || null;
+                document.querySelectorAll('.component').forEach(el => el.classList.remove('selected'));
+                if (selectedComponent) {
+                    document.getElementById(id)?.classList.add('selected');
+                    propertyEditor.classList.remove('hidden');
+                    populatePropertyEditor(selectedComponent);
+                } else {
+                    propertyEditor.classList.add('hidden');
+                }
+            }
+
+            canvas.addEventListener('click', () => selectComponent(null));
+            document.addEventListener('click', () => contextMenu.classList.add('hidden'));
+
+            function populatePropertyEditor(component) {
                 propertiesForm.innerHTML = '';
-                if(!selectedComponent) return;
+                const addField = (parent, type, label, value, key, options = {}) => {
+                    const div = document.createElement('div');
+                    const labelEl = document.createElement('label');
+                    labelEl.className = 'block text-sm font-medium text-gray-700';
+                    labelEl.textContent = label;
+                    
+                    let input;
+                    if (type === 'file-button') {
+                        labelEl.htmlFor = `file-input-${component.id}`;
+                        labelEl.className += ' w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer';
+                        input = document.createElement('input');
+                        input.type = 'file';
+                        input.id = `file-input-${component.id}`;
+                        input.className = 'hidden';
+                        input.accept = 'image/*';
+                        input.addEventListener('change', (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = (readEvent) => {
+                                updateComponentProperty(component.id, 'src', readEvent.target.result);
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                        div.appendChild(labelEl);
+                        div.appendChild(input);
+                    } else {
+                        div.appendChild(labelEl);
+                        if (type === 'textarea') {
+                            input = document.createElement('textarea');
+                            input.rows = 3;
+                        } else if (type === 'select') {
+                            input = document.createElement('select');
+                            options.choices.forEach(c => {
+                                const opt = document.createElement('option');
+                                opt.value = c;
+                                opt.textContent = c.charAt(0).toUpperCase() + c.slice(1);
+                                input.appendChild(opt);
+                            });
+                        } else {
+                            input = document.createElement('input');
+                            input.type = type;
+                            if (options.step) input.step = options.step;
+                            if (options.min) input.min = options.min;
+                            if (options.max) input.max = options.max;
+                        }
 
-                // ID Field
-                createPropField('text', 'Component ID', selectedComponent.id, (val) => {
-                    // Unique check
-                    if(components.some(c => c.id === val && c.id !== selectedComponent.id)) {
-                        alert("ID must be unique");
+                        input.value = value ?? '';
+                        input.dataset.key = key;
+                        input.className = 'mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500';
+                        if (type === 'color') input.className += ' h-10';
+                        if (type === 'checkbox') {
+                            input.checked = !!value;
+                            input.className = 'h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500';
+                            div.className = 'flex items-center gap-x-2';
+                            div.insertBefore(input, labelEl);
+                        }
+
+                        input.addEventListener(type === 'checkbox' ? 'change' : 'input', (e) => {
+                            const originalId = component.id;
+                            const val = type === 'checkbox' ? e.target.checked : e.target.value;
+                            updateComponentProperty(originalId, key, val, e.target);
+                        });
+                        div.appendChild(input);
+                    }
+                    parent.appendChild(div);
+                };
+
+                addField(propertiesForm, 'text', 'ID', component.id, 'id');
+
+                const p = component.properties;
+                if (component.type === 'Image') {
+                    addField(propertiesForm, 'file-button', 'Upload Image', null, 'src');
+                    addField(propertiesForm, 'number', 'Corner Radius (px)', p.cornerRadius, 'cornerRadius', {min: 0});
+                    addField(propertiesForm, 'range', `Opacity (${p.opacity})`, p.opacity, 'opacity', {min: 0, max: 1, step: 0.1});
+                    addField(propertiesForm, 'select', 'Image Fit', p.fit, 'fit', { choices: ['fill', 'contain', 'cover', 'none'] });
+                } else {
+                    for (const key in p) {
+                        // Hide unsupported properties globally (no fontFamily, borders, trackColor)
+                        if (key === 'fontFamily' || key === 'trackColor' || key === 'borderColor' || key === 'borderWidth') continue;
+
+                        const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                        let type = 'text';
+                        if (key.includes('Color')) type = 'color';
+                        else if (typeof p[key] === 'number') type = 'number';
+                        else if (typeof p[key] === 'boolean') type = 'checkbox';
+                        else if (key === 'options') type = 'textarea';
+
+                        addField(propertiesForm, type, label, p[key], key);
+                    }
+                }
+            }
+
+            function updateComponentProperty(id, key, value, targetElement) {
+                const component = components.find(c => c.id === id);
+                if (!component) return;
+                
+                if (key === 'id') {
+                    const isDuplicate = components.some(c => c.id === value && c.id !== id);
+                    if (isDuplicate || value.trim() === '') {
+                        if(targetElement) targetElement.classList.add('id-error');
                         return;
                     }
-                    const oldId = selectedComponent.id;
-                    selectedComponent.id = val;
-                    document.getElementById(oldId).id = val;
-                });
-
-                const p = selectedComponent.properties;
-                Object.keys(p).forEach(key => {
-                    // Skip internal style keys not meant for GUI editing if needed
-                    if(key === 'visible') return; 
-
-                    let type = 'text';
-                    if(typeof p[key] === 'number') type = 'number';
-                    if(typeof p[key] === 'boolean') type = 'checkbox';
-                    if(key.toLowerCase().includes('color')) type = 'color';
-                    if(key === 'options' || key === 'text' && selectedComponent.type === 'TextArea') type = 'textarea';
-                    if(key === 'src' && selectedComponent.type === 'Image') type = 'file';
-
-                    createPropField(type, key, p[key], (val) => {
-                        selectedComponent.properties[key] = val;
-                        // Re-render only the HTML content, not the whole component div to keep selection
-                        const wrapper = document.getElementById(selectedComponent.id).querySelector('div'); 
-                        if(wrapper) {
-                            // Quick refresh approach
-                            renderComponent(selectedComponent); // Full re-render needed for some props
-                            selectComponent(selectedComponent.id); // Re-select
-                        }
-                    });
-                });
-            }
-
-            function createPropField(type, label, value, callback) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'mb-3';
-                
-                const lbl = document.createElement('label');
-                lbl.className = 'block text-xs font-bold text-gray-500 uppercase mb-1';
-                lbl.textContent = label.replace(/([A-Z])/g, ' $1').trim();
-                
-                let input;
-                if(type === 'textarea') {
-                    input = document.createElement('textarea');
-                    input.rows = 3;
-                    input.className = 'w-full p-2 text-sm border border-gray-300 rounded focus:border-indigo-500 outline-none';
-                    input.value = value;
-                    input.addEventListener('input', (e) => callback(e.target.value));
-                    wrapper.appendChild(lbl);
-                    wrapper.appendChild(input);
-                } else if(type === 'checkbox') {
-                    const row = document.createElement('div');
-                    row.className = 'flex items-center gap-2';
-                    input = document.createElement('input');
-                    input.type = 'checkbox';
-                    input.checked = value;
-                    input.addEventListener('change', (e) => callback(e.target.checked));
-                    row.appendChild(input);
-                    row.appendChild(lbl);
-                    wrapper.appendChild(row);
-                } else if (type === 'file') {
-                    wrapper.appendChild(lbl);
-                    input = document.createElement('input');
-                    input.type = 'file';
-                    input.className = 'w-full text-xs';
-                    input.addEventListener('change', (e) => {
-                        const f = e.target.files[0];
-                        if(f) {
-                            const reader = new FileReader();
-                            reader.onload = (re) => callback(re.target.result);
-                            reader.readAsDataURL(f);
-                        }
-                    });
-                    wrapper.appendChild(input);
-                } else {
-                    wrapper.appendChild(lbl);
-                    input = document.createElement('input');
-                    input.type = type;
-                    input.value = value;
-                    input.className = 'w-full p-2 text-sm border border-gray-300 rounded focus:border-indigo-500 outline-none';
-                    if(type === 'color') input.className = 'w-full h-8 cursor-pointer';
-                    input.addEventListener('input', (e) => callback(type === 'number' ? parseFloat(e.target.value) : e.target.value));
-                    wrapper.appendChild(input);
+                    if(targetElement) targetElement.classList.remove('id-error');
+                    
+                    document.getElementById(id).id = value;
+                    component.id = value;
+                    if(selectedComponent && selectedComponent.id === id) selectedComponent.id = value;
+                    return;
                 }
-                
-                propertiesForm.appendChild(wrapper);
-            }
 
-            // -- Deletion --
-            deleteComponentBtn.addEventListener('click', () => {
-                if(selectedComponent) {
-                    components = components.filter(c => c.id !== selectedComponent.id);
-                    renderAllComponents();
-                    selectComponent(null);
+                if (typeof component.properties[key] === 'number') {
+                    value = parseFloat(value) || 0;
                 }
-            });
-
-            // -- JSON I/O --
-            saveJsonBtn.addEventListener('click', () => {
-                const layout = {
-                    canvas: {
-                        width: parseInt(canvasWidthInput.value),
-                        height: parseInt(canvasHeightInput.value),
-                        title: windowTitleInput.value
-                    },
-                    // Kivy draws in list order. Ensure lower zIndex comes first.
-                    components: [...components].sort((a,b) => a.zIndex - b.zIndex)
-                };
+                component.properties[key] = value;
+                renderComponent(component);
                 
-                const blob = new Blob([JSON.stringify(layout, null, 2)], {type: 'application/json'});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'layout.json';
-                a.click();
-            });
+                if ((component.type === 'Label' && key === 'iconName') && selectedComponent && selectedComponent.id === id) {
+                    populatePropertyEditor(component);
+                }
 
-            loadJsonInput.addEventListener('change', (e) => {
-                const f = e.target.files[0];
-                if(!f) return;
-                const r = new FileReader();
-                r.onload = (re) => {
-                    try {
-                        const json = JSON.parse(re.target.result);
-                        if(json.canvas) {
-                            canvasWidthInput.value = json.canvas.width;
-                            canvasHeightInput.value = json.canvas.height;
-                            windowTitleInput.value = json.canvas.title || "My App";
-                            canvas.style.width = `${json.canvas.width}px`;
-                            canvas.style.height = `${json.canvas.height}px`;
-                        }
-                        if(json.components) {
-                            components = json.components.map((c, i) => ({
-                                ...c,
-                                zIndex: c.zIndex !== undefined ? c.zIndex : i // preserve or assign order
-                            }));
-                            // Reset counter to avoid ID clashes
-                            componentIdCounter = components.length + 10; 
-                            renderAllComponents();
-                        }
-                    } catch(err) {
-                        alert("Invalid JSON");
+                if (targetElement && targetElement.type === 'range') {
+                    const label = targetElement.closest('div').querySelector('label');
+                    if (label) {
+                        label.textContent = `${label.textContent.split('(')[0].trim()} (${value})`;
                     }
-                };
-                r.readAsText(f);
-                e.target.value = '';
-            });
+                }
+            }
 
-            // -- Context Menu Actions --
-            document.addEventListener('click', () => contextMenu.classList.add('hidden'));
-            
-            contextMenu.addEventListener('click', (e) => {
-                const action = e.target.closest('a')?.dataset.action;
-                if(!action || !contextComponentId) return;
-                
-                const comp = components.find(c => c.id === contextComponentId);
+            function makeDraggable(element) {
+                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                element.onmousedown = e => {
+                    if (e.target.classList.contains('resizer')) return;
+                    e.preventDefault();
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    document.onmouseup = () => {
+                        document.onmouseup = null;
+                        document.onmousemove = null;
+                        const component = components.find(c => c.id === element.id);
+                        if (component) {
+                            component.x = element.offsetLeft;
+                            component.y = element.offsetTop;
+                        }
+                    };
+                    document.onmousemove = me => {
+                        me.preventDefault();
+                        pos1 = pos3 - me.clientX;
+                        pos2 = pos4 - me.clientY;
+                        pos3 = me.clientX;
+                        pos4 = me.clientY;
+                        
+                        let newTop = element.offsetTop - pos2;
+                        let newLeft = element.offsetLeft - pos1;
+
+                        if (newLeft < 0) newLeft = 0;
+                        if (newTop < 0) newTop = 0;
+                        if (newLeft + element.offsetWidth > canvas.offsetWidth) newLeft = canvas.offsetWidth - element.offsetWidth;
+                        if (newTop + element.offsetHeight > canvas.offsetHeight) newTop = canvas.offsetHeight - element.offsetHeight;
+
+                        element.style.top = `${newTop}px`;
+                        element.style.left = `${newLeft}px`;
+                    };
+                };
+            }
+
+            function makeResizable(element, resizer) {
+                if (!resizer) return;
+                resizer.addEventListener('mousedown', e => {
+                    e.stopPropagation();
+                    window.addEventListener('mousemove', resize);
+                    window.addEventListener('mouseup', stopResize);
+                });
+
+                function resize(e) {
+                    let newWidth = (e.clientX - element.getBoundingClientRect().left);
+                    let newHeight = (e.clientY - element.getBoundingClientRect().top);
+                    if (newWidth < 20) newWidth = 20;
+                    if (newHeight < 20) newHeight = 20;
+                    element.style.width = `${newWidth}px`;
+                    element.style.height = `${newHeight}px`;
+                }
+
+                function stopResize() {
+                    window.removeEventListener('mousemove', resize);
+                    window.removeEventListener('mouseup', stopResize);
+                    const component = components.find(c => c.id === element.id);
+                    if (component) {
+                        component.width = element.offsetWidth;
+                        component.height = element.offsetHeight;
+                    }
+                }
+            }
+
+            contextMenu.addEventListener('click', e => {
+                e.preventDefault();
+                const action = e.target.dataset.action;
+                if (!action || !contextComponentId) {
+                    contextMenu.classList.add('hidden');
+                    return;
+                };
+
+                const clickedComp = components.find(c => c.id === contextComponentId);
+                if (!clickedComp) return;
+
                 const sorted = [...components].sort((a,b) => a.zIndex - b.zIndex);
-                const idx = sorted.indexOf(comp);
+                const currentIndex = sorted.findIndex(c => c.id === contextComponentId);
 
-                if(action === 'bring-to-front') {
-                    comp.zIndex = components.length + 1; // pushing higher
-                } else if(action === 'send-to-back') {
-                    comp.zIndex = -1; // pushing lower
-                } else if(action === 'bring-forward') {
-                    if(idx < sorted.length - 1) {
-                         const upper = sorted[idx+1];
-                         const temp = upper.zIndex;
-                         upper.zIndex = comp.zIndex;
-                         comp.zIndex = temp; 
-                    }
-                } else if(action === 'send-backward') {
-                    if(idx > 0) {
-                        const lower = sorted[idx-1];
-                        const temp = lower.zIndex;
-                        lower.zIndex = comp.zIndex;
-                        comp.zIndex = temp;
-                    }
-                } else if(action === 'duplicate') {
-                    const clone = JSON.parse(JSON.stringify(comp));
-                    clone.id = comp.id + '_copy_' + Math.floor(Math.random()*1000);
-                    clone.x += 20; clone.y += 20;
-                    clone.zIndex = components.length + 10;
-                    components.push(clone);
+                switch (action) {
+                    case 'bring-forward':
+                        if (currentIndex < sorted.length - 1) {
+                           const nextComp = sorted[currentIndex + 1];
+                           [clickedComp.zIndex, nextComp.zIndex] = [nextComp.zIndex, clickedComp.zIndex];
+                        }
+                        break;
+                    case 'send-backward':
+                        if (currentIndex > 0) {
+                            const prevComp = sorted[currentIndex - 1];
+                           [clickedComp.zIndex, prevComp.zIndex] = [prevComp.zIndex, clickedComp.zIndex];
+                        }
+                        break;
+                    case 'bring-to-front':
+                        clickedComp.zIndex = components.length;
+                        break;
+                    case 'send-to-back':
+                         clickedComp.zIndex = -1;
+                        break;
+                    case 'duplicate':
+                        duplicateComponent(contextComponentId);
+                        break;
                 }
-
-                // Normalizing z-indexes to 0..N
-                components.sort((a,b) => a.zIndex - b.zIndex).forEach((c, i) => c.zIndex = i);
-                
-                renderAllComponents();
+                reorderZIndexes();
                 contextMenu.classList.add('hidden');
             });
+            
+            function duplicateComponent(id) {
+                const originalComp = components.find(c => c.id === id);
+                if (!originalComp) return;
 
-            // -- Live Preview Logic (Simplified for brevity) --
-            // Uses the same generation logic as renderComponent but static
-            livePreviewBtn.addEventListener('click', () => {
+                const newComp = JSON.parse(JSON.stringify(originalComp));
+                
+                let copyCount = 1;
+                let newId = `${originalComp.id}_copy_${copyCount}`;
+                while (components.some(c => c.id === newId)) {
+                    copyCount++;
+                    newId = `${originalComp.id}_copy_${copyCount}`;
+                }
+                newComp.id = newId;
+                newComp.x += 10;
+                newComp.y += 10;
+                newComp.zIndex = components.length;
+                components.push(newComp);
+                renderAllComponents();
+                selectComponent(newId);
+            }
+
+            function openPreview() {
                 previewCanvas.innerHTML = '';
                 previewCanvas.style.width = canvas.style.width;
                 previewCanvas.style.height = canvas.style.height;
-                
-                // Sort by Z to ensure visual accuracy
-                [...components].sort((a,b) => a.zIndex - b.zIndex).forEach(c => {
-                    const el = document.createElement('div');
-                    el.style.position = 'absolute';
-                    el.style.left = `${c.x}px`;
-                    el.style.top = `${c.y}px`;
-                    el.style.width = `${c.width}px`;
-                    el.style.height = `${c.height}px`;
-                    el.innerHTML = getComponentHTML(c);
-                    previewCanvas.appendChild(el);
+
+                let dynamicStyles = document.getElementById('dynamic-preview-styles');
+                if (dynamicStyles) dynamicStyles.remove();
+                dynamicStyles = document.createElement('style');
+                dynamicStyles.id = 'dynamic-preview-styles';
+                document.head.appendChild(dynamicStyles);
+
+                components.forEach(comp => {
+                    const p = comp.properties;
+                    const elWrapper = document.createElement('div');
+                    elWrapper.className = 'preview-component';
+                    elWrapper.style.left = `${comp.x}px`;
+                    elWrapper.style.top = `${comp.y}px`;
+                    elWrapper.style.width = `${comp.width}px`;
+                    elWrapper.style.height = `${comp.height}px`;
+
+                    let el;
+                    switch(comp.type) {
+                        case 'Button':
+                            el = document.createElement('button');
+                            el.textContent = p.text;
+                            el.className = 'preview-button';
+                            el.style.transition = 'transform 0.1s ease, filter 0.1s ease';
+                            el.style.backgroundColor = p.backgroundColor;
+                            el.style.color = p.textColor;
+                            el.style.fontSize = `${p.fontSize}px`;
+                            el.style.fontWeight = p.bold ? 'bold' : 'normal';
+                            el.style.borderRadius = `${p.cornerRadius}px`;
+                            el.style.border = '1px solid #9ca3af';
+                            break;
+                        case 'TextBox':
+                            el = document.createElement('input');
+                            el.type = 'text';
+                            el.placeholder = p.hintText;
+                            el.value = p.text;
+                            el.style.color = p.textColor;
+                            el.style.backgroundColor = p.backgroundColor;
+                            el.style.fontSize = `${p.fontSize}px`;
+                            el.style.fontWeight = p.bold ? 'bold' : 'normal';
+                            break;
+                        case 'TextArea':
+                            el = document.createElement('textarea');
+                            el.placeholder = p.hintText;
+                            el.value = p.text;
+                            el.style.color = p.textColor;
+                            el.style.backgroundColor = p.backgroundColor;
+                            el.style.fontSize = `${p.fontSize}px`;
+                            el.style.fontWeight = p.bold ? 'bold' : 'normal';
+                            break;
+                        case 'Checkbox':
+                            el = document.createElement('div');
+                            el.className = 'flex items-center justify-start gap-2';
+                            const input = document.createElement('input');
+                            input.type = 'checkbox';
+                            input.checked = p.checked;
+                            const label = document.createElement('label');
+                            label.textContent = p.text;
+                            label.style.color = p.textColor;
+                            label.style.fontSize = `${p.fontSize}px`;
+                            label.style.fontWeight = p.bold ? 'bold' : 'normal';
+                            el.append(input, label);
+                            break;
+                        case 'RadioGroup':
+                            el = document.createElement('div');
+                            el.className = 'flex flex-col items-start justify-center gap-2';
+                            const groupLabel = document.createElement('label');
+                            groupLabel.textContent = p.label;
+                            groupLabel.style.color = p.textColor;
+                            groupLabel.style.fontSize = `${p.fontSize}px`;
+                            groupLabel.style.fontWeight = p.bold ? 'bold' : 'normal';
+                            groupLabel.style.marginBottom = '4px';
+                            el.appendChild(groupLabel);
+                            p.options.split('\n').forEach(opt => {
+                                const optionWrapper = document.createElement('div');
+                                optionWrapper.className = 'flex items-center gap-2';
+                                const radioInput = document.createElement('input');
+                                radioInput.type = 'radio';
+                                radioInput.name = comp.id;
+                                radioInput.value = opt;
+                                radioInput.checked = opt === p.checkedValue;
+                                const optionLabel = document.createElement('label');
+                                optionLabel.textContent = opt;
+                                optionLabel.style.color = p.textColor;
+                                optionLabel.style.fontSize = `${p.fontSize}px`;
+                                optionLabel.style.fontWeight = p.bold ? 'bold' : 'normal';
+                                optionLabel.style.whiteSpace = 'nowrap';
+                                optionWrapper.append(radioInput, optionLabel);
+                                el.appendChild(optionWrapper);
+                            });
+                            break;
+                        case 'Slider':
+                            el = document.createElement('input');
+                            el.type = 'range';
+                            el.min = p.min;
+                            el.max = p.max;
+                            el.value = p.value;
+                            el.className = `preview-slider-${comp.id}`;
+                            el.style.height = '6px';
+                            el.style.margin = 'auto 0';
+
+                            const updateSliderStyle = (target) => {
+                                const newPercent = ((target.value - p.min) / (p.max - p.min)) * 100;
+                                target.style.background = `linear-gradient(to right, ${p.progressColor} 0%, ${p.progressColor} ${newPercent}%, #e5e7eb ${newPercent}%, #e5e7eb 100%)`;
+                            };
+                            
+                            dynamicStyles.innerHTML += `
+                                .preview-slider-${comp.id} { -webkit-appearance: none; appearance: none; width: 100%; border-radius: 3px; outline: none; }
+                                .preview-slider-${comp.id}::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: ${p.buttonColor}; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+                                .preview-slider-${comp.id}::-moz-range-thumb { width: 18px; height: 18px; background: ${p.buttonColor}; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+                            `;
+                            
+                            el.addEventListener('input', (e) => updateSliderStyle(e.target));
+                            setTimeout(() => updateSliderStyle(el), 0);
+                            break;
+                        case 'Dropdown':
+                            el = document.createElement('select');
+                            el.className = `preview-dropdown-${comp.id}`;
+                            dynamicStyles.innerHTML += `
+                                .preview-dropdown-${comp.id} option:hover { background-color: ${p.selectionColor} !important; }
+                            `;
+                            const options = p.options.split('\n');
+                            options.forEach(opt => {
+                                const optionEl = document.createElement('option');
+                                optionEl.value = opt;
+                                optionEl.textContent = opt;
+                                el.appendChild(optionEl);
+                            });
+                            el.style.backgroundColor = p.backgroundColor;
+                            el.style.color = p.textColor;
+                            el.style.fontSize = `${p.fontSize}px`;
+                            el.style.fontWeight = p.bold ? 'bold' : 'normal';
+                            break;
+                        case 'ToggleButton':
+                            el = document.createElement('label');
+                            el.className = 'relative inline-flex items-center cursor-pointer';
+                            const toggleInput = document.createElement('input');
+                            toggleInput.type = 'checkbox';
+                            toggleInput.className = 'sr-only peer';
+                            toggleInput.checked = p.checked;
+                            const toggleDiv = document.createElement('div');
+                            toggleDiv.className = "w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600";
+                            toggleDiv.style.backgroundColor = p.checked ? p.onColor : p.offColor;
+                            toggleInput.addEventListener('change', (e) => {
+                                toggleDiv.style.backgroundColor = e.target.checked ? p.onColor : p.offColor;
+                            });
+                            el.append(toggleInput, toggleDiv);
+                            break;
+                        case 'Spinner':
+                            el = document.createElement('div');
+                            el.className = 'flex items-center justify-between border border-gray-400 rounded';
+                            el.style.backgroundColor = p.backgroundColor || 'white';
+                            const minusBtn = document.createElement('button');
+                            minusBtn.textContent = '-';
+                            minusBtn.className = 'px-2';
+                            minusBtn.style.fontSize = `${p.fontSize}px`;
+                            minusBtn.style.color = p.textColor;
+                            minusBtn.style.fontWeight = p.bold ? 'bold' : 'normal';
+                            const valueSpan = document.createElement('span');
+                            valueSpan.textContent = p.value;
+                            valueSpan.style.color = p.textColor;
+                            valueSpan.style.fontSize = `${p.fontSize}px`;
+                            valueSpan.style.fontWeight = p.bold ? 'bold' : 'normal';
+                            const plusBtn = document.createElement('button');
+                            plusBtn.textContent = '+';
+                            plusBtn.className = 'px-2';
+                            plusBtn.style.fontSize = `${p.fontSize}px`;
+                            plusBtn.style.color = p.textColor;
+                            plusBtn.style.fontWeight = p.bold ? 'bold' : 'normal';
+                            
+                            minusBtn.addEventListener('click', () => {
+                                let val = parseInt(valueSpan.textContent);
+                                if (val > p.min) valueSpan.textContent = val - 1;
+                            });
+                            plusBtn.addEventListener('click', () => {
+                                let val = parseInt(valueSpan.textContent);
+                                if (val < p.max) valueSpan.textContent = val + 1;
+                            });
+                            el.append(minusBtn, valueSpan, plusBtn);
+                            break;
+                        default:
+                            el = document.createElement('div');
+                            el.innerHTML = getComponentHTML(comp);
+                            const innerEl = el.firstElementChild;
+                            innerEl.style.width = '100%';
+                            innerEl.style.height = '100%';
+                            el = innerEl;
+                    }
+                    
+                    if (el) {
+                        elWrapper.appendChild(el);
+                        previewCanvas.appendChild(elWrapper);
+                    }
                 });
-                
-                previewModal.classList.remove('hidden');
-            });
+
+                previewModal.style.display = 'flex';
+            }
+
+            function closePreview() {
+                previewModal.style.display = 'none';
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+            }
+
+            function toggleFullScreen() {
+                if (!document.fullscreenElement) {
+                    previewContent.requestFullscreen().catch(err => {
+                        alert(`Error: ${err.message}`);
+                    });
+                    fullscreenPreviewBtn.textContent = 'Exit Full Screen';
+                } else {
+                    document.exitFullscreen();
+                    fullscreenPreviewBtn.textContent = 'Full Screen';
+                }
+            }
             
-            closePreviewBtn.addEventListener('click', () => {
-                previewModal.classList.add('hidden');
-                if(document.fullscreenElement) document.exitFullscreen();
+            livePreviewBtn.addEventListener('click', openPreview);
+            closePreviewBtn.addEventListener('click', closePreview);
+            fullscreenPreviewBtn.addEventListener('click', toggleFullScreen);
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement) {
+                    fullscreenPreviewBtn.textContent = 'Full Screen';
+                }
             });
 
-            fullscreenPreviewBtn.addEventListener('click', () => {
-                if(!document.fullscreenElement) previewCanvas.parentElement.requestFullscreen();
-                else document.exitFullscreen();
+            saveJsonBtn.addEventListener('click', () => {
+                const sortedComponents = [...components].sort((a,b) => a.zIndex - b.zIndex);
+                const layout = {
+                    canvas: { 
+                        width: canvas.offsetWidth, 
+                        height: canvas.offsetHeight,
+                        title: windowTitleInput.value
+                    },
+                    components: sortedComponents
+                };
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(layout, null, 2));
+                const a = document.createElement('a');
+                a.href = dataStr;
+                a.download = "layout.json";
+                a.click();
             });
 
+            loadJsonInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const layout = JSON.parse(e.target.result);
+                        loadLayout(layout);
+                    } catch (error) {
+                        alert("Invalid JSON file.");
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            });
+
+            function loadLayout(layout) {
+                canvas.style.width = `${layout.canvas.width}px`;
+                canvas.style.height = `${layout.canvas.height}px`;
+                canvasWidthInput.value = layout.canvas.width;
+                canvasHeightInput.value = layout.canvas.height;
+                windowTitleInput.value = layout.canvas.title || 'My GUI';
+                
+                canvas.innerHTML = '';
+                components = layout.components;
+
+                const idSet = new Set();
+                const duplicateIds = new Set();
+                components.forEach((c, index) => {
+                    if (c.zIndex === undefined) c.zIndex = index;
+                    if (idSet.has(c.id)) duplicateIds.add(c.id);
+                    idSet.add(c.id);
+                });
+
+                if (duplicateIds.size > 0) {
+                    alert(`Warning: Duplicate IDs found: ${Array.from(duplicateIds).join(', ')}.`);
+                }
+                
+                componentIdCounter = components.length
+                    ? Math.max(0, ...components.map(c => parseInt(c.id.split('_').pop()) || 0).filter(Number.isFinite)) + 1
+                    : 0;
+                
+                renderAllComponents();
+                selectComponent(null);
+            }
         });
     </script>
+
 </body>
 </html>
