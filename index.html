@@ -1,4 +1,4 @@
-<!-- START OF FILE Paste January 18, 2026 - 12:45PM -->
+<!-- START OF FILE Paste January 18, 2026 - 01:15PM -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,6 +66,44 @@
         
         .btn-bounce:active { transform: scale(0.95); }
         .btn-bounce:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* Toast Notification Styles */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 11000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUpFade 0.3s forwards;
+        }
+
+        @keyframes slideUpFade {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col text-gray-800">
@@ -236,8 +274,12 @@
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Elements
             const canvas = document.getElementById('canvas');
             const addComponentBtn = document.getElementById('add-component');
             const componentSelect = document.getElementById('component-select');
@@ -253,7 +295,7 @@
             const windowTitleInput = document.getElementById('window-title');
             const applyPropsBtn = document.getElementById('apply-props-btn');
             
-            // Undo/Redo Controls
+            // Undo/Redo
             const undoBtn = document.getElementById('undo-btn');
             const redoBtn = document.getElementById('redo-btn');
 
@@ -275,11 +317,9 @@
             let historyStep = -1;
 
             function saveState() {
-                // If we are in middle of stack, discard future
                 if (historyStep < history.length - 1) {
                     history = history.slice(0, historyStep + 1);
                 }
-                // Deep copy
                 history.push(JSON.parse(JSON.stringify(components)));
                 historyStep++;
                 updateUndoRedoUI();
@@ -295,8 +335,9 @@
                     historyStep--;
                     components = JSON.parse(JSON.stringify(history[historyStep]));
                     renderAllComponents();
-                    selectComponent(null); // Deselect to avoid ghost properties
+                    selectComponent(null); 
                     updateUndoRedoUI();
+                    showToast("Undo", "info");
                 }
             });
 
@@ -307,11 +348,30 @@
                     renderAllComponents();
                     selectComponent(null);
                     updateUndoRedoUI();
+                    showToast("Redo", "info");
                 }
             });
 
-            // Initialize History
             saveState(); 
+
+            // --- TOAST SYSTEM ---
+            function showToast(message, type = 'success') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                
+                let icon = 'check_circle';
+                if(type === 'error') icon = 'error';
+                else if(type === 'info') icon = 'info';
+
+                toast.innerHTML = `<span class="material-symbols-rounded">${icon}</span> ${message}`;
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOut 0.3s forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }, 2000);
+            }
 
             // --- DEFAULTS ---
             const getComponentDefaults = (type) => {
@@ -342,6 +402,7 @@
             resizeCanvasBtn.addEventListener('click', () => {
                 canvas.style.width = `${canvasWidthInput.value}px`;
                 canvas.style.height = `${canvasHeightInput.value}px`;
+                showToast("Canvas Resized");
             });
 
             addComponentBtn.addEventListener('click', () => {
@@ -367,7 +428,7 @@
                 components.push(comp);
                 renderAllComponents();
                 selectComponent(id);
-                saveState(); // Save to history
+                saveState();
             });
 
             function renderAllComponents() {
@@ -377,9 +438,29 @@
             }
 
             function renderComponent(comp) {
-                const el = document.createElement('div');
-                el.id = comp.id;
-                el.className = 'component';
+                // If exists, reuse (preserves visual state better)
+                let el = document.getElementById(comp.id);
+                const alreadySelected = el && el.classList.contains('selected');
+                
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = comp.id;
+                    el.className = 'component';
+                    canvas.appendChild(el);
+                    
+                    // Attach Listeners
+                    el.addEventListener('mousedown', (e) => startDrag(e, el));
+                    el.addEventListener('click', (e) => { e.stopPropagation(); selectComponent(comp.id); });
+                    el.addEventListener('contextmenu', (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        contextComponentId = comp.id;
+                        contextMenu.style.left = `${e.clientX}px`;
+                        contextMenu.style.top = `${e.clientY}px`;
+                        contextMenu.classList.remove('hidden');
+                        selectComponent(comp.id);
+                    });
+                }
+                
                 if (selectedComponent && selectedComponent.id === comp.id) el.classList.add('selected');
 
                 el.style.left = `${comp.x}px`;
@@ -389,8 +470,12 @@
                 el.style.zIndex = comp.zIndex;
                 el.style.borderRadius = (comp.properties.cornerRadius || 0) + 'px';
 
+                // Clear children
+                el.innerHTML = '';
+
                 const resizer = document.createElement('div');
                 resizer.className = 'resizer';
+                resizer.addEventListener('mousedown', (e) => startResize(e, el));
                 el.appendChild(resizer);
 
                 const content = document.createElement('div');
@@ -398,20 +483,6 @@
                 content.style.height = '100%';
                 content.innerHTML = getComponentHTML(comp);
                 el.appendChild(content);
-
-                el.addEventListener('mousedown', (e) => startDrag(e, el));
-                resizer.addEventListener('mousedown', (e) => startResize(e, el));
-                el.addEventListener('click', (e) => { e.stopPropagation(); selectComponent(comp.id); });
-                el.addEventListener('contextmenu', (e) => {
-                    e.preventDefault(); e.stopPropagation();
-                    contextComponentId = comp.id;
-                    contextMenu.style.left = `${e.clientX}px`;
-                    contextMenu.style.top = `${e.clientY}px`;
-                    contextMenu.classList.remove('hidden');
-                    selectComponent(comp.id);
-                });
-
-                canvas.appendChild(el);
             }
 
             function getComponentHTML(comp) {
@@ -470,7 +541,7 @@
                         if(c) { 
                             c.x = el.offsetLeft; 
                             c.y = el.offsetTop; 
-                            saveState(); // Commit move
+                            saveState(); 
                         }
                     }
                 };
@@ -506,7 +577,7 @@
                         if(c) { 
                             c.width = el.offsetWidth; 
                             c.height = el.offsetHeight; 
-                            saveState(); // Commit resize
+                            saveState(); 
                         }
                     }
                 };
@@ -567,13 +638,18 @@
                     selectedComponent.properties[key] = val;
                 });
 
-                // File inputs handled separately via change event usually, but if image src was cleared?
-                // Kept file input logic instant for simplicity in `createPropField`
-                
+                // Immediate Re-render on Canvas
                 renderComponent(selectedComponent);
-                if(idChanged) selectComponent(selectedComponent.id);
                 
-                saveState(); // Save applied changes
+                if(idChanged) selectComponent(selectedComponent.id);
+                else {
+                    // Ensure visual highlight persists
+                    const el = document.getElementById(selectedComponent.id);
+                    if(el) el.classList.add('selected');
+                }
+                
+                saveState(); // Save to Undo history
+                showToast("Changes Applied Successfully", "success");
             });
 
             function renderProperties() {
@@ -624,9 +700,9 @@
                             const reader = new FileReader();
                             reader.onload = (re) => {
                                 selectedComponent.properties[key] = re.target.result;
-                                // Wait for Apply? Typically huge strings. Let's let Apply handle saving, but we update obj here?
-                                // Better: Update object immediately for file preview, but don't saveState until Apply.
+                                // Auto-render images for preview
                                 renderComponent(selectedComponent);
+                                document.getElementById(selectedComponent.id).classList.add('selected');
                             };
                             reader.readAsDataURL(f);
                         }
@@ -672,6 +748,7 @@
                     renderAllComponents();
                     selectComponent(null);
                     saveState();
+                    showToast("Component Deleted", "error");
                 }
             }
             deleteComponentBtn.addEventListener('click', deleteSelected);
@@ -692,6 +769,7 @@
                 a.href = url;
                 a.download = 'layout.json';
                 a.click();
+                showToast("JSON Saved Successfully");
             });
 
             loadJsonInput.addEventListener('change', (e) => {
@@ -701,6 +779,8 @@
                 r.onload = (re) => {
                     try {
                         const json = JSON.parse(re.target.result);
+                        
+                        // Parse Canvas
                         if(json.canvas) {
                             canvasWidthInput.value = json.canvas.width;
                             canvasHeightInput.value = json.canvas.height;
@@ -708,14 +788,25 @@
                             canvas.style.width = `${json.canvas.width}px`;
                             canvas.style.height = `${json.canvas.height}px`;
                         }
+                        
+                        // Parse Components & Reset ID Counter
                         if(json.components) {
                             components = json.components.map((c, i) => ({
                                 ...c,
                                 zIndex: c.zIndex !== undefined ? c.zIndex : i
                             }));
-                            componentIdCounter = components.length + 50; 
+                            
+                            // Find highest ID to resume counter
+                            const maxId = components.reduce((max, c) => {
+                                const parts = c.id.split('_');
+                                const num = parseInt(parts[parts.length-1]);
+                                return (!isNaN(num) && num > max) ? num : max;
+                            }, 0);
+                            componentIdCounter = maxId + 1;
+                            
                             renderAllComponents();
-                            saveState(); // Save loaded state
+                            saveState(); // Save loaded state to history
+                            showToast("Layout Loaded Successfully");
                         }
                     } catch(err) { alert("Invalid JSON"); }
                 };
@@ -748,6 +839,7 @@
                 else if(action === 'delete') {
                     components = components.filter(c => c.id !== contextComponentId);
                     if(selectedComponent && selectedComponent.id === contextComponentId) selectComponent(null);
+                    showToast("Component Deleted", "error");
                 }
 
                 components.sort((a,b) => a.zIndex - b.zIndex).forEach((c, i) => c.zIndex = i);
@@ -761,6 +853,7 @@
                 previewCanvas.innerHTML = '';
                 previewCanvas.style.width = canvas.style.width;
                 previewCanvas.style.height = canvas.style.height;
+                
                 [...components].sort((a,b) => a.zIndex - b.zIndex).forEach(c => {
                     const el = document.createElement('div');
                     el.style.position = 'absolute';
