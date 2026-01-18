@@ -1,267 +1,218 @@
-<!-- START OF FILE Paste January 18, 2026 - 01:30PM -->
+<!-- START OF FILE Paste January 18, 2026 - 12:00PM -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NVLib v4 Builder</title>
+    <title>NVLib v4 GUI Builder</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        
+        body { font-family: 'Inter', sans-serif; }
         .canvas {
-            background-color: #ffffff;
+            background-color: #f9fafb;
+            border: 1px solid #d1d5db;
             position: relative;
             overflow: hidden;
-            background-image: 
-                linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
+            background-image:
+                linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+                linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
             background-size: 20px 20px;
-            border-radius: 16px;
         }
-
         .component {
             position: absolute;
             cursor: move;
-            border: 1px dashed transparent;
+            border: 1px solid transparent; /* Visual aid for selection */
             user-select: none;
+            font-size: 14px;
             box-sizing: border-box;
-            transition: box-shadow 0.2s, outline 0.2s;
         }
-
-        .component:hover { border-color: #a5b4fc; }
-
         .component.selected {
-            outline: 2px solid #6366f1;
-            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
-            z-index: 1000 !important;
+            outline: 2px solid #4f46e5; /* NVLib v4 Primary Color */
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.4);
+            z-index: 1000 !important; /* Bring selected temporarily to front for editing */
         }
-
         .resizer {
-            width: 12px;
-            height: 12px;
-            background: #6366f1;
-            border: 2px solid white;
-            border-radius: 50%;
+            width: 10px;
+            height: 10px;
+            background: #4f46e5;
+            border: 1px solid white;
             position: absolute;
-            right: -6px;
-            bottom: -6px;
+            right: -5px;
+            bottom: -5px;
             cursor: se-resize;
             display: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .component.selected .resizer { display: block; }
-
+        
         .component-render-wrapper {
-            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-sizing: border-box;
-        }
-
-        .material-symbols-rounded { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        
-        .btn-bounce:active { transform: scale(0.95); }
-        .btn-bounce:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        /* Toast Styles */
-        #toast-container {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 99999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: none;
-        }
-
-        .toast {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(8px);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 600;
+            width: 100%;
+            height: 100%;
             display: flex;
             align-items: center;
-            gap: 12px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            opacity: 0;
-            transform: translateY(20px);
-            animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            border: 1px solid rgba(255,255,255,0.1);
+            justify-content: center;
+            overflow: hidden;
+            box-sizing: border-box;
         }
-
-        @keyframes slideUpFade {
-            to { opacity: 1; transform: translateY(0); }
+        .id-error {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
         }
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Preview Modal Styles */
+        .preview-component { position: absolute; box-sizing: border-box; }
+        .preview-button:active { transform: scale(0.98); filter: brightness(0.95); }
         
-        @keyframes fadeOut {
-            to { opacity: 0; transform: translateY(-10px); }
-        }
+        /* Context Menu */
+        #context-menu { width: 160px; }
+        .submenu-container:hover .submenu { display: block; }
     </style>
 </head>
-<body class="h-screen flex flex-col text-gray-800">
+<body class="bg-gray-100 text-gray-800 h-screen flex flex-col">
 
     <!-- Header -->
-    <header class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white shadow-lg p-3 flex justify-between items-center z-30">
-        <div class="flex items-center gap-4 pl-2">
-            <div class="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-                <span class="material-symbols-rounded text-2xl">view_quilt</span>
-            </div>
-            <div>
-                <h1 class="text-xl font-bold tracking-tight">NVLib v4 Builder</h1>
-                <div class="flex gap-3 text-xs font-medium text-indigo-100">
-                    <a href="docs.html" target="_blank" class="hover:text-white flex items-center gap-1 opacity-80 hover:opacity-100 transition">
-                        Docs <span class="material-symbols-rounded text-[10px]">open_in_new</span>
-                    </a>
-                </div>
-            </div>
+    <header class="bg-white shadow-md p-4 flex justify-between items-center z-20">
+        <div class="flex items-center gap-4">
+            <h1 class="text-2xl font-bold text-indigo-700">NVLib v4 Builder</h1>
+            <a href="docs.html" target="_blank" class="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
+                <span class="material-symbols-outlined text-lg">menu_book</span> Docs
+            </a>
         </div>
 
-        <div class="flex items-center gap-3 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10">
-            <div class="flex items-center gap-1 border-r border-white/20 pr-3 mr-1">
-                <button id="undo-btn" class="btn-bounce p-1.5 hover:bg-white/20 rounded-full transition text-white disabled:opacity-30" title="Undo">
-                    <span class="material-symbols-rounded text-xl">undo</span>
-                </button>
-                <button id="redo-btn" class="btn-bounce p-1.5 hover:bg-white/20 rounded-full transition text-white disabled:opacity-30" title="Redo">
-                    <span class="material-symbols-rounded text-xl">redo</span>
-                </button>
+        <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2 border-r pr-4 mr-2">
+                <label for="window-title" class="text-xs font-bold uppercase text-gray-500">Title</label>
+                <input type="text" id="window-title" value="My NVLib App" class="w-40 p-1.5 text-sm border border-gray-300 rounded focus:border-indigo-500 outline-none">
             </div>
-            <div class="flex items-center gap-2 border-r border-white/20 pr-3">
-                <span class="material-symbols-rounded text-indigo-200 text-lg">title</span>
-                <input type="text" id="window-title" value="My App" class="bg-transparent border-none text-white placeholder-indigo-200 text-sm font-medium focus:ring-0 focus:outline-none w-28">
-            </div>
-            <div class="flex items-center gap-2 text-sm font-mono">
-                <input type="number" id="canvas-width" value="800" class="w-14 bg-black/20 border-none rounded-md text-center py-1 text-white focus:ring-1 focus:ring-white/50">
-                <span class="text-indigo-200">×</span>
-                <input type="number" id="canvas-height" value="600" class="w-14 bg-black/20 border-none rounded-md text-center py-1 text-white focus:ring-1 focus:ring-white/50">
-                <button id="resize-canvas" class="p-1 hover:bg-white/20 rounded-full transition" title="Apply Size">
-                    <span class="material-symbols-rounded text-lg">check</span>
+            
+            <div class="flex items-center space-x-2">
+                <input type="number" id="canvas-width" value="800" class="w-16 p-1.5 text-sm border border-gray-300 rounded text-center">
+                <span class="text-gray-400">x</span>
+                <input type="number" id="canvas-height" value="600" class="w-16 p-1.5 text-sm border border-gray-300 rounded text-center">
+                <button id="resize-canvas" class="p-1.5 bg-gray-200 hover:bg-gray-300 rounded text-gray-700">
+                    <span class="material-symbols-outlined text-lg block">aspect_ratio</span>
                 </button>
             </div>
-        </div>
 
-        <div class="flex items-center gap-3 pr-2">
-            <button id="live-preview-btn" class="btn-bounce flex items-center gap-2 px-5 py-2 bg-emerald-400 hover:bg-emerald-300 text-emerald-900 text-sm font-bold rounded-full shadow-lg transition-all">
-                <span class="material-symbols-rounded text-lg">play_arrow</span> Preview
+            <div class="h-6 w-px bg-gray-300 mx-2"></div>
+
+            <button id="live-preview-btn" class="flex items-center gap-1 px-3 py-1.5 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition shadow">
+                <span class="material-symbols-outlined text-sm">play_arrow</span> Preview
             </button>
-            <div class="h-8 w-px bg-white/20 mx-1"></div>
-            <button id="save-json" class="btn-bounce flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 text-sm font-bold rounded-full shadow hover:bg-indigo-50 transition-all">
-                <span class="material-symbols-rounded text-lg">save</span> Save
+            <button id="save-json" class="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 transition shadow">
+                <span class="material-symbols-outlined text-sm">save</span> Save JSON
             </button>
-            <label for="load-json-input" class="btn-bounce flex items-center gap-2 px-4 py-2 bg-indigo-800/50 hover:bg-indigo-800 text-white text-sm font-bold rounded-full cursor-pointer transition-all border border-indigo-400/30">
-                <span class="material-symbols-rounded text-lg">upload_file</span> Load
+            <label for="load-json-input" class="flex items-center gap-1 px-3 py-1.5 bg-gray-700 text-white text-sm rounded hover:bg-gray-800 transition shadow cursor-pointer">
+                <span class="material-symbols-outlined text-sm">upload</span> Load
             </label>
             <input type="file" id="load-json-input" class="hidden" accept=".json">
         </div>
     </header>
 
+    <!-- Main Workspace -->
     <div class="flex flex-1 overflow-hidden">
-        <aside class="w-72 bg-white border-r border-gray-200 flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-            <div class="p-5">
-                <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 ml-1">UI Components</h2>
-                <div class="relative mb-4">
-                    <select id="component-select" class="w-full p-3 pl-10 text-sm bg-gray-50 border border-gray-200 rounded-xl appearance-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition font-medium text-gray-700 cursor-pointer">
-                        <optgroup label="Basic">
-                            <option value="Button">Button</option>
-                            <option value="Label">Label</option>
-                            <option value="Image">Image</option>
-                        </optgroup>
-                        <optgroup label="Inputs">
-                            <option value="TextBox">Text Input</option>
-                            <option value="TextArea">Text Area</option>
-                            <option value="Spinner">Number Spinner</option>
-                            <option value="Slider">Slider</option>
-                        </optgroup>
-                        <optgroup label="Selection">
-                            <option value="Checkbox">Checkbox</option>
-                            <option value="ToggleButton">Toggle Switch</option>
-                            <option value="RadioGroup">Radio Group</option>
-                            <option value="Dropdown">Dropdown Menu</option>
-                        </optgroup>
-                        <optgroup label="Containers">
-                            <option value="Panel">Panel (Flat)</option>
-                            <option value="CardView">Card (Elevated)</option>
-                            <option value="ProgressBar">Progress Bar</option>
-                        </optgroup>
-                    </select>
-                    <span class="material-symbols-rounded absolute left-3 top-3 text-gray-400 pointer-events-none">widgets</span>
-                    <span class="material-symbols-rounded absolute right-3 top-3 text-gray-400 pointer-events-none text-sm">expand_more</span>
-                </div>
-                <button id="add-component" class="btn-bounce w-full py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded-xl transition flex items-center justify-center gap-2 border border-indigo-200 border-dashed hover:border-solid">
-                    <span class="material-symbols-rounded">add_circle</span> Add to Canvas
-                </button>
-            </div>
-        </aside>
-
-        <main class="flex-1 bg-gray-100/50 overflow-auto flex items-center justify-center p-10 relative">
-            <div id="canvas" class="canvas shadow-2xl transition-all duration-300" style="width: 800px; height: 600px;"></div>
-        </main>
-
-        <aside id="property-editor" class="w-80 bg-white border-l border-gray-200 overflow-y-auto hidden z-20 shadow-[-4px_0_24px_rgba(0,0,0,0.02)] flex flex-col">
-            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 sticky top-0 backdrop-blur-md z-10">
-                <div class="flex items-center gap-2 text-gray-700 font-bold">
-                    <span class="material-symbols-rounded text-indigo-500">tune</span> Properties
-                </div>
-                <button id="apply-props-btn" class="btn-bounce px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-full shadow-md transition flex items-center gap-1">
-                    <span class="material-symbols-rounded text-sm">check</span> APPLY
+        
+        <!-- Left Sidebar: Components -->
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col z-10 shadow-sm">
+            <div class="p-4 border-b border-gray-100">
+                <h2 class="text-sm font-bold uppercase text-gray-500 mb-3">Toolbox</h2>
+                <select id="component-select" class="w-full p-2 mb-3 text-sm border border-gray-300 rounded bg-gray-50 focus:border-indigo-500 outline-none">
+                    <option value="Button">Button</option>
+                    <option value="Label">Label</option>
+                    <option value="TextBox">TextBox</option>
+                    <option value="TextArea">TextArea</option>
+                    <option value="Checkbox">Checkbox</option>
+                    <option value="RadioGroup">RadioGroup</option>
+                    <option value="Dropdown">Dropdown</option>
+                    <option value="Slider">Slider</option>
+                    <option value="ProgressBar">ProgressBar</option>
+                    <option value="Spinner">Spinner</option>
+                    <option value="ToggleButton">ToggleButton</option>
+                    <option disabled>--- Containers ---</option>
+                    <option value="Panel">Panel (Background)</option>
+                    <option value="CardView">CardView (Shadow)</option>
+                    <option value="Image">Image</option>
+                </select>
+                <button id="add-component" class="w-full py-2 bg-indigo-100 text-indigo-700 font-semibold rounded hover:bg-indigo-200 transition">
+                    + Add to Canvas
                 </button>
             </div>
             
-            <div id="properties-form" class="p-5 space-y-5 flex-1"></div>
+            <div class="flex-1 overflow-y-auto p-4">
+                <div class="bg-blue-50 border border-blue-100 rounded p-3 text-xs text-blue-800 leading-relaxed">
+                    <strong>NVLib v4 Workflow:</strong>
+                    <ol class="list-decimal ml-4 mt-2 space-y-1">
+                        <li>Design your screen here.</li>
+                        <li>Save as <code class="bg-blue-100 px-1 rounded">screen1.json</code>.</li>
+                        <li>In Python:
+                            <pre class="mt-1 bg-white p-1 rounded border border-blue-100 overflow-x-auto">app.register_screen("s1", "screen1.json")</pre>
+                        </li>
+                    </ol>
+                </div>
+                <div class="mt-4 text-xs text-gray-400">
+                    <p>Right-click components to manage layers (Bring to Front / Send to Back).</p>
+                </div>
+            </div>
+        </aside>
 
-            <div class="p-5 border-t border-gray-100 bg-red-50/30">
-                <button id="delete-component" class="btn-bounce w-full py-2.5 bg-white border border-red-200 text-red-500 font-bold rounded-xl hover:bg-red-500 hover:text-white transition shadow-sm flex items-center justify-center gap-2">
-                    <span class="material-symbols-rounded text-lg">delete</span> Delete Component
+        <!-- Center: Canvas -->
+        <main class="flex-1 bg-gray-100 overflow-auto flex items-center justify-center p-8 relative" id="canvas-container">
+            <div id="canvas" class="canvas shadow-xl bg-white transition-all duration-200" style="width: 800px; height: 600px;"></div>
+        </main>
+
+        <!-- Right Sidebar: Properties -->
+        <aside id="property-editor" class="w-80 bg-white border-l border-gray-200 overflow-y-auto hidden z-10 shadow-sm flex flex-col">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                <h2 class="text-sm font-bold uppercase text-gray-500">Properties</h2>
+                <button id="close-props" class="text-gray-400 hover:text-gray-600"><span class="material-symbols-outlined text-sm">close</span></button>
+            </div>
+            
+            <div id="properties-form" class="p-4 space-y-4 flex-1">
+                <!-- Dynamic Inputs go here -->
+            </div>
+
+            <div class="p-4 border-t border-gray-100 bg-gray-50">
+                <button id="delete-component" class="w-full py-2 bg-red-100 text-red-600 font-semibold rounded hover:bg-red-200 transition flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-sm">delete</span> Delete
                 </button>
             </div>
         </aside>
     </div>
 
     <!-- Context Menu -->
-    <div id="context-menu" class="hidden fixed bg-white/95 backdrop-blur-md shadow-2xl rounded-2xl p-1.5 z-[9999] border border-gray-100 w-56 text-sm">
-        <a href="#" data-action="duplicate" class="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-xl transition font-medium">
-            <span class="material-symbols-rounded text-lg text-gray-400">content_copy</span> Duplicate
+    <div id="context-menu" class="hidden fixed bg-white shadow-xl rounded-lg py-1 z-50 border border-gray-100 w-48 text-sm">
+        <a href="#" data-action="duplicate" class="block px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-gray-400">content_copy</span> Duplicate
         </a>
-        <div class="h-px bg-gray-200 my-1 mx-2"></div>
-        <a href="#" data-action="bring-to-front" class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
-            <span class="material-symbols-rounded text-lg text-gray-400">vertical_align_top</span> Bring to Front
-        </a>
-        <a href="#" data-action="send-to-back" class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
-            <span class="material-symbols-rounded text-lg text-gray-400">vertical_align_bottom</span> Send to Back
-        </a>
-        <div class="h-px bg-gray-200 my-1 mx-2"></div>
-        <a href="#" data-action="delete" class="flex items-center gap-3 px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-xl transition font-bold">
-            <span class="material-symbols-rounded text-lg">delete</span> Delete
-        </a>
+        <div class="border-t my-1"></div>
+        <a href="#" data-action="bring-to-front" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Bring to Front</a>
+        <a href="#" data-action="send-to-back" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Send to Back</a>
+        <div class="border-t my-1"></div>
+        <a href="#" data-action="bring-forward" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Step Forward</a>
+        <a href="#" data-action="send-backward" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">Step Backward</a>
     </div>
 
     <!-- Preview Modal -->
-    <div id="preview-modal" class="fixed inset-0 z-[10000] hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-8">
-        <div class="bg-white rounded-2xl shadow-2xl flex flex-col w-full h-full max-w-6xl overflow-hidden border border-white/20">
-            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 class="font-bold text-gray-800 flex items-center gap-2 text-lg">
-                    <span class="material-symbols-rounded text-emerald-500 bg-emerald-100 p-1 rounded-lg">play_arrow</span> Live Preview
+    <div id="preview-modal" class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-50 backdrop-blur-sm flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-2xl flex flex-col w-full h-full max-w-5xl max-h-[90vh] overflow-hidden">
+            <div class="px-4 py-3 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-700 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-600">preview</span> Live Preview
                 </h3>
-                <div class="flex gap-3">
-                    <button id="fullscreen-preview-btn" class="px-4 py-2 bg-white border border-gray-300 text-gray-600 rounded-full hover:bg-gray-50 text-xs font-bold uppercase tracking-wide transition shadow-sm">Fullscreen</button>
-                    <button id="close-preview-btn" class="px-4 py-2 bg-gray-800 text-white rounded-full hover:bg-black text-xs font-bold uppercase tracking-wide transition shadow-lg">Close</button>
+                <div class="flex gap-2">
+                    <button id="fullscreen-preview-btn" class="px-3 py-1 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 text-xs font-medium uppercase">Fullscreen</button>
+                    <button id="close-preview-btn" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs font-medium uppercase">Close</button>
                 </div>
             </div>
-            <div class="flex-1 bg-gray-100 overflow-auto p-12 flex justify-center items-start">
-                <div id="preview-canvas" class="bg-white shadow-xl rounded-xl transition-all relative border border-gray-200"></div>
+            <div class="flex-1 bg-gray-200 overflow-auto p-8 flex justify-center">
+                <div id="preview-canvas" class="bg-white shadow-lg transition-all relative"></div>
             </div>
         </div>
     </div>
 
-    <!-- Script -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // -- Elements --
@@ -278,384 +229,363 @@
             const deleteComponentBtn = document.getElementById('delete-component');
             const contextMenu = document.getElementById('context-menu');
             const windowTitleInput = document.getElementById('window-title');
-            const applyPropsBtn = document.getElementById('apply-props-btn');
             
-            const undoBtn = document.getElementById('undo-btn');
-            const redoBtn = document.getElementById('redo-btn');
-
+            // Preview Elements
             const livePreviewBtn = document.getElementById('live-preview-btn');
             const previewModal = document.getElementById('preview-modal');
             const previewCanvas = document.getElementById('preview-canvas');
             const closePreviewBtn = document.getElementById('close-preview-btn');
             const fullscreenPreviewBtn = document.getElementById('fullscreen-preview-btn');
 
-            // -- Toast System --
-            const toastContainer = document.createElement('div');
-            toastContainer.id = 'toast-container';
-            document.body.appendChild(toastContainer);
-
-            function showToast(message, type = 'success') {
-                const toast = document.createElement('div');
-                toast.className = 'toast';
-                
-                let icon = 'check_circle';
-                let colorClass = 'text-emerald-400';
-                
-                if(type === 'error') { icon = 'error'; colorClass = 'text-red-400'; }
-                if(type === 'info') { icon = 'info'; colorClass = 'text-blue-400'; }
-
-                toast.innerHTML = `<span class="material-symbols-rounded ${colorClass} text-xl">${icon}</span> <span>${message}</span>`;
-                toastContainer.appendChild(toast);
-
-                setTimeout(() => {
-                    toast.style.animation = 'fadeOut 0.3s forwards';
-                    setTimeout(() => toast.remove(), 300);
-                }, 2000);
-            }
-
             // -- State --
             let components = [];
             let selectedComponent = null;
             let componentIdCounter = 0;
             let contextComponentId = null;
-            let history = [];
-            let historyStep = -1;
 
-            // -- Defaults --
+            // -- Defaults (Synced with AutoGUI.py v4) --
             const getComponentDefaults = (type) => {
-                const base = { textColor: '#1f2937', fontSize: 14, bold: false };
+                const base = { textColor: '#000000', fontSize: 14, bold: false };
                 const textBase = { ...base, text: type };
+                
                 switch (type) {
-                    case 'Button': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 12 };
+                    case 'Button': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 4 };
                     case 'Label': return { ...textBase, iconName: '' };
-                    case 'TextBox': case 'TextArea': return { text: '', hintText: 'Type here...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
-                    case 'Checkbox': return { text: 'Checkbox', checked: false, checkedColor: '#6366f1', ...base };
-                    case 'RadioGroup': return { label: 'Group', options: 'Option A\nOption B', checkedValue: 'Option A', checkedColor: '#6366f1', ...base };
-                    case 'Dropdown': return { text: 'Select...', options: 'Item 1\nItem 2', backgroundColor: '#ffffff', selectionColor: '#e0e7ff', ...base };
-                    case 'Slider': return { min: 0, max: 100, value: 50, progressColor: '#6366f1', buttonColor: '#6366f1' };
-                    case 'Panel': return { backgroundColor: '#f9fafb', cornerRadius: 16 };
-                    case 'ProgressBar': return { value: 60, progressColor: '#6366f1', textColor: '#1f2937', textPosition: 'right' };
-                    case 'Spinner': return { min: 0, max: 100, value: 0, backgroundColor: '#f3f4f6', ...base };
-                    case 'CardView': return { ...textBase, text: '', backgroundColor: '#ffffff', cornerRadius: 16, elevation: 6 };
-                    case 'ToggleButton': return { checked: false, onColor: '#6366f1', offColor: '#d1d5db' };
-                    case 'Image': return { src: '', cornerRadius: 12, opacity: 1.0, fit: 'cover', backgroundColor: '#e5e7eb' };
+                    case 'TextBox': 
+                    case 'TextArea': return { text: '', hintText: 'Enter text...', hintColor: '#888888', backgroundColor: '#ffffff', ...base };
+                    case 'Checkbox': return { text: 'Option', checked: false, checkedColor: '#4f46e5', ...base };
+                    case 'RadioGroup': return { label: 'Group Label', options: 'Option 1\nOption 2', checkedValue: 'Option 1', checkedColor: '#4f46e5', ...base };
+                    case 'Dropdown': return { text: 'Select...', options: 'Option 1\nOption 2', backgroundColor: '#ffffff', selectionColor: '#e0e7ff', ...base };
+                    case 'Slider': return { min: 0, max: 100, value: 50, progressColor: '#4f46e5', buttonColor: '#4f46e5' };
+                    case 'Panel': return { backgroundColor: '#f0f0f0', cornerRadius: 0 };
+                    case 'ProgressBar': return { value: 50, progressColor: '#4f46e5', textColor: '#000000', textPosition: 'right' };
+                    case 'Spinner': return { min: 0, max: 100, value: 0, backgroundColor: '#f0f0f0', ...base };
+                    case 'CardView': return { ...textBase, text: '', backgroundColor: '#ffffff', cornerRadius: 8, elevation: 4 };
+                    case 'ToggleButton': return { checked: false, onColor: '#4f46e5', offColor: '#d1d5db' };
+                    case 'Image': return { src: '', cornerRadius: 0, opacity: 1.0, fit: 'cover', backgroundColor: '#e5e7eb' };
                     default: return textBase;
                 }
             };
 
-            // -- History --
-            function saveState() {
-                if (historyStep < history.length - 1) history = history.slice(0, historyStep + 1);
-                history.push(JSON.parse(JSON.stringify(components)));
-                historyStep++;
-                undoBtn.disabled = historyStep <= 0;
-                redoBtn.disabled = historyStep >= history.length - 1;
-            }
-
-            undoBtn.addEventListener('click', () => {
-                if (historyStep > 0) {
-                    historyStep--;
-                    components = JSON.parse(JSON.stringify(history[historyStep]));
-                    renderAllComponents();
-                    selectComponent(null);
-                    showToast("Undo", "info");
-                }
-            });
-
-            redoBtn.addEventListener('click', () => {
-                if (historyStep < history.length - 1) {
-                    historyStep++;
-                    components = JSON.parse(JSON.stringify(history[historyStep]));
-                    renderAllComponents();
-                    selectComponent(null);
-                    showToast("Redo", "info");
-                }
-            });
-            saveState();
-
-            // -- Core Logic --
+            // -- Resize Canvas --
             resizeCanvasBtn.addEventListener('click', () => {
                 canvas.style.width = `${canvasWidthInput.value}px`;
                 canvas.style.height = `${canvasHeightInput.value}px`;
-                showToast("Canvas Resized");
             });
 
+            // -- Add Component --
             addComponentBtn.addEventListener('click', () => {
                 const type = componentSelect.value;
                 let id = `${type.toLowerCase()}_${componentIdCounter++}`;
-                while(components.some(c => c.id === id)) id = `${type.toLowerCase()}_${componentIdCounter++}`;
+                // Ensure unique ID
+                while (components.some(c => c.id === id)) {
+                    id = `${type.toLowerCase()}_${componentIdCounter++}`;
+                }
                 
                 const comp = {
-                    id: id, type: type, x: 50, y: 50, width: 140, height: 45,
-                    zIndex: components.length, properties: getComponentDefaults(type)
+                    id: id, type: type, x: 50, y: 50, width: 120, height: 40,
+                    zIndex: components.length,
+                    properties: getComponentDefaults(type)
                 };
-                if(type === 'Panel' || type === 'CardView') { comp.width = 240; comp.height = 160; }
-                if(type === 'Image') { comp.width = 120; comp.height = 120; }
+
+                // Adjust default sizes based on type
+                if(type === 'Panel' || type === 'CardView') { comp.width = 200; comp.height = 150; }
+                if(type === 'Image') { comp.width = 100; comp.height = 100; }
+                if(type === 'RadioGroup') { comp.width = 150; comp.height = 100; }
                 if(type === 'Slider') { comp.width = 200; comp.height = 30; }
+                if(type === 'ToggleButton') { comp.width = 60; comp.height = 30; }
+                if(type === 'Spinner') { comp.width = 120; comp.height = 40; }
+
                 components.push(comp);
                 renderAllComponents();
                 selectComponent(id);
-                saveState();
-                showToast("Component Added");
             });
 
+            // -- Rendering --
             function renderAllComponents() {
+                // Sort by zIndex for visual stacking
                 components.sort((a, b) => a.zIndex - b.zIndex);
                 canvas.innerHTML = '';
                 components.forEach(comp => renderComponent(comp));
             }
 
             function renderComponent(comp) {
-                let el = document.getElementById(comp.id);
-                if (!el) {
-                    el = document.createElement('div');
-                    el.id = comp.id;
-                    el.className = 'component';
-                    canvas.appendChild(el);
-                    
-                    el.addEventListener('mousedown', (e) => startDrag(e, el));
-                    el.addEventListener('click', (e) => { e.stopPropagation(); selectComponent(comp.id); });
-                    el.addEventListener('contextmenu', (e) => {
-                        e.preventDefault(); e.stopPropagation();
-                        contextComponentId = comp.id;
-                        contextMenu.style.left = `${e.clientX}px`;
-                        contextMenu.style.top = `${e.clientY}px`;
-                        contextMenu.classList.remove('hidden');
-                        selectComponent(comp.id);
-                    });
-                }
-                
+                const el = document.createElement('div');
+                el.id = comp.id;
+                el.className = 'component';
                 if (selectedComponent && selectedComponent.id === comp.id) el.classList.add('selected');
-                else el.classList.remove('selected');
 
                 el.style.left = `${comp.x}px`;
                 el.style.top = `${comp.y}px`;
                 el.style.width = `${comp.width}px`;
                 el.style.height = `${comp.height}px`;
                 el.style.zIndex = comp.zIndex;
-                el.style.borderRadius = (comp.properties.cornerRadius || 0) + 'px';
 
-                el.innerHTML = ''; // Clear for rebuild
-                
+                // Add Drag/Resize Logic
                 const resizer = document.createElement('div');
                 resizer.className = 'resizer';
-                resizer.addEventListener('mousedown', (e) => startResize(e, el));
                 el.appendChild(resizer);
 
+                // Content
                 const content = document.createElement('div');
                 content.style.width = '100%';
                 content.style.height = '100%';
                 content.innerHTML = getComponentHTML(comp);
                 el.appendChild(content);
+
+                // Events
+                el.addEventListener('mousedown', (e) => startDrag(e, el));
+                resizer.addEventListener('mousedown', (e) => startResize(e, el));
+                el.addEventListener('click', (e) => { e.stopPropagation(); selectComponent(comp.id); });
+                el.addEventListener('contextmenu', (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    contextComponentId = comp.id;
+                    contextMenu.style.left = `${e.clientX}px`;
+                    contextMenu.style.top = `${e.clientY}px`;
+                    contextMenu.classList.remove('hidden');
+                    selectComponent(comp.id);
+                });
+
+                canvas.appendChild(el);
             }
 
+            // HTML Generator for Editor View (Simplified approximation of KivyMD)
             function getComponentHTML(comp) {
                 const p = comp.properties;
-                const baseTxt = `color:${p.textColor}; font-size:${p.fontSize}px; font-weight:${p.bold ? '700' : '500'};`;
+                const baseTxt = `color:${p.textColor}; font-size:${p.fontSize}px; font-weight:${p.bold ? '700' : '400'};`;
                 
                 switch(comp.type) {
-                    case 'Button': return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,0.05); ${baseTxt}">${p.text}</div>`;
-                    case 'Label': 
-                        if(p.iconName) return `<div class="component-render-wrapper" style="${baseTxt}"><span class="material-symbols-rounded" style="font-size:${p.fontSize}px;">${p.iconName}</span></div>`;
+                    case 'Button':
+                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; border:1px solid #ddd; ${baseTxt}">${p.text}</div>`;
+                    case 'Label':
+                        if(p.iconName) return `<div class="component-render-wrapper" style="${baseTxt}"><span class="material-symbols-outlined" style="font-size:${p.fontSize}px;">${p.iconName}</span></div>`;
                         return `<div class="component-render-wrapper" style="${baseTxt}">${p.text}</div>`;
-                    case 'TextBox': return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border:1px solid #d1d5db; border-radius:8px; padding:0 12px; justify-content:flex-start; ${baseTxt}">${p.text || `<span style="color:${p.hintColor}">${p.hintText}</span>`}</div>`;
-                    case 'Checkbox': return `<div class="component-render-wrapper" style="justify-content:flex-start; gap:10px;"><div style="width:20px; height:20px; border:2px solid ${p.checked ? p.checkedColor : '#d1d5db'}; background:${p.checked ? p.checkedColor : 'white'}; border-radius:6px; display:flex; align-items:center; justify-content:center;">${p.checked ? '<span style="color:white; font-size:14px; font-weight:bold;">✓</span>' : ''}</div><span style="${baseTxt}">${p.text}</span></div>`;
-                    case 'Panel': return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; border:1px dashed #d1d5db;"></div>`;
-                    case 'CardView': return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); ${baseTxt}">${p.text || ''}</div>`;
-                    case 'Image': 
-                        const src = p.src || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Y2EzYWYiIHN0cm9rZS13aWR0aD0iMiI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMiIgcnk9IjIiPjwvcmVjdD48Y2lyY2xlIGN4PSI4LjUiIGN5PSI4LjUiIHI9IjEuNSI+PC9jaXJjbGU+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUgMTYgMTAgNSAyMSI+PC9wb2x5bGluZT48L3N2Zz4=';
+                    case 'TextBox':
+                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border:1px solid #ccc; border-radius:4px; padding:0 8px; justify-content:flex-start; ${baseTxt}">${p.text || `<span style="color:${p.hintColor}">${p.hintText}</span>`}</div>`;
+                    case 'Checkbox':
+                        return `<div class="component-render-wrapper" style="justify-content:flex-start; gap:8px;">
+                            <div style="width:18px; height:18px; border:2px solid ${p.checked ? p.checkedColor : '#999'}; background:${p.checked ? p.checkedColor : 'transparent'}; border-radius:2px;"></div>
+                            <span style="${baseTxt}">${p.text}</span>
+                        </div>`;
+                    case 'Panel':
+                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; border:1px dashed #ccc;"></div>`;
+                    case 'CardView':
+                        return `<div class="component-render-wrapper" style="background:${p.backgroundColor}; border-radius:${p.cornerRadius}px; box-shadow:0 2px 5px rgba(0,0,0,0.2); ${baseTxt}">${p.text || ''}</div>`;
+                    case 'Image':
+                        const src = p.src || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjY2MiIHN0cm9rZS13aWR0aD0iMiI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMiIgcnk9IjIiPjwvcmVjdD48Y2lyY2xlIGN4PSI4LjUiIGN5PSI4LjUiIHI9IjEuNSI+PC9jaXJjbGU+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUgMTYgMTAgNSAyMSI+PC9wb2x5bGluZT48L3N2Zz4=';
                         return `<img src="${src}" style="width:100%; height:100%; object-fit:${p.fit}; border-radius:${p.cornerRadius}px; opacity:${p.opacity}; background:${p.backgroundColor};">`;
-                    default: return `<div class="component-render-wrapper" style="border:1px dashed #9ca3af; color:#9ca3af; border-radius:8px; font-size:12px;">${comp.type}</div>`;
+                    default:
+                        return `<div class="component-render-wrapper" style="border:1px dashed #999; ${baseTxt}">${comp.type}</div>`;
                 }
             }
 
-            // -- Drag / Resize --
+            // -- Dragging Logic --
             function startDrag(e, el) {
                 if(e.target.className === 'resizer') return;
-                const startX = e.clientX, startY = e.clientY;
-                const startLeft = el.offsetLeft, startTop = el.offsetTop;
-                let moved = false;
-                const move = (m) => {
-                    moved = true;
-                    el.style.left = `${Math.round((startLeft + m.clientX - startX)/10)*10}px`;
-                    el.style.top = `${Math.round((startTop + m.clientY - startY)/10)*10}px`;
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startLeft = el.offsetLeft;
+                const startTop = el.offsetTop;
+                
+                const onMove = (mv) => {
+                    let newLeft = startLeft + (mv.clientX - startX);
+                    let newTop = startTop + (mv.clientY - startY);
+                    
+                    // Simple snapping (10px grid)
+                    newLeft = Math.round(newLeft / 10) * 10;
+                    newTop = Math.round(newTop / 10) * 10;
+                    
+                    el.style.left = `${newLeft}px`;
+                    el.style.top = `${newTop}px`;
                 };
-                const up = () => {
-                    document.removeEventListener('mousemove', move);
-                    document.removeEventListener('mouseup', up);
-                    if(moved) {
-                        const c = components.find(x => x.id === el.id);
-                        if(c) { c.x = el.offsetLeft; c.y = el.offsetTop; saveState(); }
-                    }
+
+                const onUp = () => {
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                    // Update data
+                    const c = components.find(x => x.id === el.id);
+                    if(c) { c.x = el.offsetLeft; c.y = el.offsetTop; }
                 };
-                document.addEventListener('mousemove', move);
-                document.addEventListener('mouseup', up);
+                
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
             }
 
+            // -- Resizing Logic --
             function startResize(e, el) {
                 e.stopPropagation();
-                const startX = e.clientX, startY = e.clientY;
-                const startW = el.offsetWidth, startH = el.offsetHeight;
-                let resized = false;
-                const move = (m) => {
-                    resized = true;
-                    let w = startW + (m.clientX - startX);
-                    let h = startH + (m.clientY - startY);
-                    if(w<20) w=20; if(h<20) h=20;
-                    el.style.width = `${Math.round(w/10)*10}px`;
-                    el.style.height = `${Math.round(h/10)*10}px`;
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startW = el.offsetWidth;
+                const startH = el.offsetHeight;
+
+                const onMove = (mv) => {
+                    let newW = startW + (mv.clientX - startX);
+                    let newH = startH + (mv.clientY - startY);
+                    if(newW < 20) newW = 20;
+                    if(newH < 20) newH = 20;
+                    
+                    // Snap
+                    newW = Math.round(newW / 10) * 10;
+                    newH = Math.round(newH / 10) * 10;
+
+                    el.style.width = `${newW}px`;
+                    el.style.height = `${newH}px`;
                 };
-                const up = () => {
-                    document.removeEventListener('mousemove', move);
-                    document.removeEventListener('mouseup', up);
-                    if(resized) {
-                        const c = components.find(x => x.id === el.id);
-                        if(c) { c.width = el.offsetWidth; c.height = el.offsetHeight; saveState(); }
-                    }
+
+                const onUp = () => {
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                    const c = components.find(x => x.id === el.id);
+                    if(c) { c.width = el.offsetWidth; c.height = el.offsetHeight; }
                 };
-                document.addEventListener('mousemove', move);
-                document.addEventListener('mouseup', up);
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
             }
 
-            // -- Properties & Apply --
+            // -- Property Editor --
             function selectComponent(id) {
                 document.querySelectorAll('.component').forEach(c => c.classList.remove('selected'));
-                if(!id) { selectedComponent = null; propertyEditor.classList.add('hidden'); return; }
+                if (!id) {
+                    selectedComponent = null;
+                    propertyEditor.classList.add('hidden');
+                    return;
+                }
+                
                 const el = document.getElementById(id);
                 if(el) el.classList.add('selected');
+                
                 selectedComponent = components.find(c => c.id === id);
                 propertyEditor.classList.remove('hidden');
                 renderProperties();
             }
+            
             document.getElementById('close-props').addEventListener('click', () => selectComponent(null));
-
-            applyPropsBtn.addEventListener('click', () => {
-                if(!selectedComponent) return;
-                
-                const inputs = propertiesForm.querySelectorAll('[data-prop-key]');
-                let idChanged = false;
-
-                const idInput = propertiesForm.querySelector('[data-prop-key="id"]');
-                if(idInput && idInput.value !== selectedComponent.id) {
-                    if(components.some(c => c.id === idInput.value)) { alert("ID must be unique!"); return; }
-                    const oldId = selectedComponent.id;
-                    const el = document.getElementById(oldId);
-                    selectedComponent.id = idInput.value;
-                    el.id = idInput.value;
-                    idChanged = true;
-                }
-
-                inputs.forEach(input => {
-                    const key = input.dataset.propKey;
-                    if(key === 'id') return;
-                    let val = input.value;
-                    if(input.type === 'checkbox') val = input.checked;
-                    if(input.type === 'number') val = parseFloat(input.value) || 0;
-                    selectedComponent.properties[key] = val;
-                });
-
-                renderComponent(selectedComponent);
-                if(idChanged) selectComponent(selectedComponent.id);
-                else {
-                    const el = document.getElementById(selectedComponent.id);
-                    if(el) el.classList.add('selected');
-                }
-                
-                saveState();
-                showToast("Changes Applied Successfully");
-            });
 
             function renderProperties() {
                 propertiesForm.innerHTML = '';
                 if(!selectedComponent) return;
-                const h3 = document.createElement('h3');
-                h3.className = "text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100";
-                h3.textContent = selectedComponent.type;
-                propertiesForm.appendChild(h3);
-                
-                createPropField('text', 'Unique ID', selectedComponent.id, 'id');
+
+                // ID Field
+                createPropField('text', 'Component ID', selectedComponent.id, (val) => {
+                    // Unique check
+                    if(components.some(c => c.id === val && c.id !== selectedComponent.id)) {
+                        alert("ID must be unique");
+                        return;
+                    }
+                    const oldId = selectedComponent.id;
+                    selectedComponent.id = val;
+                    document.getElementById(oldId).id = val;
+                });
+
                 const p = selectedComponent.properties;
                 Object.keys(p).forEach(key => {
+                    // Skip internal style keys not meant for GUI editing if needed
                     if(key === 'visible') return; 
+
                     let type = 'text';
                     if(typeof p[key] === 'number') type = 'number';
                     if(typeof p[key] === 'boolean') type = 'checkbox';
                     if(key.toLowerCase().includes('color')) type = 'color';
-                    if(key === 'options' || (key === 'text' && selectedComponent.type === 'TextArea')) type = 'textarea';
+                    if(key === 'options' || key === 'text' && selectedComponent.type === 'TextArea') type = 'textarea';
                     if(key === 'src' && selectedComponent.type === 'Image') type = 'file';
-                    createPropField(type, key, p[key], key);
+
+                    createPropField(type, key, p[key], (val) => {
+                        selectedComponent.properties[key] = val;
+                        // Re-render only the HTML content, not the whole component div to keep selection
+                        const wrapper = document.getElementById(selectedComponent.id).querySelector('div'); 
+                        if(wrapper) {
+                            // Quick refresh approach
+                            renderComponent(selectedComponent); // Full re-render needed for some props
+                            selectComponent(selectedComponent.id); // Re-select
+                        }
+                    });
                 });
             }
 
-            function createPropField(type, label, value, key) {
+            function createPropField(type, label, value, callback) {
                 const wrapper = document.createElement('div');
-                wrapper.className = 'mb-4';
+                wrapper.className = 'mb-3';
+                
                 const lbl = document.createElement('label');
-                lbl.className = 'block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wide';
+                lbl.className = 'block text-xs font-bold text-gray-500 uppercase mb-1';
                 lbl.textContent = label.replace(/([A-Z])/g, ' $1').trim();
                 
                 let input;
-                if(type === 'file') {
+                if(type === 'textarea') {
+                    input = document.createElement('textarea');
+                    input.rows = 3;
+                    input.className = 'w-full p-2 text-sm border border-gray-300 rounded focus:border-indigo-500 outline-none';
+                    input.value = value;
+                    input.addEventListener('input', (e) => callback(e.target.value));
                     wrapper.appendChild(lbl);
-                    input = document.createElement('input');
-                    input.type = 'file';
-                    input.className = 'w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:bg-indigo-50 file:text-indigo-700';
-                    input.addEventListener('change', (e) => {
-                        const f = e.target.files[0];
-                        if(f) {
-                            const r = new FileReader();
-                            r.onload = (re) => {
-                                selectedComponent.properties[key] = re.target.result;
-                                renderComponent(selectedComponent); 
-                                document.getElementById(selectedComponent.id).classList.add('selected');
-                            };
-                            r.readAsDataURL(f);
-                        }
-                    });
+                    wrapper.appendChild(input);
                 } else if(type === 'checkbox') {
                     const row = document.createElement('div');
-                    row.className = 'flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100';
+                    row.className = 'flex items-center gap-2';
                     input = document.createElement('input');
                     input.type = 'checkbox';
                     input.checked = value;
-                    input.className = 'w-5 h-5 text-indigo-600 rounded';
-                    input.dataset.propKey = key; 
-                    row.appendChild(input); row.appendChild(lbl); wrapper.appendChild(row);
+                    input.addEventListener('change', (e) => callback(e.target.checked));
+                    row.appendChild(input);
+                    row.appendChild(lbl);
+                    wrapper.appendChild(row);
+                } else if (type === 'file') {
+                    wrapper.appendChild(lbl);
+                    input = document.createElement('input');
+                    input.type = 'file';
+                    input.className = 'w-full text-xs';
+                    input.addEventListener('change', (e) => {
+                        const f = e.target.files[0];
+                        if(f) {
+                            const reader = new FileReader();
+                            reader.onload = (re) => callback(re.target.result);
+                            reader.readAsDataURL(f);
+                        }
+                    });
+                    wrapper.appendChild(input);
                 } else {
                     wrapper.appendChild(lbl);
-                    input = type === 'textarea' ? document.createElement('textarea') : document.createElement('input');
-                    if(type !== 'textarea') input.type = type;
+                    input = document.createElement('input');
+                    input.type = type;
                     input.value = value;
-                    input.className = 'w-full p-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:border-indigo-500 outline-none';
-                    if(type === 'color') input.className = 'w-full h-10 p-1 bg-white border border-gray-200 rounded-lg cursor-pointer';
-                    input.dataset.propKey = key;
+                    input.className = 'w-full p-2 text-sm border border-gray-300 rounded focus:border-indigo-500 outline-none';
+                    if(type === 'color') input.className = 'w-full h-8 cursor-pointer';
+                    input.addEventListener('input', (e) => callback(type === 'number' ? parseFloat(e.target.value) : e.target.value));
+                    wrapper.appendChild(input);
                 }
-                if(type !== 'checkbox' && type !== 'file') wrapper.appendChild(input);
-                if(type !== 'checkbox') propertiesForm.appendChild(wrapper);
+                
+                propertiesForm.appendChild(wrapper);
             }
 
-            // -- Delete --
+            // -- Deletion --
             deleteComponentBtn.addEventListener('click', () => {
                 if(selectedComponent) {
                     components = components.filter(c => c.id !== selectedComponent.id);
                     renderAllComponents();
                     selectComponent(null);
-                    saveState();
-                    showToast("Deleted", "error");
                 }
             });
 
-            // -- JSON --
+            // -- JSON I/O --
             saveJsonBtn.addEventListener('click', () => {
                 const layout = {
-                    canvas: { width: parseInt(canvasWidthInput.value), height: parseInt(canvasHeightInput.value), title: windowTitleInput.value },
+                    canvas: {
+                        width: parseInt(canvasWidthInput.value),
+                        height: parseInt(canvasHeightInput.value),
+                        title: windowTitleInput.value
+                    },
+                    // Kivy draws in list order. Ensure lower zIndex comes first.
                     components: [...components].sort((a,b) => a.zIndex - b.zIndex)
                 };
+                
                 const blob = new Blob([JSON.stringify(layout, null, 2)], {type: 'application/json'});
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url; a.download = 'layout.json'; a.click();
-                showToast("JSON Saved");
+                a.href = url;
+                a.download = 'layout.json';
+                a.click();
             });
 
             loadJsonInput.addEventListener('change', (e) => {
@@ -673,54 +603,74 @@
                             canvas.style.height = `${json.canvas.height}px`;
                         }
                         if(json.components) {
-                            components = json.components.map((c, i) => ({ ...c, zIndex: c.zIndex !== undefined ? c.zIndex : i }));
-                            componentIdCounter = components.reduce((max, c) => {
-                                const num = parseInt(c.id.split('_').pop());
-                                return (!isNaN(num) && num > max) ? num : max;
-                            }, 0) + 1;
+                            components = json.components.map((c, i) => ({
+                                ...c,
+                                zIndex: c.zIndex !== undefined ? c.zIndex : i // preserve or assign order
+                            }));
+                            // Reset counter to avoid ID clashes
+                            componentIdCounter = components.length + 10; 
                             renderAllComponents();
-                            saveState();
-                            showToast("Loaded");
                         }
-                    } catch(err) { alert("Invalid JSON"); }
+                    } catch(err) {
+                        alert("Invalid JSON");
+                    }
                 };
                 r.readAsText(f);
                 e.target.value = '';
             });
 
-            // -- Context Menu --
+            // -- Context Menu Actions --
             document.addEventListener('click', () => contextMenu.classList.add('hidden'));
+            
             contextMenu.addEventListener('click', (e) => {
                 const action = e.target.closest('a')?.dataset.action;
                 if(!action || !contextComponentId) return;
+                
                 const comp = components.find(c => c.id === contextComponentId);
                 const sorted = [...components].sort((a,b) => a.zIndex - b.zIndex);
                 const idx = sorted.indexOf(comp);
-                if(action === 'bring-to-front') comp.zIndex = components.length + 10;
-                else if(action === 'send-to-back') comp.zIndex = -1;
-                else if(action === 'bring-forward') { if(idx < sorted.length-1) { const upper = sorted[idx+1]; const t = upper.zIndex; upper.zIndex = comp.zIndex; comp.zIndex = t; } }
-                else if(action === 'send-backward') { if(idx > 0) { const lower = sorted[idx-1]; const t = lower.zIndex; lower.zIndex = comp.zIndex; comp.zIndex = t; } }
-                else if(action === 'duplicate') {
+
+                if(action === 'bring-to-front') {
+                    comp.zIndex = components.length + 1; // pushing higher
+                } else if(action === 'send-to-back') {
+                    comp.zIndex = -1; // pushing lower
+                } else if(action === 'bring-forward') {
+                    if(idx < sorted.length - 1) {
+                         const upper = sorted[idx+1];
+                         const temp = upper.zIndex;
+                         upper.zIndex = comp.zIndex;
+                         comp.zIndex = temp; 
+                    }
+                } else if(action === 'send-backward') {
+                    if(idx > 0) {
+                        const lower = sorted[idx-1];
+                        const temp = lower.zIndex;
+                        lower.zIndex = comp.zIndex;
+                        comp.zIndex = temp;
+                    }
+                } else if(action === 'duplicate') {
                     const clone = JSON.parse(JSON.stringify(comp));
                     clone.id = comp.id + '_copy_' + Math.floor(Math.random()*1000);
-                    clone.x += 20; clone.y += 20; clone.zIndex = components.length + 10;
+                    clone.x += 20; clone.y += 20;
+                    clone.zIndex = components.length + 10;
                     components.push(clone);
-                } else if(action === 'delete') {
-                    components = components.filter(c => c.id !== contextComponentId);
-                    if(selectedComponent && selectedComponent.id === contextComponentId) selectComponent(null);
-                    showToast("Deleted", "error");
                 }
+
+                // Normalizing z-indexes to 0..N
                 components.sort((a,b) => a.zIndex - b.zIndex).forEach((c, i) => c.zIndex = i);
+                
                 renderAllComponents();
-                saveState();
                 contextMenu.classList.add('hidden');
             });
 
-            // -- Preview --
+            // -- Live Preview Logic (Simplified for brevity) --
+            // Uses the same generation logic as renderComponent but static
             livePreviewBtn.addEventListener('click', () => {
                 previewCanvas.innerHTML = '';
                 previewCanvas.style.width = canvas.style.width;
                 previewCanvas.style.height = canvas.style.height;
+                
+                // Sort by Z to ensure visual accuracy
                 [...components].sort((a,b) => a.zIndex - b.zIndex).forEach(c => {
                     const el = document.createElement('div');
                     el.style.position = 'absolute';
@@ -728,15 +678,23 @@
                     el.style.top = `${c.y}px`;
                     el.style.width = `${c.width}px`;
                     el.style.height = `${c.height}px`;
-                    el.style.zIndex = c.zIndex;
-                    el.style.borderRadius = (c.properties.cornerRadius || 0) + 'px';
                     el.innerHTML = getComponentHTML(c);
                     previewCanvas.appendChild(el);
                 });
+                
                 previewModal.classList.remove('hidden');
             });
-            closePreviewBtn.addEventListener('click', () => { previewModal.classList.add('hidden'); if(document.fullscreenElement) document.exitFullscreen(); });
-            fullscreenPreviewBtn.addEventListener('click', () => { if(!document.fullscreenElement) previewCanvas.parentElement.requestFullscreen(); else document.exitFullscreen(); });
+            
+            closePreviewBtn.addEventListener('click', () => {
+                previewModal.classList.add('hidden');
+                if(document.fullscreenElement) document.exitFullscreen();
+            });
+
+            fullscreenPreviewBtn.addEventListener('click', () => {
+                if(!document.fullscreenElement) previewCanvas.parentElement.requestFullscreen();
+                else document.exitFullscreen();
+            });
+
         });
     </script>
 </body>
