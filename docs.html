@@ -3,1040 +3,555 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NVLib v4</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <title>NVLib v4 Docs</title>
     <style>
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            color: #334155; /* Slate-700 */
-        }
-        /* Custom Scrollbar to match doc feel */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
+        :root {
+            --primary-color: #4f46e5; /* Updated to a slightly deeper purple/blue for v4 */
+            --sidebar-bg: #f8fafc;
+            --sidebar-border: #e2e8f0;
+            --text-color: #334155;
+            --heading-color: #0f172a;
+            --code-bg: #1e293b;
+            --code-text: #e2e8f0;
+            --accent-bg: #eff6ff;
         }
 
-        .canvas {
-            background-color: #f8fafc; /* Slate-50 */
-            border: 1px solid #e2e8f0; /* Slate-200 */
-            position: relative;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            height: 100vh;
             overflow: hidden;
-            background-image:
-                linear-gradient(to right, #e2e8f0 1px, transparent 1px),
-                linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
-            background-size: 20px 20px;
         }
-        .component {
-            position: absolute;
-            cursor: move;
-            border: 1px solid transparent;
-            user-select: none;
-            font-size: 14px;
-            box-sizing: border-box;
+
+        /* Sidebar Navigation */
+        aside {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            overflow-y: auto;
+            flex-shrink: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
         }
-        .component.selected {
-            outline: 2px solid #4f46e5; /* Primary Indigo */
-            box-shadow: 0 0 10px rgba(79, 70, 229, 0.4);
+
+        aside h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-weight: 800;
         }
-        .resizer {
-            width: 10px;
-            height: 10px;
-            background: #4f46e5; /* Primary Indigo */
-            border: 1px solid white;
-            position: absolute;
-            right: -5px;
-            bottom: -5px;
-            cursor: se-resize;
-            z-index: 10;
+
+        aside nav a {
+            display: block;
+            padding: 8px 12px;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            transition: all 0.2s;
         }
-        .component-render-wrapper {
-            width: 100%;
-            height: 100%;
+
+        aside nav a:hover {
+            background-color: #e2e8f0;
+            color: var(--heading-color);
+        }
+
+        aside nav .section-title {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding-left: 12px;
+        }
+
+        /* Main Content */
+        main {
+            flex-grow: 1;
+            padding: 40px 60px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        h2 {
+            color: var(--heading-color);
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--sidebar-border);
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            color: var(--heading-color);
+            margin-top: 30px;
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
-            justify-content: center;
-            border: none;
-            background-color: #fff;
-            padding: 0 8px;
-            overflow: hidden;
-            box-sizing: border-box;
         }
-        .id-error {
-            background-color: #fee2e2 !important;
-            border-color: #ef4444 !important;
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 15px;
         }
-        .material-symbols-outlined {
-          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+
+        /* Code Blocks */
+        pre {
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
         }
-        .preview-component {
-            position: absolute;
-            box-sizing: border-box;
+
+        code.inline {
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.95em;
+            font-weight: 600;
         }
-        .preview-component input, .preview-component textarea, .preview-component select, .preview-component button {
+
+        /* Tables */
+        table {
             width: 100%;
-            height: 100%;
-            box-sizing: border-box;
-            cursor: pointer;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
         }
-        .preview-button:active {
-            transform: scale(0.98);
-            filter: brightness(0.95);
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--sidebar-border);
         }
-        #context-menu {
-            width: 160px;
+
+        th {
+            background-color: var(--sidebar-bg);
+            font-weight: 600;
         }
-        .submenu-container:hover .submenu {
-            display: block;
+
+        tr:hover {
+            background-color: var(--accent-bg);
         }
-        
-        /* Input styling overrides to match slate theme */
-        input[type="text"], input[type="number"], select, textarea {
-            border-color: #cbd5e1; /* Slate-300 */
-            color: #334155;
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 8px;
         }
-        input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
-            ring-color: #4f46e5;
-            border-color: #4f46e5;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        .badge.json { background-color: #dbeafe; color: #1e40af; }
+        .badge.py { background-color: #fce7f3; color: #9d174d; }
+        .badge.new { background-color: #dcfce7; color: #166534; }
+
+        /* Footer */
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid var(--sidebar-border);
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.85rem;
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-700 h-screen flex flex-col overflow-hidden">
+<body>
 
-    <div class="flex flex-col h-screen">
-        <!-- Header -->
-        <header class="bg-white border-b border-slate-200 shadow-sm p-4 flex justify-between items-center z-20">
-            <!-- Updated Title Color -->
-            <h1 class="text-2xl font-bold text-indigo-600">NVLib v4</h1>
-            
-            <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                    <label for="window-title" class="text-sm font-semibold text-slate-600">Window Title:</label>
-                    <input type="text" id="window-title" value="My GUI" class="w-48 p-2 border border-slate-300 rounded-md bg-slate-50 text-slate-800">
-                </div>
-                <div class="flex items-center space-x-2">
-                    <label for="canvas-width" class="text-sm font-semibold text-slate-600">Width:</label>
-                    <input type="number" id="canvas-width" value="800" class="w-20 p-2 border border-slate-300 rounded-md bg-slate-50 text-slate-800">
-                    <label for="canvas-height" class="text-sm font-semibold text-slate-600">Height:</label>
-                    <input type="number" id="canvas-height" value="600" class="w-20 p-2 border border-slate-300 rounded-md bg-slate-50 text-slate-800">
-                    <button id="resize-canvas" class="px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium shadow-sm transition-colors">Resize</button>
-                </div>
-                
-                <div class="h-6 w-px bg-slate-300 mx-2"></div>
+<aside>
+    <h1>NVLib <span style="font-size:0.8rem; color:#64748b;">v4.0</span></h1>
+    <nav>
+        <a href="#intro">Introduction</a>
+        <a href="#setup">Setup & Initialization</a>
+        <a href="#screens">Screen Management <span class="badge new" style="transform: scale(0.8);">New</span></a>
+        <a href="#canvas">Canvas configuration</a>
 
-                <button id="live-preview-btn" class="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm font-medium shadow-sm transition-colors">Preview</button>
-                <button id="save-json" class="px-3 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm font-medium shadow-sm transition-colors">Save</button>
-                <label for="load-json-input" class="px-3 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 cursor-pointer text-sm font-medium shadow-sm transition-colors">Load</label>
-                <input type="file" id="load-json-input" class="hidden" accept=".json">
-                
-                <a href="docs.html" target="_blank" class="px-3 py-2 bg-slate-700 text-white rounded-md hover:bg-slate-800 flex items-center text-sm font-medium shadow-sm transition-colors ml-2">
-                    <span class="material-symbols-outlined text-sm mr-1">description</span> Docs
-                </a>
-            </div>
-        </header>
+        <div class="section-title">Components</div>
+        <a href="#button">Button</a>
+        <a href="#label">Label</a>
+        <a href="#textbox">TextBox / TextArea</a>
+        <a href="#checkbox">Checkbox</a>
+        <a href="#toggle">ToggleButton</a>
+        <a href="#spinner">Spinner (Number)</a>
+        <a href="#slider">Slider</a>
+        <a href="#progress">ProgressBar</a>
+        <a href="#dropdown">Dropdown</a>
+        <a href="#radiogroup">RadioGroup</a>
+        <a href="#layout">Panel & CardView</a>
+        <a href="#image">Image</a>
+    </nav>
+</aside>
 
-        <!-- Main Content -->
-        <div class="flex flex-1 overflow-hidden">
-            <!-- Left Sidebar -->
-            <aside class="w-64 bg-slate-50 border-r border-slate-200 p-4 overflow-y-auto z-10">
-                <h2 class="text-lg font-bold text-slate-800 mb-4">Components</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label for="component-select" class="block text-sm font-medium text-slate-600 mb-1">Select Type</label>
-                        <select id="component-select" class="block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white">
-                            <option>Button</option>
-                            <option>Label</option>
-                            <option>TextBox</option>
-                            <option>TextArea</option>
-                            <option>Checkbox</option>
-                            <option>RadioGroup</option>
-                            <option>Dropdown</option>
-                            <option>Slider</option>
-                            <option>Panel</option>
-                            <option>ProgressBar</option>
-                            <option>Spinner</option>
-                            <option>CardView</option>
-                            <option>ToggleButton</option>
-                            <option>Image</option>
-                        </select>
-                    </div>
-                    <button id="add-component" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium shadow-sm transition-colors">Add Component</button>
-                </div>
-                <div class="mt-8 p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
-                    <h3 class="font-semibold text-slate-800 text-sm uppercase tracking-wide mb-2">Quick Guide</h3>
-                    <p class="text-sm text-slate-600 space-y-1 leading-relaxed">
-                        1. Select & Add.<br>
-                        2. Drag & Resize.<br>
-                        3. Edit Properties on right.<br>
-                        4. Save JSON.<br>
-                        5. Check <a href="docs.html" target="_blank" class="text-indigo-600 hover:underline font-medium">docs.html</a>.<br>
-                    </p>
-                </div>
-            </aside>
+<main>
+    <section id="intro">
+        <h2>Introduction</h2>
+        <p>
+            <strong>NVLib AutoGUI</strong> is a high-level wrapper around KivyMD, allowing developers to create persistent, multi-screen applications using simple JSON definitions and Pythonic logic.
+        </p>
+        <p>
+            <strong>Version 4 Features:</strong>
+            <ul>
+                <li><strong>Multi-Screen Support:</strong> Register multiple JSON layouts as screens.</li>
+                <li><strong>State Persistence:</strong> Form inputs and widget states are preserved when switching screens.</li>
+                <li><strong>Namespaced Access:</strong> Access widgets safely via <code>app.screenName.widgetID</code>.</li>
+                <li><strong>Secure Loading:</strong> Built-in asset protection.</li>
+            </ul>
+        </p>
+    </section>
 
-            <!-- Canvas Area -->
-            <main class="flex-1 p-6 bg-slate-200 flex justify-center overflow-y-auto">
-                <div id="canvas" class="canvas shadow-xl rounded-sm" style="width: 800px; height: 600px; background-color: white;"></div>
-            </main>
+    <section id="setup">
+        <h2>Setup & Initialization</h2>
+        <p>Create a Python script (e.g., <code class="inline">main.py</code>) and your JSON layout files.</p>
 
-            <!-- Right Sidebar (Property Editor) -->
-            <aside id="property-editor" class="w-80 bg-slate-50 border-l border-slate-200 p-4 overflow-y-auto z-10 hidden">
-                <h2 class="text-lg font-bold text-slate-800 mb-4">Properties</h2>
-                <div id="properties-form" class="space-y-4"></div>
-                <div class="pt-6 mt-4 border-t border-slate-200">
-                     <button id="delete-component" class="w-full px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 font-medium shadow-sm transition-colors">Delete Component</button>
-                </div>
-            </aside>
-        </div>
-    </div>
-    
-    <!-- Custom Context Menu -->
-    <div id="context-menu" class="hidden absolute bg-white shadow-xl border border-slate-200 rounded-md py-1 z-50">
-        <a href="#" data-action="duplicate" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Duplicate</a>
-        <div class="border-t border-slate-100 my-1"></div>
-        <div class="submenu-container relative">
-            <a href="#" class="flex justify-between items-center w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                <span>Layout</span>
-                <span class="text-xs">&gt;</span>
-            </a>
-            <div class="submenu hidden absolute left-full top-0 mt-[-5px] bg-white shadow-xl border border-slate-200 rounded-md py-1 w-40">
-                <a href="#" data-action="bring-forward" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Bring Forward</a>
-                <a href="#" data-action="send-backward" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Send Backward</a>
-                <div class="border-t border-slate-100 my-1"></div>
-                <a href="#" data-action="bring-to-front" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Bring to Front</a>
-                <a href="#" data-action="send-to-back" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Send to Back</a>
-            </div>
-        </div>
-    </div>
+        <h3>Python code</h3>
+        <pre><code>from NVLib.Components.GUI.AutoGUI import AutoGUI
 
-    <!-- Live Preview Modal -->
-    <div id="preview-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900 bg-opacity-50 backdrop-blur-sm">
-        <div id="preview-content" class="bg-white rounded-lg shadow-2xl flex flex-col w-full h-full max-w-4xl max-h-[85%] border border-slate-200">
-            <div class="p-3 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-lg">
-                <h3 class="text-lg font-semibold text-slate-800">Live Preview</h3>
-                <div>
-                    <button id="fullscreen-preview-btn" class="px-3 py-1 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 text-sm font-medium">Full Screen</button>
-                    <button id="close-preview-btn" class="ml-2 px-3 py-1 bg-rose-500 text-white rounded-md hover:bg-rose-600 text-sm font-medium">&times; Close</button>
-                </div>
-            </div>
-            <div class="p-6 flex-1 bg-slate-100 overflow-auto flex justify-center">
-                <div id="preview-canvas" class="bg-white relative shadow-md ring-1 ring-slate-900/5"></div>
-            </div>
-        </div>
-    </div>
+# 1. Initialize the App
+app = AutoGUI()
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const canvas = document.getElementById('canvas');
-            const addComponentBtn = document.getElementById('add-component');
-            const componentSelect = document.getElementById('component-select');
-            const propertyEditor = document.getElementById('property-editor');
-            const propertiesForm = document.getElementById('properties-form');
-            const saveJsonBtn = document.getElementById('save-json');
-            const loadJsonInput = document.getElementById('load-json-input');
-            const resizeCanvasBtn = document.getElementById('resize-canvas');
-            const canvasWidthInput = document.getElementById('canvas-width');
-            const canvasHeightInput = document.getElementById('canvas-height');
-            const deleteComponentBtn = document.getElementById('delete-component');
-            const livePreviewBtn = document.getElementById('live-preview-btn');
-            const previewModal = document.getElementById('preview-modal');
-            const previewCanvas = document.getElementById('preview-canvas');
-            const previewContent = document.getElementById('preview-content');
-            const closePreviewBtn = document.getElementById('close-preview-btn');
-            const fullscreenPreviewBtn = document.getElementById('fullscreen-preview-btn');
-            const contextMenu = document.getElementById('context-menu');
-            const windowTitleInput = document.getElementById('window-title');
+# 2. Register Screens
+# 'main=True' defines the starting screen.
+app.register_screen("home", "home.json", main=True)
+app.register_screen("settings", "settings.json")
 
-            let components = [];
-            let selectedComponent = null;
-            let componentIdCounter = 0;
-            let contextComponentId = null;
+# 3. Configure Window
+app.set_title("NVLib v4 App")
 
-            const getComponentDefaults = (type) => {
-    const base = {
-        textColor: '#334155', // Slate-700 default text
-        fontSize: 14,
-        bold: false,
-    };
-    const textBase = { ...base, text: type };
-    const placeholderImg = 'data:image/svg+xml;base64,...';
+# 4. Define Logic (Navigation)
+def go_settings():
+    # Access widgets via app.screenName.componentId
+    print(f"User: {app.home.txt_username.text()}") 
+    app.switch_screen("settings")
 
-    switch (type) {
-        case 'Button': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 4 };
-        case 'Label': return { ...textBase, iconName: '' };
-        case 'TextBox': return { text: '', hintText: 'Enter text...', hintColor: '#94a3b8', backgroundColor: '#ffffff', ...base };
-        case 'TextArea': return { text: '', hintText: 'Enter text...', hintColor: '#94a3b8', backgroundColor: '#ffffff', ...base };
-        case 'Checkbox': return { text: 'Checkbox', checked: false, checkedColor: '#4f46e5', ...base };
-        case 'RadioGroup': return { label: 'Select an Option', options: 'Option 1\nOption 2', checkedValue: 'Option 1', checkedColor: '#4f46e5', ...base };
-        case 'Dropdown': return { text: 'Dropdown', options: 'Option 1\nOption 2', backgroundColor: '#ffffff', selectionColor: '#e0e7ff', ...base };
-        case 'Slider': return { min: 0, max: 100, value: 50, progressColor: '#4f46e5', buttonColor: '#4f46e5' };
-        case 'Panel': return { backgroundColor: '#f1f5f9', cornerRadius: 0 };
-        case 'ProgressBar': return { value: 50, progressColor: '#4f46e5', textColor: '#334155', textPosition: 'right' };
-        case 'Spinner': return { min: 0, max: 100, value: 25, backgroundColor: '#ffffff', ...base };
-        case 'CardView': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 8, elevation: 2 };
-        case 'ToggleButton': return { checked: false, onColor: '#10b981', offColor: '#cbd5e1' };
-        case 'Image': return { src: placeholderImg, cornerRadius: 0, opacity: 1, fit: 'cover', backgroundColor: '#ffffff' };
-        default: return textBase;
-    }
-};
+def go_home():
+    app.switch_screen("home")
 
+# 5. Bind Events
+app.home.btn_settings.on_click(go_settings)
+app.settings.btn_back.on_click(go_home)
 
-            resizeCanvasBtn.addEventListener('click', () => {
-                canvas.style.width = `${canvasWidthInput.value}px`;
-                canvas.style.height = `${canvasHeightInput.value}px`;
-            });
+# 6. Run
+app.run()</code></pre>
+    </section>
 
-            addComponentBtn.addEventListener('click', () => {
-                const componentType = componentSelect.value;
-                let id = `${componentType.toLowerCase()}_${componentIdCounter++}`;
-                while (components.some(c => c.id === id)) {
-                    id = `${componentType.toLowerCase()}_${componentIdCounter++}`;
-                }
-                
-                const componentData = {
-                    id: id, type: componentType, x: 50, y: 50,
-                    width: 150, height: 40,
-                    zIndex: components.length,
-                    properties: getComponentDefaults(componentType)
-                };
-                
-                if(componentType === 'Image' || componentType === 'RadioGroup') componentData.height = 100;
-                if(componentType === 'Slider') componentData.width = 200;
-                if(componentType === 'TextArea') componentData.height = 80;
-                if(componentType === 'Panel' || componentType === 'CardView') { componentData.width = 200; componentData.height = 150; }
-                if(componentType === 'ProgressBar' || componentType === 'Slider') componentData.height = 25;
-                if(componentType === 'ToggleButton') { componentData.width = 60; componentData.height = 32; }
-                if(componentType === 'Label') { componentData.width = 40; componentData.height = 40; }
+    <section id="screens">
+        <h2>Screen Management <span class="badge new">v4</span></h2>
+        <p>NVLib v4 introduces a robust screen manager that keeps screens alive in memory to preserve user input.</p>
 
-                components.push(componentData);
-                renderAllComponents();
-                selectComponent(id);
-            });
-            
-            function reorderZIndexes() {
-                components.sort((a, b) => a.zIndex - b.zIndex);
-                components.forEach((c, index) => c.zIndex = index);
-                renderAllComponents();
-            }
+        <h3>1. Registering Screens</h3>
+        <p>Use <code>register_screen</code> instead of the old <code>build_gui</code>.</p>
+        <pre><code>app.register_screen(unique_name, json_path, main=False)</code></pre>
+        <ul>
+            <li><strong>unique_name:</strong> A string ID for the screen (e.g., "login", "dashboard").</li>
+            <li><strong>json_path:</strong> Path to the .json layout file.</li>
+            <li><strong>main:</strong> Set to <code>True</code> for the first screen to show on launch.</li>
+        </ul>
 
-            function renderAllComponents() {
-                components.sort((a, b) => a.zIndex - b.zIndex);
-                canvas.innerHTML = '';
-                components.forEach(comp => renderComponent(comp, true));
-            }
+        <h3>2. Switching Screens</h3>
+        <pre><code>app.switch_screen("unique_name")</code></pre>
+        <p>This hides the current screen and shows the target screen. <strong>Note:</strong> The previous screen is hidden, not destroyed. All typed text, toggles, and scroll positions remain intact.</p>
 
-            function renderComponent(comp, isBatchRender = false) {
-                let el = document.getElementById(comp.id);
-                if (!el) {
-                    el = document.createElement('div');
-                    el.id = comp.id;
-                    el.className = 'component';
-                    canvas.appendChild(el);
-                    
-                    const resizer = document.createElement('div');
-                    resizer.className = 'resizer';
-                    el.appendChild(resizer);
-                    
-                    makeDraggable(el);
-                    makeResizable(el, resizer);
+        <h3>3. Accessing Widgets</h3>
+        <p>Widgets are now namespaced to prevent ID collisions between screens.</p>
+        <pre><code># Syntax
+app.{screen_name}.{widget_id}.method()
 
-                    el.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        selectComponent(comp.id);
-                    });
+# Example
+app.login.username_input.text()
+app.dashboard.logout_btn.on_click(logout_func)</code></pre>
+    </section>
 
-                    el.addEventListener('contextmenu', e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        contextComponentId = comp.id;
-                        contextMenu.style.top = `${e.clientY}px`;
-                        contextMenu.style.left = `${e.clientX}px`;
-                        contextMenu.classList.remove('hidden');
-                        selectComponent(comp.id);
-                    });
-                }
+    <section id="canvas">
+        <h2>Canvas configuration</h2>
+        <p>The root object in your JSON file. Defines the initial dimensions.</p>
+        <pre><code>{
+  "canvas": {
+    "width": 800,
+    "height": 600,
+    "title": "My App Title"
+  },
+  "components": [ ... ]
+}</code></pre>
+    </section>
 
-                el.style.left = `${comp.x}px`;
-                el.style.top = `${comp.y}px`;
-                el.style.width = `${comp.width}px`;
-                el.style.height = `${comp.height}px`;
-                el.style.zIndex = comp.zIndex;
+    <hr>
 
-                el.innerHTML = getComponentHTML(comp) + (el.querySelector('.resizer')?.outerHTML || '<div class="resizer"></div>');
-                makeResizable(el, el.querySelector('.resizer'));
+    <h2 id="components">Component reference</h2>
+    <p>Components support JSON properties <span class="badge json">JSON</span> and Python methods <span class="badge py">Python</span>.</p>
 
-                if (selectedComponent && selectedComponent.id === comp.id) {
-                    el.classList.add('selected');
-                }
-            }
+    <!-- BUTTON -->
+    <section id="button">
+        <h3>Button</h3>
+        <p>A standard clickable button with ripple effects.</p>
 
-            function getComponentHTML(comp) {
-                const p = comp.properties;
-                const baseStyles = `color:${p.textColor}; font-size:${p.fontSize}px; font-weight:${p.bold ? 'bold' : 'normal'};`;
-                let wrapperStyles = `background-color:${p.backgroundColor || 'white'}; border-radius:${p.cornerRadius || 0}px;`;
-                
-                switch(comp.type) {
-                    case 'Image':
-                        return `<div class="component-render-wrapper" style="padding:0; border:none; background:transparent;">
-                                    <img src="${p.src}" style="width:100%; height:100%; object-fit:${p.fit}; border-radius:${p.cornerRadius}px; opacity:${p.opacity};" />
-                                </div>`;
-                    case 'Button':
-                    case 'CardView':
-                         if(comp.type === 'CardView') wrapperStyles += ` box-shadow: 0 ${p.elevation*2}px ${p.elevation*3}px rgba(0,0,0,0.1);`;
-                         return `<div class="component-render-wrapper" style="${wrapperStyles}"><span style="${baseStyles}">${p.text}</span></div>`;
-                    case 'Panel':
-                         return `<div class="component-render-wrapper" style="${wrapperStyles}"></div>`;
-                    case 'Label':
-                        if (p.iconName && p.iconName.trim() !== '') {
-                            const iconStyles = `font-family: 'Material Symbols Outlined'; font-size: ${p.fontSize}px; color:${p.textColor};`;
-                            return `<div class="component-render-wrapper" style="border:none; background:transparent;"><span class="material-symbols-outlined" style="${iconStyles}">${p.iconName}</span></div>`;
-                        }
-                        return `<div class="component-render-wrapper" style="border:none; background:transparent;"><span style="${baseStyles}">${p.text}</span></div>`;
-                    case 'TextBox':
-                    case 'TextArea':
-                        const hint = `<span style='color:${p.hintColor};'>${p.hintText}</span>`;
-                        const align = comp.type === 'TextArea' ? 'align-self: flex-start;' : '';
-                        return `<div class="component-render-wrapper" style="${wrapperStyles}">
-                                    <span style="${baseStyles} width: 100%; text-align: left; ${align}">${p.text || hint}</span>
-                                </div>`;
-                    case 'Checkbox':
-                        return `<div class="component-render-wrapper" style="border:none; background:transparent; justify-content:flex-start;">
-                                    <div style="display:flex; align-items:center; gap:8px;">
-                                        <div style="width:16px; height:16px; border:1px solid #94a3b8; display:flex; align-items:center; justify-content:center; background:${p.checked ? p.checkedColor : 'white'}; border-radius: 2px">
-                                            ${p.checked ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>' : ''}
-                                        </div>
-                                        <span style="${baseStyles}">${p.text}</span>
-                                    </div>
-                                </div>`;
-                    case 'RadioGroup':
-                        let radioHTML = `<div style="${baseStyles} margin-bottom: 8px;">${p.label}</div>`;
-                        const options = p.options.split('\n');
-                        options.forEach(opt => {
-                            const isChecked = opt === p.checkedValue;
-                            radioHTML += `<div style="display:flex; align-items:center; gap:8px; margin-bottom: 4px;">
-                                            <div style="width:16px; height:16px; border:1px solid #94a3b8; display:flex; align-items:center; justify-content:center; background:${isChecked ? p.checkedColor : 'white'}; border-radius:50%">
-                                                ${isChecked ? `<div style="width:8px; height:8px; background:white; border-radius:50%;"></div>` : ''}
-                                            </div>
-                                            <span style="${baseStyles}">${opt}</span>
-                                        </div>`;
-                        });
-                        return `<div class="component-render-wrapper" style="border:none; background:transparent; flex-direction: column; align-items: flex-start;">${radioHTML}</div>`;
-                    case 'ProgressBar':
-                        return `<div style="width:100%; height:100%; border-radius: 999px; position:relative; display:flex; align-items:center; overflow:hidden;">
-                                    <div style="width:${p.value}%; height:100%; background-color:${p.progressColor}; border-radius: 999px;"></div>
-                                </div>`;
-                    case 'Slider':
-                        const sliderPercent = (p.value - p.min) / (p.max - p.min) * 100;
-                        return `<div class="component-render-wrapper" style="border:none; background:transparent;">
-                                    <div style="width:100%; height:6px; background:#e2e8f0; border-radius:3px; position:relative;">
-                                        <div style="position:absolute; left:0; top:0; height:100%; width:${sliderPercent}%; background:${p.progressColor}; border-radius:3px;"></div>
-                                        <div style="position:absolute; left:${sliderPercent}%; transform:translateX(-50%); top:-6px; width:18px; height:18px; background:${p.buttonColor}; border-radius:50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></div>
-                                    </div>
-                                </div>`;
-                    case 'ToggleButton':
-                        return `<div class="component-render-wrapper" style="border:none; background:transparent;">
-                                    <div style="width:100%; height:100%; background-color:${p.checked ? p.onColor : p.offColor}; border-radius:999px; position:relative; transition: background-color 0.2s ease;">
-                                        <div style="position:absolute; top:4px; left:4px; width:24px; height:24px; background:white; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s ease; transform: ${p.checked ? 'translateX(28px)' : 'translateX(0)'};"></div>
-                                    </div>
-                                </div>`;
-                    case 'Spinner':
-                        return `<div class="component-render-wrapper" style="background-color:${p.backgroundColor}; justify-content:space-between; padding:0;">
-                                    <button class="h-full px-2" style="font-size:${p.fontSize}px; color:${p.textColor};">-</button>
-                                    <span style="${baseStyles}">${p.value}</span>
-                                    <button class="h-full px-2" style="font-size:${p.fontSize}px; color:${p.textColor};">+</button>
-                                </div>`;
-                    default:
-                        return `<div class="component-render-wrapper" style="${wrapperStyles}"><span style="${baseStyles}">${p.text}</span></div>`;
-                }
-            }
-            
-            deleteComponentBtn.addEventListener('click', () => {
-                if (!selectedComponent) return;
-                document.getElementById(selectedComponent.id)?.remove();
-                components = components.filter(c => c.id !== selectedComponent.id);
-                selectedComponent = null;
-                propertyEditor.classList.add('hidden');
-            });
+        <h4>JSON properties</h4>
+        <table>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+            <tr><td>type</td><td>String</td><td>"Button"</td></tr>
+            <tr><td>text</td><td>String</td><td>Label on the button.</td></tr>
+            <tr><td>backgroundColor</td><td>Hex</td><td>Button background color.</td></tr>
+            <tr><td>textColor</td><td>Hex</td><td>Button text color.</td></tr>
+            <tr><td>fontSize</td><td>Int</td><td>Font size (default 14).</td></tr>
+            <tr><td>cornerRadius</td><td>Int</td><td>Rounded corners.</td></tr>
+            <tr><td>bold</td><td>Bool</td><td>Emphasize label.</td></tr>
+        </table>
 
-            function selectComponent(id) {
-                selectedComponent = components.find(c => c.id === id) || null;
-                document.querySelectorAll('.component').forEach(el => el.classList.remove('selected'));
-                if (selectedComponent) {
-                    document.getElementById(id)?.classList.add('selected');
-                    propertyEditor.classList.remove('hidden');
-                    populatePropertyEditor(selectedComponent);
-                } else {
-                    propertyEditor.classList.add('hidden');
-                }
-            }
+        <h4>Python API</h4>
+        <table>
+            <tr><th>Method</th><th>Description</th></tr>
+            <tr><td><code>.on_click(func)</code></td><td>Bind a function to the click event.</td></tr>
+            <tr><td><code>.text(new_text=None)</code></td><td>Get or set the button label.</td></tr>
+            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide the button.</td></tr>
+        </table>
+    </section>
 
-            canvas.addEventListener('click', () => selectComponent(null));
-            document.addEventListener('click', () => contextMenu.classList.add('hidden'));
+    <!-- LABEL -->
+    <section id="label">
+        <h3>Label</h3>
+        <p>Text or icon display. Supports Material Symbols if <code class="inline">iconName</code> is set.</p>
 
-            function populatePropertyEditor(component) {
-                propertiesForm.innerHTML = '';
-                const addField = (parent, type, label, value, key, options = {}) => {
-                    const div = document.createElement('div');
-                    const labelEl = document.createElement('label');
-                    labelEl.className = 'block text-sm font-medium text-slate-700';
-                    labelEl.textContent = label;
-                    
-                    let input;
-                    if (type === 'file-button') {
-                        labelEl.htmlFor = `file-input-${component.id}`;
-                        labelEl.className += ' w-full text-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 cursor-pointer shadow-sm transition-colors';
-                        input = document.createElement('input');
-                        input.type = 'file';
-                        input.id = `file-input-${component.id}`;
-                        input.className = 'hidden';
-                        input.accept = 'image/*';
-                        input.addEventListener('change', (e) => {
-                            const file = e.target.files[0];
-                            if (!file) return;
-                            const reader = new FileReader();
-                            reader.onload = (readEvent) => {
-                                updateComponentProperty(component.id, 'src', readEvent.target.result);
-                            };
-                            reader.readAsDataURL(file);
-                        });
-                        div.appendChild(labelEl);
-                        div.appendChild(input);
-                    } else {
-                        div.appendChild(labelEl);
-                        if (type === 'textarea') {
-                            input = document.createElement('textarea');
-                            input.rows = 3;
-                        } else if (type === 'select') {
-                            input = document.createElement('select');
-                            options.choices.forEach(c => {
-                                const opt = document.createElement('option');
-                                opt.value = c;
-                                opt.textContent = c.charAt(0).toUpperCase() + c.slice(1);
-                                input.appendChild(opt);
-                            });
-                        } else {
-                            input = document.createElement('input');
-                            input.type = type;
-                            if (options.step) input.step = options.step;
-                            if (options.min) input.min = options.min;
-                            if (options.max) input.max = options.max;
-                        }
+        <h4>JSON properties</h4>
+        <table>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+            <tr><td>type</td><td>String</td><td>"Label"</td></tr>
+            <tr><td>text</td><td>String</td><td>Text content.</td></tr>
+            <tr><td>iconName</td><td>String</td><td>Material icon name (e.g. "home").</td></tr>
+            <tr><td>textColor</td><td>Hex</td><td>Text/icon color.</td></tr>
+            <tr><td>fontSize</td><td>Int</td><td>Font size.</td></tr>
+            <tr><td>bold</td><td>Bool</td><td>Bold text (for text labels).</td></tr>
+        </table>
 
-                        input.value = value ?? '';
-                        input.dataset.key = key;
-                        input.className = 'mt-1 block w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white text-slate-800';
-                        if (type === 'color') input.className += ' h-10 p-1';
-                        if (type === 'checkbox') {
-                            input.checked = !!value;
-                            input.className = 'h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500';
-                            div.className = 'flex items-center gap-x-2';
-                            div.insertBefore(input, labelEl);
-                        }
+        <h4>Python API</h4>
+        <table>
+            <tr><th>Method</th><th>Description</th></tr>
+            <tr><td><code>.text(new_text=None)</code></td><td>Get or set label text.</td></tr>
+            <tr><td><code>.text_color(hex)</code></td><td>Set text/icon color.</td></tr>
+        </table>
+    </section>
 
-                        input.addEventListener(type === 'checkbox' ? 'change' : 'input', (e) => {
-                            const originalId = component.id;
-                            const val = type === 'checkbox' ? e.target.checked : e.target.value;
-                            updateComponentProperty(originalId, key, val, e.target);
-                        });
-                        div.appendChild(input);
-                    }
-                    parent.appendChild(div);
-                };
+    <!-- TEXTBOX -->
+    <section id="textbox">
+        <h3>TextBox / TextArea</h3>
+        <p>Input fields. <code class="inline">TextBox</code> is single-line, <code class="inline">TextArea</code> is multi-line.</p>
 
-                addField(propertiesForm, 'text', 'ID', component.id, 'id');
+        <h4>JSON properties</h4>
+        <table>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+            <tr><td>type</td><td>String</td><td>"TextBox" or "TextArea"</td></tr>
+            <tr><td>text</td><td>String</td><td>Initial text value.</td></tr>
+            <tr><td>hintText</td><td>String</td><td>Placeholder text.</td></tr>
+            <tr><td>textColor</td><td>Hex</td><td>Input text color.</td></tr>
+            <tr><td>backgroundColor</td><td>Hex</td><td>Field background.</td></tr>
+        </table>
 
-                const p = component.properties;
-                if (component.type === 'Image') {
-                    addField(propertiesForm, 'file-button', 'Upload Image', null, 'src');
-                    addField(propertiesForm, 'number', 'Corner Radius (px)', p.cornerRadius, 'cornerRadius', {min: 0});
-                    addField(propertiesForm, 'range', `Opacity (${p.opacity})`, p.opacity, 'opacity', {min: 0, max: 1, step: 0.1});
-                    addField(propertiesForm, 'select', 'Image Fit', p.fit, 'fit', { choices: ['fill', 'contain', 'cover', 'none'] });
-                } else {
-                    for (const key in p) {
-                        // Hide unsupported properties globally (no fontFamily, borders, trackColor)
-                        if (key === 'fontFamily' || key === 'trackColor' || key === 'borderColor' || key === 'borderWidth') continue;
+        <h4>Python API</h4>
+        <table>
+            <tr><th>Method</th><th>Description</th></tr>
+            <tr><td><code>.text(new_text=None)</code></td><td>Get or set current text.</td></tr>
+            <tr><td><code>.set_enabled(bool)</code></td><td>Enable or disable typing.</td></tr>
+        </table>
+    </section>
 
-                        const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                        let type = 'text';
-                        if (key.includes('Color')) type = 'color';
-                        else if (typeof p[key] === 'number') type = 'number';
-                        else if (typeof p[key] === 'boolean') type = 'checkbox';
-                        else if (key === 'options') type = 'textarea';
+    <!-- CHECKBOX -->
+    <section id="checkbox">
+        <h3>Checkbox</h3>
+        <p>A persistent toggle box.</p>
 
-                        addField(propertiesForm, type, label, p[key], key);
-                    }
-                }
-            }
+        <h4>JSON properties</h4>
+        <table>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+            <tr><td>type</td><td>String</td><td>"Checkbox"</td></tr>
+            <tr><td>checked</td><td>Bool</td><td>Initial checked state.</td></tr>
+            <tr><td>text</td><td>String</td><td>Optional label text next to box.</td></tr>
+            <tr><td>checkedColor</td><td>Hex</td><td>Active color.</td></tr>
+        </table>
 
-            function updateComponentProperty(id, key, value, targetElement) {
-                const component = components.find(c => c.id === id);
-                if (!component) return;
-                
-                if (key === 'id') {
-                    const isDuplicate = components.some(c => c.id === value && c.id !== id);
-                    if (isDuplicate || value.trim() === '') {
-                        if(targetElement) targetElement.classList.add('id-error');
-                        return;
-                    }
-                    if(targetElement) targetElement.classList.remove('id-error');
-                    
-                    document.getElementById(id).id = value;
-                    component.id = value;
-                    if(selectedComponent && selectedComponent.id === id) selectedComponent.id = value;
-                    return;
-                }
+        <h4>Python API</h4>
+        <table>
+            <tr><th>Method</th><th>Description</th></tr>
+            <tr><td><code>.is_checked()</code></td><td>Returns True if checked.</td></tr>
+            <tr><td><code>.on_toggle(func)</code></td><td>Bind a callback when state changes.</td></tr>
+        </table>
+    </section>
 
-                if (typeof component.properties[key] === 'number') {
-                    value = parseFloat(value) || 0;
-                }
-                component.properties[key] = value;
-                renderComponent(component);
-                
-                if ((component.type === 'Label' && key === 'iconName') && selectedComponent && selectedComponent.id === id) {
-                    populatePropertyEditor(component);
-                }
+    <!-- TOGGLE BUTTON -->
+    <section id="toggle">
+        <h3>ToggleButton (Switch)</h3>
+        <p>A modern sliding switch.</p>
 
-                if (targetElement && targetElement.type === 'range') {
-                    const label = targetElement.closest('div').querySelector('label');
-                    if (label) {
-                        label.textContent = `${label.textContent.split('(')[0].trim()} (${value})`;
-                    }
-                }
-            }
+        <h4>JSON properties</h4>
+        <table>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+            <tr><td>type</td><td>String</td><td>"ToggleButton"</td></tr>
+            <tr><td>checked</td><td>Bool</td><td>Initial state.</td></tr>
+            <tr><td>onColor</td><td>Hex</td><td>Thumb color when active.</td></tr>
+            <tr><td>offColor</td><td>Hex</td><td>Thumb color when inactive.</td></tr>
+        </table>
 
-            function makeDraggable(element) {
-                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-                element.onmousedown = e => {
-                    if (e.target.classList.contains('resizer')) return;
-                    e.preventDefault();
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    document.onmouseup = () => {
-                        document.onmouseup = null;
-                        document.onmousemove = null;
-                        const component = components.find(c => c.id === element.id);
-                        if (component) {
-                            component.x = element.offsetLeft;
-                            component.y = element.offsetTop;
-                        }
-                    };
-                    document.onmousemove = me => {
-                        me.preventDefault();
-                        pos1 = pos3 - me.clientX;
-                        pos2 = pos4 - me.clientY;
-                        pos3 = me.clientX;
-                        pos4 = me.clientY;
-                        
-                        let newTop = element.offsetTop - pos2;
-                        let newLeft = element.offsetLeft - pos1;
+        <h4>Python API</h4>
+        <table>
+            <tr><th>Method</th><th>Description</th></tr>
+            <tr><td><code>.is_on()</code></td><td>Returns True if active.</td></tr>
+            <tr><td><code>.on_toggle(func)</code></td><td>Bind a callback when switched.</td></tr>
+        </table>
+    </section>
 
-                        if (newLeft < 0) newLeft = 0;
-                        if (newTop < 0) newTop = 0;
-                        if (newLeft + element.offsetWidth > canvas.offsetWidth) newLeft = canvas.offsetWidth - element.offsetWidth;
-                        if (newTop + element.offsetHeight > canvas.offsetHeight) newTop = canvas.offsetHeight - element.offsetHeight;
+    <!-- SPINNER -->
+    <section id="spinner">
+        <h3>Spinner</h3>
+        <p>Numeric input with +/- buttons.</p>
 
-                        element.style.top = `${newTop}px`;
-                        element.style.left = `${newLeft}px`;
-                    };
-                };
-            }
+        <h4>JSON properties</h4>
+        <table>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+            <tr><td>type</td><td>String</td><td>"Spinner"</td></tr>
+            <tr><td>min</td><td>Int</td><td>Minimum value.</td></tr>
+            <tr><td>max</td><td>Int</td><td>Maximum value.</td></tr>
+            <tr><td>value</td><td>Int</td><td>Initial value.</td></tr>
+        </table>
 
-            function makeResizable(element, resizer) {
-                if (!resizer) return;
-                resizer.addEventListener('mousedown', e => {
-                    e.stopPropagation();
-                    window.addEventListener('mousemove', resize);
-                    window.addEventListener('mouseup', stopResize);
-                });
+        <h4>Python API</h4>
+        <table>
+            <tr><th>Method</th><th>Description</th></tr>
+            <tr><td><code>.get()</code></td><td>Returns current integer value.</td></tr>
+            <tr><td><code>.set(int)</code></td><td>Set numeric value.</td></tr>
+        </table>
+    </section>
 
-                function resize(e) {
-                    let newWidth = (e.clientX - element.getBoundingClientRect().left);
-                    let newHeight = (e.clientY - element.getBoundingClientRect().top);
-                    if (newWidth < 20) newWidth = 20;
-                    if (newHeight < 20) newHeight = 20;
-                    element.style.width = `${newWidth}px`;
-                    element.style.height = `${newHeight}px`;
-                }
+    <!-- SLIDER -->
+    <section id="slider">
+        <h3>Slider</h3>
+        <p>A draggable slider range.</p>
 
-                function stopResize() {
-                    window.removeEventListener('mousemove', resize);
-                    window.removeEventListener('mouseup', stopResize);
-                    const component = components.find(c => c.id === element.id);
-                    if (component) {
-                        component.width = element.offsetWidth;
-                        component.height = element.offsetHeight;
-                    }
-                }
-            }
+        <h4>JSON properties</h4>
+        <table>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+            <tr><td>type</td><td>String</td><td>"Slider"</td></tr>
+            <tr><td>min</td><td>Int</td><td>Minimum value.</td></tr>
+            <tr><td>max</td><td>Int</td><td>Maximum value.</td></tr>
+            <tr><td>value</td><td>Int</td><td>Initial position.</td></tr>
+            <tr><td>progressColor</td><td>Hex</td><td>Active track color.</td></tr>
+        </table>
 
-            contextMenu.addEventListener('click', e => {
-                e.preventDefault();
-                const action = e.target.dataset.action;
-                if (!action || !contextComponentId) {
-                    contextMenu.classList.add('hidden');
-                    return;
-                };
+        <h4>Python API</h4>
+        <table>
+            <tr><th>Method</th><th>Description</th></tr>
+            <tr><td><code>.get()</code></td><td>Returns current value (float).</td></tr>
+            <tr><td><code>.set(val)</code></td><td>Set slider position.</td></tr>
+        </table>
+    </section>
 
-                const clickedComp = components.find(c => c.id === contextComponentId);
-                if (!clickedComp) return;
+    <!-- DROPDOWN -->
+    <section id="dropdown">
+        <h3>Dropdown</h3>
+        <p>A button that opens a selection menu.</p>
 
-                const sorted = [...components].sort((a,b) => a.zIndex - b.zIndex);
-                const currentIndex = sorted.findIndex(c => c.id === contextComponentId);
+        <h4>JSON properties</h4>
+        <table>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+            <tr><td>type</td><td>String</td><td>"Dropdown"</td></tr>
+            <tr><td>options</td><td>String</td><td>New-line <code class="inline">\n</code> separated entries.</td></tr>
+            <tr><td>text</td><td>String</td><td>Initial selected text.</td></tr>
+            <tr><td>selectionColor</td><td>Hex</td><td>Menu item hover/selection tint.</td></tr>
+        </table>
 
-                switch (action) {
-                    case 'bring-forward':
-                        if (currentIndex < sorted.length - 1) {
-                           const nextComp = sorted[currentIndex + 1];
-                           [clickedComp.zIndex, nextComp.zIndex] = [nextComp.zIndex, clickedComp.zIndex];
-                        }
-                        break;
-                    case 'send-backward':
-                        if (currentIndex > 0) {
-                            const prevComp = sorted[currentIndex - 1];
-                           [clickedComp.zIndex, prevComp.zIndex] = [prevComp.zIndex, clickedComp.zIndex];
-                        }
-                        break;
-                    case 'bring-to-front':
-                        clickedComp.zIndex = components.length;
-                        break;
-                    case 'send-to-back':
-                         clickedComp.zIndex = -1;
-                        break;
-                    case 'duplicate':
-                        duplicateComponent(contextComponentId);
-                        break;
-                }
-                reorderZIndexes();
-                contextMenu.classList.add('hidden');
-            });
-            
-            function duplicateComponent(id) {
-                const originalComp = components.find(c => c.id === id);
-                if (!originalComp) return;
+        <h4>Python API</h4>
+        <table>
+            <tr><th>Method</th><th>Description</th></tr>
+            <tr><td><code>.get()</code></td><td>Returns current selected text.</td></tr>
+            <tr><td><code>.on_select(func)</code></td><td>Bind callback receiving selected text.</td></tr>
+        </table>
+    </section>
 
-                const newComp = JSON.parse(JSON.stringify(originalComp));
-                
-                let copyCount = 1;
-                let newId = `${originalComp.id}_copy_${copyCount}`;
-                while (components.some(c => c.id === newId)) {
-                    copyCount++;
-                    newId = `${originalComp.id}_copy_${copyCount}`;
-                }
-                newComp.id = newId;
-                newComp.x += 10;
-                newComp.y += 10;
-                newComp.zIndex = components.length;
-                components.push(newComp);
-                renderAllComponents();
-                selectComponent(newId);
-            }
+    <!-- RADIO GROUP -->
+    <section id="radiogroup">
+        <h3>RadioGroup</h3>
+        <p>Mutually exclusive options list.</p>
 
-            function openPreview() {
-                previewCanvas.innerHTML = '';
-                previewCanvas.style.width = canvas.style.width;
-                previewCanvas.style.height = canvas.style.height;
+        <h4>JSON properties</h4>
+        <table>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+            <tr><td>type</td><td>String</td><td>"RadioGroup"</td></tr>
+            <tr><td>options</td><td>String</td><td>New-line <code class="inline">\n</code> separated list.</td></tr>
+            <tr><td>checkedValue</td><td>String</td><td>Option pre-selected.</td></tr>
+            <tr><td>label</td><td>String</td><td>Group header.</td></tr>
+        </table>
 
-                let dynamicStyles = document.getElementById('dynamic-preview-styles');
-                if (dynamicStyles) dynamicStyles.remove();
-                dynamicStyles = document.createElement('style');
-                dynamicStyles.id = 'dynamic-preview-styles';
-                document.head.appendChild(dynamicStyles);
+        <h4>Python API</h4>
+        <table>
+            <tr><th>Method</th><th>Description</th></tr>
+            <tr><td><code>.get()</code></td><td>Returns the selected option string.</td></tr>
+            <tr><td><code>.on_select(func)</code></td><td>Bind callback receiving selected option.</td></tr>
+        </table>
+    </section>
 
-                components.forEach(comp => {
-                    const p = comp.properties;
-                    const elWrapper = document.createElement('div');
-                    elWrapper.className = 'preview-component';
-                    elWrapper.style.left = `${comp.x}px`;
-                    elWrapper.style.top = `${comp.y}px`;
-                    elWrapper.style.width = `${comp.width}px`;
-                    elWrapper.style.height = `${comp.height}px`;
+    <!-- LAYOUTS -->
+    <section id="layout">
+        <h3>Panel / CardView</h3>
+        <p>Containers for backgrounds and grouping.</p>
 
-                    let el;
-                    switch(comp.type) {
-                        case 'Button':
-                            el = document.createElement('button');
-                            el.textContent = p.text;
-                            el.className = 'preview-button';
-                            el.style.transition = 'transform 0.1s ease, filter 0.1s ease';
-                            el.style.backgroundColor = p.backgroundColor;
-                            el.style.color = p.textColor;
-                            el.style.fontSize = `${p.fontSize}px`;
-                            el.style.fontWeight = p.bold ? 'bold' : 'normal';
-                            el.style.borderRadius = `${p.cornerRadius}px`;
-                            el.style.border = '1px solid #94a3b8';
-                            break;
-                        case 'TextBox':
-                            el = document.createElement('input');
-                            el.type = 'text';
-                            el.placeholder = p.hintText;
-                            el.value = p.text;
-                            el.style.color = p.textColor;
-                            el.style.backgroundColor = p.backgroundColor;
-                            el.style.fontSize = `${p.fontSize}px`;
-                            el.style.fontWeight = p.bold ? 'bold' : 'normal';
-                            break;
-                        case 'TextArea':
-                            el = document.createElement('textarea');
-                            el.placeholder = p.hintText;
-                            el.value = p.text;
-                            el.style.color = p.textColor;
-                            el.style.backgroundColor = p.backgroundColor;
-                            el.style.fontSize = `${p.fontSize}px`;
-                            el.style.fontWeight = p.bold ? 'bold' : 'normal';
-                            break;
-                        case 'Checkbox':
-                            el = document.createElement('div');
-                            el.className = 'flex items-center justify-start gap-2';
-                            const input = document.createElement('input');
-                            input.type = 'checkbox';
-                            input.checked = p.checked;
-                            const label = document.createElement('label');
-                            label.textContent = p.text;
-                            label.style.color = p.textColor;
-                            label.style.fontSize = `${p.fontSize}px`;
-                            label.style.fontWeight = p.bold ? 'bold' : 'normal';
-                            el.append(input, label);
-                            break;
-                        case 'RadioGroup':
-                            el = document.createElement('div');
-                            el.className = 'flex flex-col items-start justify-center gap-2';
-                            const groupLabel = document.createElement('label');
-                            groupLabel.textContent = p.label;
-                            groupLabel.style.color = p.textColor;
-                            groupLabel.style.fontSize = `${p.fontSize}px`;
-                            groupLabel.style.fontWeight = p.bold ? 'bold' : 'normal';
-                            groupLabel.style.marginBottom = '4px';
-                            el.appendChild(groupLabel);
-                            p.options.split('\n').forEach(opt => {
-                                const optionWrapper = document.createElement('div');
-                                optionWrapper.className = 'flex items-center gap-2';
-                                const radioInput = document.createElement('input');
-                                radioInput.type = 'radio';
-                                radioInput.name = comp.id;
-                                radioInput.value = opt;
-                                radioInput.checked = opt === p.checkedValue;
-                                const optionLabel = document.createElement('label');
-                                optionLabel.textContent = opt;
-                                optionLabel.style.color = p.textColor;
-                                optionLabel.style.fontSize = `${p.fontSize}px`;
-                                optionLabel.style.fontWeight = p.bold ? 'bold' : 'normal';
-                                optionLabel.style.whiteSpace = 'nowrap';
-                                optionWrapper.append(radioInput, optionLabel);
-                                el.appendChild(optionWrapper);
-                            });
-                            break;
-                        case 'Slider':
-                            el = document.createElement('input');
-                            el.type = 'range';
-                            el.min = p.min;
-                            el.max = p.max;
-                            el.value = p.value;
-                            el.className = `preview-slider-${comp.id}`;
-                            el.style.height = '6px';
-                            el.style.margin = 'auto 0';
+        <h4>JSON properties</h4>
+        <table>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+            <tr><td>type</td><td>String</td><td>"Panel" or "CardView"</td></tr>
+            <tr><td>backgroundColor</td><td>Hex</td><td>Background fill color.</td></tr>
+            <tr><td>cornerRadius</td><td>Int</td><td>Roundness of corners.</td></tr>
+            <tr><td>elevation</td><td>Int</td><td>(CardView only) Shadow depth.</td></tr>
+            <tr><td>borderColor</td><td>Hex</td><td>(CardView only) Border color.</td></tr>
+            <tr><td>borderWidth</td><td>Int</td><td>(CardView only) Border width.</td></tr>
+            <tr><td>visible</td><td>Bool</td><td>Initial visibility.</td></tr>
+        </table>
 
-                            const updateSliderStyle = (target) => {
-                                const newPercent = ((target.value - p.min) / (p.max - p.min)) * 100;
-                                target.style.background = `linear-gradient(to right, ${p.progressColor} 0%, ${p.progressColor} ${newPercent}%, #e2e8f0 ${newPercent}%, #e2e8f0 100%)`;
-                            };
-                            
-                            dynamicStyles.innerHTML += `
-                                .preview-slider-${comp.id} { -webkit-appearance: none; appearance: none; width: 100%; border-radius: 3px; outline: none; }
-                                .preview-slider-${comp.id}::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: ${p.buttonColor}; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-                                .preview-slider-${comp.id}::-moz-range-thumb { width: 18px; height: 18px; background: ${p.buttonColor}; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-                            `;
-                            
-                            el.addEventListener('input', (e) => updateSliderStyle(e.target));
-                            setTimeout(() => updateSliderStyle(el), 0);
-                            break;
-                        case 'Dropdown':
-                            el = document.createElement('select');
-                            el.className = `preview-dropdown-${comp.id}`;
-                            dynamicStyles.innerHTML += `
-                                .preview-dropdown-${comp.id} option:hover { background-color: ${p.selectionColor} !important; }
-                            `;
-                            const options = p.options.split('\n');
-                            options.forEach(opt => {
-                                const optionEl = document.createElement('option');
-                                optionEl.value = opt;
-                                optionEl.textContent = opt;
-                                el.appendChild(optionEl);
-                            });
-                            el.style.backgroundColor = p.backgroundColor;
-                            el.style.color = p.textColor;
-                            el.style.fontSize = `${p.fontSize}px`;
-                            el.style.fontWeight = p.bold ? 'bold' : 'normal';
-                            break;
-                        case 'ToggleButton':
-                            el = document.createElement('label');
-                            el.className = 'relative inline-flex items-center cursor-pointer';
-                            const toggleInput = document.createElement('input');
-                            toggleInput.type = 'checkbox';
-                            toggleInput.className = 'sr-only peer';
-                            toggleInput.checked = p.checked;
-                            const toggleDiv = document.createElement('div');
-                            toggleDiv.className = "w-11 h-6 bg-slate-300 rounded-full peer peer-focus:ring-4 peer-focus:ring-indigo-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all";
-                            toggleDiv.style.backgroundColor = p.checked ? p.onColor : p.offColor;
-                            toggleInput.addEventListener('change', (e) => {
-                                toggleDiv.style.backgroundColor = e.target.checked ? p.onColor : p.offColor;
-                            });
-                            el.append(toggleInput, toggleDiv);
-                            break;
-                        case 'Spinner':
-                            el = document.createElement('div');
-                            el.className = 'flex items-center justify-between border border-slate-400 rounded';
-                            el.style.backgroundColor = p.backgroundColor || 'white';
-                            const minusBtn = document.createElement('button');
-                            minusBtn.textContent = '-';
-                            minusBtn.className = 'px-2';
-                            minusBtn.style.fontSize = `${p.fontSize}px`;
-                            minusBtn.style.color = p.textColor;
-                            minusBtn.style.fontWeight = p.bold ? 'bold' : 'normal';
-                            const valueSpan = document.createElement('span');
-                            valueSpan.textContent = p.value;
-                            valueSpan.style.color = p.textColor;
-                            valueSpan.style.fontSize = `${p.fontSize}px`;
-                            valueSpan.style.fontWeight = p.bold ? 'bold' : 'normal';
-                            const plusBtn = document.createElement('button');
-                            plusBtn.textContent = '+';
-                            plusBtn.className = 'px-2';
-                            plusBtn.style.fontSize = `${p.fontSize}px`;
-                            plusBtn.style.color = p.textColor;
-                            plusBtn.style.fontWeight = p.bold ? 'bold' : 'normal';
-                            
-                            minusBtn.addEventListener('click', () => {
-                                let val = parseInt(valueSpan.textContent);
-                                if (val > p.min) valueSpan.textContent = val - 1;
-                            });
-                            plusBtn.addEventListener('click', () => {
-                                let val = parseInt(valueSpan.textContent);
-                                if (val < p.max) valueSpan.textContent = val + 1;
-                            });
-                            el.append(minusBtn, valueSpan, plusBtn);
-                            break;
-                        default:
-                            el = document.createElement('div');
-                            el.innerHTML = getComponentHTML(comp);
-                            const innerEl = el.firstElementChild;
-                            innerEl.style.width = '100%';
-                            innerEl.style.height = '100%';
-                            el = innerEl;
-                    }
-                    
-                    if (el) {
-                        elWrapper.appendChild(el);
-                        previewCanvas.appendChild(elWrapper);
-                    }
-                });
+        <h4>Python API</h4>
+        <table>
+            <tr><th>Method</th><th>Description</th></tr>
+            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide.</td></tr>
+            <tr><td><code>.bg_color(hex)</code></td><td>Set background color.</td></tr>
+            <tr><td><code>.border(width, hex, visible=True)</code></td><td>(CardView) Configure border.</td></tr>
+        </table>
+    </section>
 
-                previewModal.style.display = 'flex';
-            }
+    <!-- IMAGE -->
+    <section id="image">
+        <h3>Image</h3>
+        <p>Base64 image rendering.</p>
 
-            function closePreview() {
-                previewModal.style.display = 'none';
-                if (document.fullscreenElement) {
-                    document.exitFullscreen();
-                }
-            }
+        <h4>JSON properties</h4>
+        <table>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+            <tr><td>type</td><td>String</td><td>"Image"</td></tr>
+            <tr><td>src</td><td>String</td><td>Base64 data URL.</td></tr>
+            <tr><td>fit</td><td>String</td><td>"fill" | "contain" | "cover" | "none".</td></tr>
+            <tr><td>cornerRadius</td><td>Int</td><td>Corner radius.</td></tr>
+        </table>
 
-            function toggleFullScreen() {
-                if (!document.fullscreenElement) {
-                    previewContent.requestFullscreen().catch(err => {
-                        alert(`Error: ${err.message}`);
-                    });
-                    fullscreenPreviewBtn.textContent = 'Exit Full Screen';
-                } else {
-                    document.exitFullscreen();
-                    fullscreenPreviewBtn.textContent = 'Full Screen';
-                }
-            }
-            
-            livePreviewBtn.addEventListener('click', openPreview);
-            closePreviewBtn.addEventListener('click', closePreview);
-            fullscreenPreviewBtn.addEventListener('click', toggleFullScreen);
-            document.addEventListener('fullscreenchange', () => {
-                if (!document.fullscreenElement) {
-                    fullscreenPreviewBtn.textContent = 'Full Screen';
-                }
-            });
+        <h4>Python API</h4>
+        <table>
+            <tr><th>Method</th><th>Description</th></tr>
+            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide.</td></tr>
+            <tr><td><code>.opacity(float)</code></td><td>Set image opacity.</td></tr>
+        </table>
+    </section>
 
-            saveJsonBtn.addEventListener('click', () => {
-                const sortedComponents = [...components].sort((a,b) => a.zIndex - b.zIndex);
-                const layout = {
-                    canvas: { 
-                        width: canvas.offsetWidth, 
-                        height: canvas.offsetHeight,
-                        title: windowTitleInput.value
-                    },
-                    components: sortedComponents
-                };
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(layout, null, 2));
-                const a = document.createElement('a');
-                a.href = dataStr;
-                a.download = "layout.json";
-                a.click();
-            });
-
-            loadJsonInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const layout = JSON.parse(e.target.result);
-                        loadLayout(layout);
-                    } catch (error) {
-                        alert("Invalid JSON file.");
-                    }
-                };
-                reader.readAsText(file);
-                event.target.value = '';
-            });
-
-            function loadLayout(layout) {
-                canvas.style.width = `${layout.canvas.width}px`;
-                canvas.style.height = `${layout.canvas.height}px`;
-                canvasWidthInput.value = layout.canvas.width;
-                canvasHeightInput.value = layout.canvas.height;
-                windowTitleInput.value = layout.canvas.title || 'My GUI';
-                
-                canvas.innerHTML = '';
-                components = layout.components;
-
-                const idSet = new Set();
-                const duplicateIds = new Set();
-                components.forEach((c, index) => {
-                    if (c.zIndex === undefined) c.zIndex = index;
-                    if (idSet.has(c.id)) duplicateIds.add(c.id);
-                    idSet.add(c.id);
-                });
-
-                if (duplicateIds.size > 0) {
-                    alert(`Warning: Duplicate IDs found: ${Array.from(duplicateIds).join(', ')}.`);
-                }
-                
-                componentIdCounter = components.length
-                    ? Math.max(0, ...components.map(c => parseInt(c.id.split('_').pop()) || 0).filter(Number.isFinite)) + 1
-                    : 0;
-                
-                renderAllComponents();
-                selectComponent(null);
-            }
-        });
-    </script>
+    <footer>
+        <p>NVLib AutoGUI v4 • Powered by KivyMD</p>
+    </footer>
+</main>
 
 </body>
 </html>
