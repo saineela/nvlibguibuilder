@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NVLib v4</title>
+    <title>NVlib</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -33,6 +33,31 @@
             outline: 2px solid #2563eb;
             box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
+        
+        /* --- LOCKED STATE LOGIC --- */
+        .component.locked {
+            cursor: not-allowed !important;
+        }
+        .component.locked .resizer {
+            display: none !important;
+        }
+        .canvas.show-locked-outlines .component.locked {
+            outline: 2px dashed #ef4444 !important;
+        }
+
+        /* Visual cue during group selection */
+        .component.group-selecting {
+            outline: 2px solid #10b981 !important; /* Green */
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Visual cue during alignment target selection */
+        .component.align-target-selectable:hover {
+            outline: 2px solid #3b82f6 !important; /* Blue */
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+            cursor: pointer !important;
+        }
+        
         .resizer {
             width: 10px;
             height: 10px;
@@ -50,7 +75,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border: none; /* align with Python runtime (no general borders) */
+            border: none;
             background-color: #fff;
             padding: 0 8px;
             overflow: hidden;
@@ -61,11 +86,7 @@
             border-color: #ef4444 !important;
         }
         .material-symbols-outlined {
-          font-variation-settings:
-          'FILL' 0,
-          'wght' 400,
-          'GRAD' 0,
-          'opsz' 24
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24
         }
         .preview-component {
             position: absolute;
@@ -81,12 +102,106 @@
             transform: scale(0.98);
             filter: brightness(0.95);
         }
+        
+        /* --- CONTEXT MENU & NESTED SUBMENUS --- */
         #context-menu {
-            width: 160px;
+            width: 200px;
         }
-        .submenu-container:hover .submenu {
+        /* Allow nesting: submenu appearing to the right of a submenu item */
+        .submenu-container {
+            position: relative;
+        }
+        .submenu-container > .submenu {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: -5px;
+            background-color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+            width: 160px;
+            z-index: 60;
+        }
+        .submenu-container:hover > .submenu {
             display: block;
         }
+        
+        /* --- ALIGNMENT GUIDES --- */
+        .guide-line {
+            position: absolute;
+            background-color: #ec4899; /* Magenta */
+            z-index: 9999;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+        }
+        
+        /* --- TOGGLE SWITCH --- */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #68D391;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #68D391;
+        }
+        
+        /* --- FLOATING MENU TRANSITIONS --- */
+        #settings-menu {
+            transition: opacity 0.2s, transform 0.2s;
+            transform-origin: top right;
+        }
+        #settings-menu.hidden {
+            display: none;
+        }
+
+        /* --- MARGIN TOOL POPUP --- */
+        #margin-tool-popup {
+            position: absolute;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border: 1px solid #e5e7eb;
+            z-index: 100;
+            width: 200px;
+            display: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+        }
+
+        /* --- FLOATING CONTROLS --- */
+        .floating-control-bar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+        #grouping-control { background: #374151; }
+        #alignment-control { background: #2563eb; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -112,7 +227,6 @@
                 <label for="load-json-input" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 cursor-pointer">Load JSON</label>
                 <input type="file" id="load-json-input" class="hidden" accept=".json">
                 
-                <!-- Docs Button Added Here -->
                 <a href="docs.html" target="_blank" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center">
                     <span class="material-symbols-outlined text-sm mr-1">description</span> Docs
                 </a>
@@ -150,20 +264,81 @@
                     <h3 class="font-semibold text-gray-800">Instructions</h3>
                     <p class="text-sm text-gray-600 mt-2">
                         1. Select a component and click "Add Component".<br>
-                        2. Drag components to position them.<br>
-                        3. Click a component to edit its specific properties.<br>
-                        4. Use the handle to resize components.<br>
-                        5. Save your layout to a JSON file.<br>
-                        6. Create your project in VSCode.<br>
-                        7. Read the <b>docs.html</b> or README and integrate it.<br>
-                        8. Done!<br>
+                        2. Right-click to <b>Group</b>, <b>Lock</b>, or <b>Align</b>.<br>
+                        3. Use "Align Relative" to snap to other objects.<br>
+                        4. Dragging a grouped component moves all in group.<br>
                     </p>
                 </div>
             </aside>
 
-            <!-- Canvas -->
-            <main class="flex-1 p-4 bg-gray-200 flex justify-center overflow-y-auto">
-                <div id="canvas" class="canvas shadow-lg" style="width: 800px; height: 600px;"></div>
+            <!-- Canvas Container -->
+            <main class="flex-1 p-4 bg-gray-200 flex justify-center overflow-y-auto relative">
+                
+                <!-- Floating Settings Menu (Outside Canvas, Inside Wrapper) -->
+                <div class="absolute top-4 right-4 z-50 flex flex-col items-end pointer-events-auto">
+                    <button id="settings-btn" class="bg-white p-2 rounded-full shadow-md text-gray-600 hover:text-gray-800 hover:bg-gray-50 focus:outline-none transition-colors border border-gray-200">
+                        <span class="material-symbols-outlined">settings</span>
+                    </button>
+                    
+                    <div id="settings-menu" class="hidden mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 p-3">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Settings</h4>
+                        
+                        <!-- Alignment Toggle -->
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-sm font-medium text-gray-700">Alignment Helper</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="toggle" id="alignment-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer" style="top: 2px; left: 2px; transition: all 0.3s;" checked/>
+                                <label for="alignment-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+
+                        <!-- Locked Lines Toggle -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Show Locked Lines</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="toggle" id="locked-lines-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer" style="top: 2px; left: 2px; transition: all 0.3s;" checked/>
+                                <label for="locked-lines-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="canvas-wrapper" class="relative">
+                    
+                    <!-- Floating Group Control -->
+                    <div id="grouping-control" class="floating-control-bar">
+                        <span class="text-sm font-medium">Select components to group...</span>
+                        <button id="finish-grouping-btn" class="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full font-bold">Done</button>
+                        <button id="cancel-grouping-btn" class="bg-gray-500 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded-full">&times;</button>
+                    </div>
+
+                    <!-- Floating Alignment Control -->
+                    <div id="alignment-control" class="floating-control-bar">
+                        <span class="text-sm font-medium">Select component to align to...</span>
+                        <button id="cancel-alignment-btn" class="bg-white text-blue-600 hover:bg-gray-100 text-xs px-2 py-1 rounded-full font-bold">Cancel</button>
+                    </div>
+
+                    <div id="canvas" class="canvas shadow-lg relative show-locked-outlines" style="width: 800px; height: 600px;">
+                        <!-- Alignment Guide Lines -->
+                        <div id="guide-x" class="guide-line" style="width: 1px; height: 100%;"></div>
+                        <div id="guide-y" class="guide-line" style="height: 1px; width: 100%;"></div>
+                        
+                        <!-- Margin Tool Floating Popup -->
+                        <div id="margin-tool-popup">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-bold text-gray-700">Smart Border</span>
+                                <button id="close-margin-tool" class="text-gray-400 hover:text-red-500 text-xs">&times;</button>
+                            </div>
+                            <div class="mb-1 text-xs text-gray-500 flex justify-between">
+                                <span>Fill (0)</span>
+                                <span id="margin-value-display">0px</span>
+                                <span>(100)</span>
+                            </div>
+                            <input type="range" id="margin-slider" min="0" max="100" value="0" class="w-full appearance-none h-1 bg-gray-200 rounded outline-none slider-thumb">
+                        </div>
+                    </div>
+                </div>
+
             </main>
 
             <!-- Right Sidebar (Property Editor) -->
@@ -176,20 +351,98 @@
     </div>
     
     <!-- Custom Context Menu -->
-    <div id="context-menu" class="hidden absolute bg-white shadow-lg rounded-md py-1 z-50">
-        <a href="#" data-action="duplicate" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Duplicate</a>
+    <div id="context-menu" class="hidden absolute bg-white shadow-lg rounded-md py-1 z-50 border border-gray-200">
+        <!-- Main Actions -->
+        <a href="#" data-action="duplicate" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">content_copy</span> Duplicate
+        </a>
+
         <div class="border-t my-1"></div>
+        
+        <!-- Locking Actions -->
+        <a href="#" id="ctx-lock" data-action="lock" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">lock</span> Lock
+        </a>
+        <a href="#" id="ctx-unlock" data-action="unlock" class="hidden px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">lock_open</span> Unlock
+        </a>
+
+        <!-- Grouping Actions -->
+        <a href="#" id="ctx-group" data-action="start-grouping" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">dataset</span> Start Grouping
+        </a>
+        <a href="#" id="ctx-ungroup" data-action="ungroup" class="hidden px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">grid_off</span> Break Group
+        </a>
+        
+        <div class="border-t my-1"></div>
+
+        <!-- NEW: ALIGN RELATIVE MENU (Nested) -->
         <div class="submenu-container relative">
             <a href="#" class="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                <span>Layout</span>
-                <span class="text-xs">&gt;</span>
+                <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">align_horizontal_left</span> Align Relative...</span>
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
             </a>
-            <div class="submenu hidden absolute left-full top-0 mt-[-5px] bg-white shadow-lg rounded-md py-1 w-40">
+            <div class="submenu hidden absolute left-full top-0 mt-[-5px] bg-white shadow-lg rounded-md py-1 w-40 border border-gray-200">
+                <!-- Horizontal Submenu -->
+                <div class="submenu-container relative">
+                    <a href="#" class="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <span>Horizontal</span>
+                        <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                    </a>
+                    <div class="submenu hidden absolute left-full top-0 mt-[-5px] bg-white shadow-lg rounded-md py-1 w-40 border border-gray-200">
+                        <a href="#" data-action="align-h-left" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Left Corner</a>
+                        <a href="#" data-action="align-h-right" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Right Corner</a>
+                        <a href="#" data-action="align-h-center" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Center</a>
+                    </div>
+                </div>
+                <!-- Vertical Submenu -->
+                <div class="submenu-container relative">
+                    <a href="#" class="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <span>Vertical</span>
+                        <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                    </a>
+                    <div class="submenu hidden absolute left-full top-0 mt-[-5px] bg-white shadow-lg rounded-md py-1 w-40 border border-gray-200">
+                        <a href="#" data-action="align-v-top" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Up (Top)</a>
+                        <a href="#" data-action="align-v-bottom" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Down (Bottom)</a>
+                        <a href="#" data-action="align-v-center" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Center</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Z-Index Submenu -->
+        <div class="submenu-container relative">
+            <a href="#" class="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">layers</span> Layer Order</span>
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+            </a>
+            <div class="submenu hidden absolute left-full top-0 mt-[-5px] bg-white shadow-lg rounded-md py-1 w-48 border border-gray-200">
                 <a href="#" data-action="bring-forward" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bring Forward</a>
                 <a href="#" data-action="send-backward" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send Backward</a>
                 <div class="border-t my-1"></div>
                 <a href="#" data-action="bring-to-front" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bring to Front</a>
                 <a href="#" data-action="send-to-back" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Send to Back</a>
+            </div>
+        </div>
+
+        <!-- Resize & Align Submenu -->
+        <div class="submenu-container relative">
+            <a href="#" class="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">aspect_ratio</span> Resize & Align</span>
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+            </a>
+            <div class="submenu hidden absolute left-full top-0 mt-[-5px] bg-white shadow-lg rounded-md py-1 w-48 border border-gray-200">
+                <a href="#" data-action="center-window" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px]">center_focus_strong</span> Center to Window
+                </a>
+                <a href="#" data-action="fit-window" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px]">fullscreen</span> Fit to Window
+                </a>
+                <div class="border-t my-1"></div>
+                <a href="#" data-action="smart-border" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px]">border_outer</span> Smart Border...
+                </a>
             </div>
         </div>
     </div>
@@ -231,40 +484,103 @@
             const fullscreenPreviewBtn = document.getElementById('fullscreen-preview-btn');
             const contextMenu = document.getElementById('context-menu');
             const windowTitleInput = document.getElementById('window-title');
+            
+            // Settings & Helper Variables
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsMenu = document.getElementById('settings-menu');
+            const alignmentToggle = document.getElementById('alignment-toggle');
+            const lockedLinesToggle = document.getElementById('locked-lines-toggle');
+            const guideX = document.getElementById('guide-x');
+            const guideY = document.getElementById('guide-y');
+
+            // Margin Tool Variables
+            const marginToolPopup = document.getElementById('margin-tool-popup');
+            const marginSlider = document.getElementById('margin-slider');
+            const marginValueDisplay = document.getElementById('margin-value-display');
+            const closeMarginTool = document.getElementById('close-margin-tool');
+
+            // Grouping & Locking Variables
+            const groupingControl = document.getElementById('grouping-control');
+            const finishGroupingBtn = document.getElementById('finish-grouping-btn');
+            const cancelGroupingBtn = document.getElementById('cancel-grouping-btn');
+            
+            // Alignment Variables
+            const alignmentControl = document.getElementById('alignment-control');
+            const cancelAlignmentBtn = document.getElementById('cancel-alignment-btn');
+            
+            let alignmentHelperEnabled = true;
+            const SNAP_THRESHOLD = 5;
 
             let components = [];
             let selectedComponent = null;
             let componentIdCounter = 0;
             let contextComponentId = null;
 
+            // --- STATE (LOCAL ONLY) ---
+            const groupMap = new Map(); // Key: componentId, Value: groupId
+            const lockedComponents = new Set(); // Value: componentId
+            let tempGroupSelection = new Set(); // Used during selection mode
+            let isGroupingMode = false;
+            let groupIdCounter = 0;
+            
+            // --- ALIGNMENT MODE STATE ---
+            let isAlignmentMode = false;
+            let alignSourceId = null;
+            let pendingAlignmentType = null;
+
+            // Toggle Settings Menu
+            settingsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                settingsMenu.classList.toggle('hidden');
+            });
+
+            // Toggle Alignment Helper
+            alignmentToggle.addEventListener('change', (e) => {
+                alignmentHelperEnabled = e.target.checked;
+            });
+
+            // Toggle Locked Lines Visuals
+            lockedLinesToggle.addEventListener('change', (e) => {
+                if(e.target.checked) {
+                    canvas.classList.add('show-locked-outlines');
+                } else {
+                    canvas.classList.remove('show-locked-outlines');
+                }
+            });
+
+            // Close menu when clicking elsewhere
+            document.addEventListener('click', (e) => {
+                if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+                    settingsMenu.classList.add('hidden');
+                }
+                if (!marginToolPopup.contains(e.target) && e.target.dataset.action !== 'smart-border' && e.target.tagName !== 'INPUT') {
+                   if(e.target === canvas) marginToolPopup.style.display = 'none';
+                }
+            });
+
             const getComponentDefaults = (type) => {
-    const base = {
-        textColor: '#000000',
-        fontSize: 14,
-        bold: false,
-    };
-    const textBase = { ...base, text: type };
-    const placeholderImg = 'data:image/svg+xml;base64,...';
-
-    switch (type) {
-        case 'Button': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 4 };
-        case 'Label': return { ...textBase, iconName: '' };
-        case 'TextBox': return { text: '', hintText: 'Enter text...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
-        case 'TextArea': return { text: '', hintText: 'Enter text...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
-        case 'Checkbox': return { text: 'Checkbox', checked: false, checkedColor: '#3b82f6', ...base };
-        case 'RadioGroup': return { label: 'Select an Option', options: 'Option 1\nOption 2', checkedValue: 'Option 1', checkedColor: '#3b82f6', ...base };
-        case 'Dropdown': return { text: 'Dropdown', options: 'Option 1\nOption 2', backgroundColor: '#ffffff', selectionColor: '#dbeafe', ...base };
-        case 'Slider': return { min: 0, max: 100, value: 50, progressColor: '#3b82f6', buttonColor: '#3b82f6' };
-        case 'Panel': return { backgroundColor: '#f3f4f6', cornerRadius: 0 };
-        case 'ProgressBar': return { value: 50, progressColor: '#3b82f6', textColor: '#000000', textPosition: 'right' };
-        case 'Spinner': return { min: 0, max: 100, value: 25, backgroundColor: '#ffffff', ...base };
-        case 'CardView': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 8, elevation: 2 };
-        case 'ToggleButton': return { checked: false, onColor: '#34d399', offColor: '#d1d5db' };
-        case 'Image': return { src: placeholderImg, cornerRadius: 0, opacity: 1, fit: 'cover', backgroundColor: '#ffffff' };
-        default: return textBase;
-    }
-};
-
+                const base = { textColor: '#000000', fontSize: 14, bold: false };
+                const textBase = { ...base, text: type };
+                const placeholderImg = 'data:image/svg+xml;base64,...';
+                
+                switch (type) {
+                    case 'Button': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 4 };
+                    case 'Label': return { ...textBase, iconName: '' };
+                    case 'TextBox': return { text: '', hintText: 'Enter text...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
+                    case 'TextArea': return { text: '', hintText: 'Enter text...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
+                    case 'Checkbox': return { text: 'Checkbox', checked: false, checkedColor: '#3b82f6', ...base };
+                    case 'RadioGroup': return { label: 'Select an Option', options: 'Option 1\nOption 2', checkedValue: 'Option 1', checkedColor: '#3b82f6', ...base };
+                    case 'Dropdown': return { text: 'Dropdown', options: 'Option 1\nOption 2', backgroundColor: '#ffffff', selectionColor: '#dbeafe', ...base };
+                    case 'Slider': return { min: 0, max: 100, value: 50, progressColor: '#3b82f6', buttonColor: '#3b82f6' };
+                    case 'Panel': return { backgroundColor: '#f3f4f6', cornerRadius: 0 };
+                    case 'ProgressBar': return { value: 50, progressColor: '#3b82f6', textColor: '#000000', textPosition: 'right' };
+                    case 'Spinner': return { min: 0, max: 100, value: 25, backgroundColor: '#ffffff', ...base };
+                    case 'CardView': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 8, elevation: 2 };
+                    case 'ToggleButton': return { checked: false, onColor: '#34d399', offColor: '#d1d5db' };
+                    case 'Image': return { src: placeholderImg, cornerRadius: 0, opacity: 1, fit: 'cover', backgroundColor: '#ffffff' };
+                    default: return textBase;
+                }
+            };
 
             resizeCanvasBtn.addEventListener('click', () => {
                 canvas.style.width = `${canvasWidthInput.value}px`;
@@ -306,7 +622,20 @@
 
             function renderAllComponents() {
                 components.sort((a, b) => a.zIndex - b.zIndex);
+                
+                const preservedElements = [
+                    document.getElementById('guide-x'),
+                    document.getElementById('guide-y'),
+                    document.getElementById('margin-tool-popup'),
+                    document.getElementById('grouping-control'),
+                    document.getElementById('alignment-control')
+                ];
+                
                 canvas.innerHTML = '';
+                preservedElements.forEach(el => {
+                    if(el) canvas.appendChild(el);
+                });
+
                 components.forEach(comp => renderComponent(comp, true));
             }
 
@@ -327,19 +656,63 @@
 
                     el.addEventListener('click', (e) => {
                         e.stopPropagation();
+                        // If in grouping mode, handle selection differently
+                        if (isGroupingMode) {
+                            if (tempGroupSelection.has(comp.id)) {
+                                tempGroupSelection.delete(comp.id);
+                                el.classList.remove('group-selecting');
+                            } else {
+                                tempGroupSelection.add(comp.id);
+                                el.classList.add('group-selecting');
+                            }
+                            return;
+                        }
+                        
+                        // If in alignment mode, perform alignment
+                        if (isAlignmentMode) {
+                            performAlignment(comp.id);
+                            return;
+                        }
+                        
                         selectComponent(comp.id);
                     });
 
                     el.addEventListener('contextmenu', e => {
                         e.preventDefault();
                         e.stopPropagation();
+                        // Don't open context menu if in special modes
+                        if (isGroupingMode || isAlignmentMode) return;
+                        
                         contextComponentId = comp.id;
                         contextMenu.style.top = `${e.clientY}px`;
                         contextMenu.style.left = `${e.clientX}px`;
+                        
+                        // Update Context Menu Items based on state
+                        const isLocked = lockedComponents.has(comp.id);
+                        const isGrouped = groupMap.has(comp.id);
+                        
+                        document.getElementById('ctx-lock').classList.toggle('hidden', isLocked);
+                        document.getElementById('ctx-unlock').classList.toggle('hidden', !isLocked);
+                        
+                        document.getElementById('ctx-group').classList.toggle('hidden', isGrouped);
+                        document.getElementById('ctx-ungroup').classList.toggle('hidden', !isGrouped);
+
                         contextMenu.classList.remove('hidden');
                         selectComponent(comp.id);
+                        
+                        marginToolPopup.style.display = 'none';
                     });
                 }
+
+                // Apply states
+                if (lockedComponents.has(comp.id)) el.classList.add('locked');
+                else el.classList.remove('locked');
+
+                if (isGroupingMode && tempGroupSelection.has(comp.id)) el.classList.add('group-selecting');
+                else el.classList.remove('group-selecting');
+                
+                if (isAlignmentMode && comp.id !== alignSourceId) el.classList.add('align-target-selectable');
+                else el.classList.remove('align-target-selectable');
 
                 el.style.left = `${comp.x}px`;
                 el.style.top = `${comp.y}px`;
@@ -434,16 +807,23 @@
                         return `<div class="component-render-wrapper" style="${wrapperStyles}"><span style="${baseStyles}">${p.text}</span></div>`;
                 }
             }
-            
+
             deleteComponentBtn.addEventListener('click', () => {
                 if (!selectedComponent) return;
                 document.getElementById(selectedComponent.id)?.remove();
                 components = components.filter(c => c.id !== selectedComponent.id);
+                // Clean up state
+                lockedComponents.delete(selectedComponent.id);
+                groupMap.delete(selectedComponent.id);
+                
                 selectedComponent = null;
                 propertyEditor.classList.add('hidden');
             });
 
             function selectComponent(id) {
+                // If in special modes, don't change main selection or open property editor
+                if (isGroupingMode || isAlignmentMode) return;
+
                 selectedComponent = components.find(c => c.id === id) || null;
                 document.querySelectorAll('.component').forEach(el => el.classList.remove('selected'));
                 if (selectedComponent) {
@@ -455,11 +835,13 @@
                 }
             }
 
-            canvas.addEventListener('click', () => selectComponent(null));
-            document.addEventListener('click', () => contextMenu.classList.add('hidden'));
+            canvas.addEventListener('click', () => {
+                if (!isGroupingMode && !isAlignmentMode) selectComponent(null);
+            });
 
             function populatePropertyEditor(component) {
                 propertiesForm.innerHTML = '';
+                // ... (Same property editor code as before) ...
                 const addField = (parent, type, label, value, key, options = {}) => {
                     const div = document.createElement('div');
                     const labelEl = document.createElement('label');
@@ -538,7 +920,6 @@
                     addField(propertiesForm, 'select', 'Image Fit', p.fit, 'fit', { choices: ['fill', 'contain', 'cover', 'none'] });
                 } else {
                     for (const key in p) {
-                        // Hide unsupported properties globally (no fontFamily, borders, trackColor)
                         if (key === 'fontFamily' || key === 'trackColor' || key === 'borderColor' || key === 'borderWidth') continue;
 
                         const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
@@ -567,6 +948,18 @@
                     
                     document.getElementById(id).id = value;
                     component.id = value;
+                    
+                    // Update state maps if ID changes
+                    if (lockedComponents.has(id)) {
+                        lockedComponents.delete(id);
+                        lockedComponents.add(value);
+                    }
+                    if (groupMap.has(id)) {
+                        const grp = groupMap.get(id);
+                        groupMap.delete(id);
+                        groupMap.set(value, grp);
+                    }
+
                     if(selectedComponent && selectedComponent.id === id) selectedComponent.id = value;
                     return;
                 }
@@ -580,31 +973,91 @@
                 if ((component.type === 'Label' && key === 'iconName') && selectedComponent && selectedComponent.id === id) {
                     populatePropertyEditor(component);
                 }
-
                 if (targetElement && targetElement.type === 'range') {
                     const label = targetElement.closest('div').querySelector('label');
-                    if (label) {
-                        label.textContent = `${label.textContent.split('(')[0].trim()} (${value})`;
-                    }
+                    if (label) label.textContent = `${label.textContent.split('(')[0].trim()} (${value})`;
                 }
             }
 
+            // --- ALIGNMENT HELPER LOGIC (Snapping) ---
+            function getSnapCoordinates(activeId, x, y, w, h) {
+                // ... (Snap logic same as before)
+                let snapX = null;
+                let snapY = null;
+                
+                const l = x; const r = x + w; const cX = x + (w / 2);
+                const t = y; const b = y + h; const cY = y + (h / 2);
+                const activeGuides = { x: null, y: null };
+                const canvasW = canvas.offsetWidth; const canvasH = canvas.offsetHeight;
+                
+                if (Math.abs(cX - (canvasW / 2)) < SNAP_THRESHOLD) { snapX = (canvasW / 2) - (w / 2); activeGuides.x = canvasW / 2; }
+                if (Math.abs(cY - (canvasH / 2)) < SNAP_THRESHOLD) { snapY = (canvasH / 2) - (h / 2); activeGuides.y = canvasH / 2; }
+
+                components.forEach(comp => {
+                    if (comp.id === activeId) return;
+                    const oL = comp.x; const oR = comp.x + comp.width; const oCX = comp.x + (comp.width / 2);
+                    const oT = comp.y; const oB = comp.y + comp.height; const oCY = comp.y + (comp.height / 2);
+
+                    if (Math.abs(l - oL) < SNAP_THRESHOLD) { snapX = oL; activeGuides.x = oL; }
+                    else if (Math.abs(l - oR) < SNAP_THRESHOLD) { snapX = oR; activeGuides.x = oR; }
+                    else if (Math.abs(r - oL) < SNAP_THRESHOLD) { snapX = oL - w; activeGuides.x = oL; }
+                    else if (Math.abs(r - oR) < SNAP_THRESHOLD) { snapX = oR - w; activeGuides.x = oR; }
+                    else if (Math.abs(cX - oCX) < SNAP_THRESHOLD) { snapX = oCX - (w / 2); activeGuides.x = oCX; }
+
+                    if (Math.abs(t - oT) < SNAP_THRESHOLD) { snapY = oT; activeGuides.y = oT; }
+                    else if (Math.abs(t - oB) < SNAP_THRESHOLD) { snapY = oB; activeGuides.y = oB; }
+                    else if (Math.abs(b - oT) < SNAP_THRESHOLD) { snapY = oT - h; activeGuides.y = oT; }
+                    else if (Math.abs(b - oB) < SNAP_THRESHOLD) { snapY = oB - h; activeGuides.y = oB; }
+                    else if (Math.abs(cY - oCY) < SNAP_THRESHOLD) { snapY = oCY - (h / 2); activeGuides.y = oCY; }
+                });
+
+                return { x: snapX !== null ? snapX : x, y: snapY !== null ? snapY : y, guides: activeGuides };
+            }
+
+            function updateGuides(guides) {
+                if (guides.x !== null) { guideX.style.display = 'block'; guideX.style.left = `${guides.x}px`; } else { guideX.style.display = 'none'; }
+                if (guides.y !== null) { guideY.style.display = 'block'; guideY.style.top = `${guides.y}px`; } else { guideY.style.display = 'none'; }
+            }
+            function hideGuides() { guideX.style.display = 'none'; guideY.style.display = 'none'; }
+
+            // --- MODIFIED MAKE DRAGGABLE FOR GROUPS & LOCKING ---
             function makeDraggable(element) {
                 let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
                 element.onmousedown = e => {
+                    // Prevent drag if resizer or locked
                     if (e.target.classList.contains('resizer')) return;
+                    if (lockedComponents.has(element.id)) return; 
+                    if (isGroupingMode || isAlignmentMode) return; 
+
                     e.preventDefault();
                     pos3 = e.clientX;
                     pos4 = e.clientY;
+                    
                     document.onmouseup = () => {
                         document.onmouseup = null;
                         document.onmousemove = null;
+                        hideGuides();
                         const component = components.find(c => c.id === element.id);
                         if (component) {
                             component.x = element.offsetLeft;
                             component.y = element.offsetTop;
                         }
+                        
+                        // Sync group positions for all members
+                        const currentGroupId = groupMap.get(element.id);
+                        if (currentGroupId !== undefined) {
+                            components.forEach(comp => {
+                                if (groupMap.get(comp.id) === currentGroupId && comp.id !== element.id) {
+                                    const peerEl = document.getElementById(comp.id);
+                                    if(peerEl) {
+                                        comp.x = peerEl.offsetLeft;
+                                        comp.y = peerEl.offsetTop;
+                                    }
+                                }
+                            });
+                        }
                     };
+                    
                     document.onmousemove = me => {
                         me.preventDefault();
                         pos1 = pos3 - me.clientX;
@@ -612,28 +1065,68 @@
                         pos3 = me.clientX;
                         pos4 = me.clientY;
                         
+                        // Drag Logic
                         let newTop = element.offsetTop - pos2;
                         let newLeft = element.offsetLeft - pos1;
 
+                        // Canvas Boundaries (Basic check for the leader)
                         if (newLeft < 0) newLeft = 0;
                         if (newTop < 0) newTop = 0;
                         if (newLeft + element.offsetWidth > canvas.offsetWidth) newLeft = canvas.offsetWidth - element.offsetWidth;
                         if (newTop + element.offsetHeight > canvas.offsetHeight) newTop = canvas.offsetHeight - element.offsetHeight;
 
-                        element.style.top = `${newTop}px`;
-                        element.style.left = `${newLeft}px`;
+                        // Calculate actual Delta applied (incase of boundary hit)
+                        const deltaX = newLeft - element.offsetLeft;
+                        const deltaY = newTop - element.offsetTop;
+
+                        // Apply move to leader
+                        if (alignmentHelperEnabled) {
+                            const snapResult = getSnapCoordinates(element.id, newLeft, newTop, element.offsetWidth, element.offsetHeight);
+                            
+                            // Re-calculate delta if snap happened
+                            const snapDeltaX = snapResult.x - element.offsetLeft;
+                            const snapDeltaY = snapResult.y - element.offsetTop;
+                            
+                            element.style.top = `${snapResult.y}px`;
+                            element.style.left = `${snapResult.x}px`;
+                            updateGuides(snapResult.guides);
+                            
+                            moveGroupPeers(element.id, snapDeltaX, snapDeltaY);
+                        } else {
+                            element.style.top = `${newTop}px`;
+                            element.style.left = `${newLeft}px`;
+                            hideGuides();
+                            moveGroupPeers(element.id, deltaX, deltaY);
+                        }
                     };
                 };
+            }
+
+            function moveGroupPeers(leaderId, dx, dy) {
+                const groupId = groupMap.get(leaderId);
+                if (groupId === undefined) return;
+
+                components.forEach(comp => {
+                    if (comp.id !== leaderId && groupMap.get(comp.id) === groupId) {
+                        const peerEl = document.getElementById(comp.id);
+                        if (peerEl) {
+                            // Move peer by exact delta
+                            peerEl.style.left = `${peerEl.offsetLeft + dx}px`;
+                            peerEl.style.top = `${peerEl.offsetTop + dy}px`;
+                        }
+                    }
+                });
             }
 
             function makeResizable(element, resizer) {
                 if (!resizer) return;
                 resizer.addEventListener('mousedown', e => {
+                    if (lockedComponents.has(element.id)) return;
                     e.stopPropagation();
                     window.addEventListener('mousemove', resize);
                     window.addEventListener('mouseup', stopResize);
                 });
-
+                // ... (Resize logic same as before) ...
                 function resize(e) {
                     let newWidth = (e.clientX - element.getBoundingClientRect().left);
                     let newHeight = (e.clientY - element.getBoundingClientRect().top);
@@ -642,7 +1135,6 @@
                     element.style.width = `${newWidth}px`;
                     element.style.height = `${newHeight}px`;
                 }
-
                 function stopResize() {
                     window.removeEventListener('mousemove', resize);
                     window.removeEventListener('mouseup', stopResize);
@@ -653,69 +1145,256 @@
                     }
                 }
             }
-
+            
+            // --- CONTEXT MENU ACTIONS ---
             contextMenu.addEventListener('click', e => {
-                e.preventDefault();
-                const action = e.target.dataset.action;
+                const isSubmenuTrigger = e.target.closest('.submenu-container');
+                if(isSubmenuTrigger && !e.target.dataset.action) return;
+
+                const action = e.target.closest('[data-action]')?.dataset.action;
                 if (!action || !contextComponentId) {
-                    contextMenu.classList.add('hidden');
+                    if (!isSubmenuTrigger) contextMenu.classList.add('hidden');
                     return;
                 };
 
+                e.preventDefault();
                 const clickedComp = components.find(c => c.id === contextComponentId);
                 if (!clickedComp) return;
 
-                const sorted = [...components].sort((a,b) => a.zIndex - b.zIndex);
-                const currentIndex = sorted.findIndex(c => c.id === contextComponentId);
+                // Handle Alignment actions first
+                if (action.startsWith('align-')) {
+                    startAlignmentMode(contextComponentId, action);
+                    contextMenu.classList.add('hidden');
+                    return;
+                }
 
                 switch (action) {
                     case 'bring-forward':
-                        if (currentIndex < sorted.length - 1) {
-                           const nextComp = sorted[currentIndex + 1];
-                           [clickedComp.zIndex, nextComp.zIndex] = [nextComp.zIndex, clickedComp.zIndex];
-                        }
-                        break;
                     case 'send-backward':
-                        if (currentIndex > 0) {
-                            const prevComp = sorted[currentIndex - 1];
-                           [clickedComp.zIndex, prevComp.zIndex] = [prevComp.zIndex, clickedComp.zIndex];
-                        }
-                        break;
                     case 'bring-to-front':
-                        clickedComp.zIndex = components.length;
-                        break;
                     case 'send-to-back':
-                         clickedComp.zIndex = -1;
+                        // ... (Z-Index logic reused)
+                        const sorted = [...components].sort((a,b) => a.zIndex - b.zIndex);
+                        const idx = sorted.findIndex(c => c.id === contextComponentId);
+                        if(action === 'bring-forward' && idx < sorted.length - 1) [clickedComp.zIndex, sorted[idx+1].zIndex] = [sorted[idx+1].zIndex, clickedComp.zIndex];
+                        if(action === 'send-backward' && idx > 0) [clickedComp.zIndex, sorted[idx-1].zIndex] = [sorted[idx-1].zIndex, clickedComp.zIndex];
+                        if(action === 'bring-to-front') clickedComp.zIndex = components.length;
+                        if(action === 'send-to-back') clickedComp.zIndex = -1;
+                        reorderZIndexes();
                         break;
+
                     case 'duplicate':
                         duplicateComponent(contextComponentId);
                         break;
+                    
+                    case 'center-window':
+                        if(!lockedComponents.has(clickedComp.id)) {
+                            clickedComp.x = (canvas.offsetWidth - clickedComp.width) / 2;
+                            clickedComp.y = (canvas.offsetHeight - clickedComp.height) / 2;
+                            renderComponent(clickedComp);
+                        }
+                        break;
+                    case 'fit-window':
+                        if(!lockedComponents.has(clickedComp.id)) {
+                            clickedComp.x = 0; clickedComp.y = 0;
+                            clickedComp.width = canvas.offsetWidth; clickedComp.height = canvas.offsetHeight;
+                            renderComponent(clickedComp);
+                        }
+                        break;
+                    case 'smart-border':
+                        if(!lockedComponents.has(clickedComp.id)) {
+                            marginToolPopup.style.display = 'block';
+                            let popupX = clickedComp.x + clickedComp.width + 10;
+                            let popupY = clickedComp.y;
+                            if (popupX + 200 > canvas.offsetWidth) popupX = clickedComp.x - 210;
+                            if (popupX < 0) popupX = 10;
+                            if (popupY + 80 > canvas.offsetHeight) popupY = canvas.offsetHeight - 90;
+                            marginToolPopup.style.left = `${popupX}px`;
+                            marginToolPopup.style.top = `${popupY}px`;
+                            marginSlider.value = 0;
+                            marginValueDisplay.innerText = "0px";
+                        }
+                        break;
+
+                    case 'lock':
+                        toggleGroupLock(contextComponentId, true);
+                        break;
+                    case 'unlock':
+                        toggleGroupLock(contextComponentId, false);
+                        break;
+
+                    case 'start-grouping':
+                        startGroupingMode(contextComponentId);
+                        break;
+                    case 'ungroup':
+                        const grpId = groupMap.get(contextComponentId);
+                        if (grpId !== undefined) {
+                            const toRemove = [];
+                            groupMap.forEach((v, k) => { if(v === grpId) toRemove.push(k); });
+                            toRemove.forEach(k => groupMap.delete(k));
+                        }
+                        break;
                 }
-                reorderZIndexes();
-                contextMenu.classList.add('hidden');
+                
+                if (action !== 'smart-border') {
+                    contextMenu.classList.add('hidden');
+                }
             });
-            
+
+            // Helper to lock/unlock groups
+            function toggleGroupLock(targetId, shouldLock) {
+                const groupId = groupMap.get(targetId);
+                const idsToUpdate = [];
+                if (groupId !== undefined) {
+                    groupMap.forEach((gId, cId) => { if (gId === groupId) idsToUpdate.push(cId); });
+                } else {
+                    idsToUpdate.push(targetId);
+                }
+                idsToUpdate.forEach(id => {
+                    if (shouldLock) lockedComponents.add(id); else lockedComponents.delete(id);
+                    const comp = components.find(c => c.id === id);
+                    if (comp) renderComponent(comp);
+                });
+            }
+
+            // --- ALIGNMENT MODE LOGIC ---
+            function startAlignmentMode(sourceId, type) {
+                if (lockedComponents.has(sourceId)) {
+                    alert('Cannot align a locked component.');
+                    return;
+                }
+                alignSourceId = sourceId;
+                pendingAlignmentType = type;
+                isAlignmentMode = true;
+                
+                alignmentControl.style.display = 'flex';
+                // Highlight selectable targets visually in renderComponent
+                renderAllComponents(); 
+            }
+
+            cancelAlignmentBtn.addEventListener('click', exitAlignmentMode);
+
+            function exitAlignmentMode() {
+                isAlignmentMode = false;
+                alignSourceId = null;
+                pendingAlignmentType = null;
+                alignmentControl.style.display = 'none';
+                renderAllComponents();
+            }
+
+            function performAlignment(targetId) {
+                if (targetId === alignSourceId) return; // Cannot align to self
+
+                const sourceComp = components.find(c => c.id === alignSourceId);
+                const targetComp = components.find(c => c.id === targetId);
+
+                if (!sourceComp || !targetComp) {
+                    exitAlignmentMode();
+                    return;
+                }
+
+                let newX = sourceComp.x;
+                let newY = sourceComp.y;
+
+                // Calculate new position based on type
+                switch (pendingAlignmentType) {
+                    // Horizontal
+                    case 'align-h-left': newX = targetComp.x; break;
+                    case 'align-h-right': newX = targetComp.x + targetComp.width - sourceComp.width; break;
+                    case 'align-h-center': newX = targetComp.x + (targetComp.width / 2) - (sourceComp.width / 2); break;
+                    
+                    // Vertical
+                    case 'align-v-top': newY = targetComp.y; break;
+                    case 'align-v-bottom': newY = targetComp.y + targetComp.height - sourceComp.height; break;
+                    case 'align-v-center': newY = targetComp.y + (targetComp.height / 2) - (sourceComp.height / 2); break;
+                }
+
+                // Calculate Delta
+                const deltaX = newX - sourceComp.x;
+                const deltaY = newY - sourceComp.y;
+
+                // Apply to Source
+                sourceComp.x = newX;
+                sourceComp.y = newY;
+                renderComponent(sourceComp);
+
+                // If source is grouped, move peers by same delta
+                moveGroupPeers(sourceComp.id, deltaX, deltaY);
+
+                exitAlignmentMode();
+            }
+
+            // --- GROUPING FUNCTIONS ---
+            function startGroupingMode(initialId) {
+                isGroupingMode = true;
+                tempGroupSelection.clear();
+                tempGroupSelection.add(initialId);
+                
+                // Show controls
+                groupingControl.style.display = 'flex';
+                propertyEditor.classList.add('hidden');
+                
+                // Visual update for the initial one
+                document.getElementById(initialId)?.classList.add('group-selecting');
+            }
+
+            finishGroupingBtn.addEventListener('click', () => {
+                if (tempGroupSelection.size > 1) {
+                    const newGroupId = groupIdCounter++;
+                    tempGroupSelection.forEach(id => {
+                        // Remove from old group if exists
+                        groupMap.delete(id);
+                        groupMap.set(id, newGroupId);
+                        document.getElementById(id)?.classList.remove('group-selecting');
+                    });
+                } else {
+                   tempGroupSelection.forEach(id => document.getElementById(id)?.classList.remove('group-selecting'));
+                }
+                exitGroupingMode();
+            });
+
+            cancelGroupingBtn.addEventListener('click', () => {
+                tempGroupSelection.forEach(id => document.getElementById(id)?.classList.remove('group-selecting'));
+                exitGroupingMode();
+            });
+
+            function exitGroupingMode() {
+                isGroupingMode = false;
+                tempGroupSelection.clear();
+                groupingControl.style.display = 'none';
+            }
+
+            // --- MARGIN TOOL LOGIC ---
+            closeMarginTool.addEventListener('click', () => { marginToolPopup.style.display = 'none'; });
+            marginSlider.addEventListener('input', (e) => {
+                if (!contextComponentId) return;
+                const comp = components.find(c => c.id === contextComponentId);
+                if (!comp || lockedComponents.has(comp.id)) return;
+                const margin = parseInt(e.target.value);
+                marginValueDisplay.innerText = `${margin}px`;
+                const newW = canvas.offsetWidth - (margin * 2);
+                const newH = canvas.offsetHeight - (margin * 2);
+                if (newW > 20 && newH > 20) {
+                    comp.x = margin; comp.y = margin; comp.width = newW; comp.height = newH;
+                    renderComponent(comp);
+                }
+            });
+
             function duplicateComponent(id) {
+                // ... (Duplicate logic same as before) ...
                 const originalComp = components.find(c => c.id === id);
                 if (!originalComp) return;
-
                 const newComp = JSON.parse(JSON.stringify(originalComp));
-                
                 let copyCount = 1;
                 let newId = `${originalComp.id}_copy_${copyCount}`;
-                while (components.some(c => c.id === newId)) {
-                    copyCount++;
-                    newId = `${originalComp.id}_copy_${copyCount}`;
-                }
-                newComp.id = newId;
-                newComp.x += 10;
-                newComp.y += 10;
-                newComp.zIndex = components.length;
+                while (components.some(c => c.id === newId)) { copyCount++; newId = `${originalComp.id}_copy_${copyCount}`; }
+                newComp.id = newId; newComp.x += 10; newComp.y += 10; newComp.zIndex = components.length;
                 components.push(newComp);
                 renderAllComponents();
                 selectComponent(newId);
             }
 
+            // ... (Live Preview, Save/Load JSON Logic - same as before) ...
             function openPreview() {
                 previewCanvas.innerHTML = '';
                 previewCanvas.style.width = canvas.style.width;
@@ -986,6 +1665,17 @@
                 windowTitleInput.value = layout.canvas.title || 'My GUI';
                 
                 canvas.innerHTML = '';
+                // Preserve helper elements
+                canvas.appendChild(guideX);
+                canvas.appendChild(guideY);
+                canvas.appendChild(marginToolPopup);
+                canvas.appendChild(groupingControl);
+                canvas.appendChild(alignmentControl);
+                
+                // Clear local states on load
+                groupMap.clear();
+                lockedComponents.clear();
+                
                 components = layout.components;
 
                 const idSet = new Set();
