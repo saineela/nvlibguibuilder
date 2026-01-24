@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NVlib</title>
+    <title>NVLib</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -107,7 +107,6 @@
         #context-menu {
             width: 200px;
         }
-        /* Allow nesting: submenu appearing to the right of a submenu item */
         .submenu-container {
             position: relative;
         }
@@ -264,9 +263,10 @@
                     <h3 class="font-semibold text-gray-800">Instructions</h3>
                     <p class="text-sm text-gray-600 mt-2">
                         1. Select a component and click "Add Component".<br>
-                        2. Right-click to <b>Group</b>, <b>Lock</b>, or <b>Align</b>.<br>
-                        3. Use "Align Relative" to snap to other objects.<br>
-                        4. Dragging a grouped component moves all in group.<br>
+                        2. Right-click to <b>Duplicate</b>, <b>Group</b>, <b>Lock</b>, or <b>Align</b>.<br>
+                        3. Duplicating a grouped item duplicates the whole group.<br>
+                        4. Use "Align Relative" to snap to other objects.<br>
+                        5. Dragging a grouped component moves all in group.<br>
                     </p>
                 </div>
             </aside>
@@ -1381,17 +1381,52 @@
             });
 
             function duplicateComponent(id) {
-                // ... (Duplicate logic same as before) ...
-                const originalComp = components.find(c => c.id === id);
-                if (!originalComp) return;
-                const newComp = JSON.parse(JSON.stringify(originalComp));
-                let copyCount = 1;
-                let newId = `${originalComp.id}_copy_${copyCount}`;
-                while (components.some(c => c.id === newId)) { copyCount++; newId = `${originalComp.id}_copy_${copyCount}`; }
-                newComp.id = newId; newComp.x += 10; newComp.y += 10; newComp.zIndex = components.length;
-                components.push(newComp);
-                renderAllComponents();
-                selectComponent(newId);
+                const groupId = groupMap.get(id);
+
+                if (groupId !== undefined) {
+                    // --- DUPLICATE GROUP ---
+                    const newGroupId = groupIdCounter++;
+                    const groupMembers = components.filter(c => groupMap.get(c.id) === groupId);
+                    
+                    const offsetX = 20;
+                    const offsetY = 20;
+                    let newContextId = null;
+
+                    groupMembers.forEach(sourceComp => {
+                        const newComp = JSON.parse(JSON.stringify(sourceComp));
+                        let copyCount = 1;
+                        let baseId = sourceComp.id.replace(/_copy_\d+$/, '');
+                        let newId = `${baseId}_copy_${copyCount}`;
+                        while (components.some(c => c.id === newId)) {
+                            copyCount++;
+                            newId = `${baseId}_copy_${copyCount}`;
+                        }
+                        newComp.id = newId;
+                        newComp.x += offsetX;
+                        newComp.y += offsetY;
+                        newComp.zIndex = components.length;
+                        components.push(newComp);
+                        
+                        groupMap.set(newId, newGroupId);
+                        if (sourceComp.id === id) newContextId = newId;
+                    });
+                    renderAllComponents();
+                    if (newContextId) selectComponent(newContextId);
+
+                } else {
+                    // --- DUPLICATE SINGLE ---
+                    const originalComp = components.find(c => c.id === id);
+                    if (!originalComp) return;
+                    const newComp = JSON.parse(JSON.stringify(originalComp));
+                    let copyCount = 1;
+                    let baseId = originalComp.id.replace(/_copy_\d+$/, '');
+                    let newId = `${baseId}_copy_${copyCount}`;
+                    while (components.some(c => c.id === newId)) { copyCount++; newId = `${baseId}_copy_${copyCount}`; }
+                    newComp.id = newId; newComp.x += 10; newComp.y += 10; newComp.zIndex = components.length;
+                    components.push(newComp);
+                    renderAllComponents();
+                    selectComponent(newId);
+                }
             }
 
             // ... (Live Preview, Save/Load JSON Logic - same as before) ...
