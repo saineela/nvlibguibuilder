@@ -3,112 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NVLib v4.5 Docs</title>
+    <title>NVLib v4.5 Documentation</title>
     <style>
         :root {
-            --primary-color: #4f46e5;
-            --sidebar-bg: #f8fafc;
-            --sidebar-border: #e2e8f0;
-            --text-color: #334155;
-            --heading-color: #0f172a;
-            --code-bg: #1e293b;
-            --code-text: #e2e8f0;
-            --accent-bg: #eff6ff;
-            --warning-bg: #fef3c7;
-            --warning-border: #f59e0b;
+            --primary: #4f46e5;         /* Indigo */
+            --sidebar-bg: #f8fafc;      /* Slate 50 */
+            --sidebar-border: #e2e8f0;  /* Slate 200 */
+            --text-main: #334155;       /* Slate 700 */
+            --text-heading: #0f172a;    /* Slate 900 */
+            --code-bg: #1e293b;         /* Slate 800 */
+            --code-text: #e2e8f0;       /* Slate 200 */
+            --method-header: #f1f5f9;   /* Slate 100 */
+            --accent: #0ea5e9;          /* Sky Blue */
         }
 
+        * { box-sizing: border-box; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
             margin: 0;
             display: flex;
             height: 100vh;
             overflow: hidden;
+            background-color: #fff;
         }
 
-        /* Sidebar Navigation */
+        /* --- Sidebar --- */
         aside {
-            width: 260px;
+            width: 300px;
             background-color: var(--sidebar-bg);
             border-right: 1px solid var(--sidebar-border);
-            overflow-y: auto;
-            flex-shrink: 0;
-            padding: 20px;
             display: flex;
             flex-direction: column;
+            flex-shrink: 0;
+            height: 100vh;
         }
 
-        aside h1 {
+        .brand {
+            padding: 25px 20px;
+            border-bottom: 1px solid var(--sidebar-border);
+            background: white;
+        }
+
+        .brand h1 {
+            margin: 0;
             font-size: 1.5rem;
-            color: var(--primary-color);
-            margin-bottom: 30px;
-            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
         }
 
-        aside nav a {
+        .search-box {
+            padding: 15px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--sidebar-border);
+            position: sticky;
+            top: 0;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        #searchInput:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        nav {
+            overflow-y: auto;
+            padding: 10px 15px 40px 15px;
+            flex-grow: 1;
+        }
+
+        nav a {
             display: block;
-            padding: 8px 12px;
-            color: var(--text-color);
+            padding: 10px 12px;
+            color: var(--text-main);
             text-decoration: none;
             font-size: 0.95rem;
             border-radius: 6px;
             margin-bottom: 4px;
-            transition: all 0.2s;
+            transition: background 0.1s;
         }
 
-        aside nav a:hover {
+        nav a:hover {
             background-color: #e2e8f0;
-            color: var(--heading-color);
+            color: var(--text-heading);
+            font-weight: 500;
         }
 
-        aside nav .section-title {
+        nav .header {
             text-transform: uppercase;
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 800;
             color: #94a3b8;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            padding-left: 12px;
+            margin: 25px 0 10px 12px;
+            letter-spacing: 0.05em;
         }
 
-        /* Main Content */
+        /* --- Main Content --- */
         main {
             flex-grow: 1;
-            padding: 40px 60px;
+            padding: 0;
             overflow-y: auto;
             scroll-behavior: smooth;
         }
 
+        .content-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 50px 40px 100px 40px;
+        }
+
+        section {
+            margin-bottom: 60px;
+            scroll-margin-top: 20px;
+        }
+
         h2 {
-            color: var(--heading-color);
-            font-size: 1.8rem;
-            border-bottom: 2px solid var(--sidebar-border);
-            padding-bottom: 10px;
-            margin-top: 50px;
-            margin-bottom: 20px;
+            font-size: 2.2rem;
+            color: var(--text-heading);
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 15px;
+            margin-top: 0;
+            margin-bottom: 30px;
         }
 
-        h3 {
-            color: var(--heading-color);
-            margin-top: 30px;
-            font-size: 1.3rem;
-        }
-
-        h4 {
-            color: var(--heading-color);
-            margin-top: 20px;
+        p.intro {
             font-size: 1.1rem;
-            padding-left: 10px;
-            border-left: 4px solid var(--primary-color);
+            color: var(--text-main);
+            margin-bottom: 30px;
         }
 
-        p {
-            line-height: 1.6;
+        /* --- API Card Styling --- */
+        .method-card {
+            background-color: white;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: box-shadow 0.2s;
+        }
+
+        .method-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-color: #cbd5e1;
+        }
+
+        .method-header {
+            background-color: var(--method-header);
+            padding: 15px 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-weight: 600;
+            color: var(--primary);
+            border-bottom: 1px solid var(--sidebar-border);
+            font-size: 1rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .method-body {
+            padding: 20px;
+        }
+
+        .method-desc {
             margin-bottom: 15px;
+            color: #475569;
         }
 
-        /* Code Blocks */
         pre {
             background-color: var(--code-bg);
             color: var(--code-text);
@@ -117,1000 +187,594 @@
             overflow-x: auto;
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 0.9rem;
-            margin-bottom: 20px;
+            margin: 0;
             border: 1px solid #334155;
         }
 
-        code.inline {
-            background-color: #f1f5f9;
-            color: var(--primary-color);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.95em;
-            font-weight: 600;
-        }
-
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            font-size: 0.95rem;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid var(--sidebar-border);
-        }
-
-        th {
-            background-color: var(--sidebar-bg);
-            font-weight: 600;
-        }
-
-        tr:hover {
-            background-color: var(--accent-bg);
-        }
-
-        /* Badges */
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
+        /* Tags */
+        .tag {
             font-size: 0.75rem;
-            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: auto;
+            font-weight: bold;
             text-transform: uppercase;
-            margin-left: 8px;
         }
-        .badge.json { background-color: #dbeafe; color: #1e40af; }
-        .badge.py { background-color: #fce7f3; color: #9d174d; }
-        .badge.new { background-color: #dcfce7; color: #166534; }
-        .badge.v45 { background-color: #fef3c7; color: #92400e; }
-
-        /* Example Box */
-        .example {
-            background-color: var(--accent-bg);
-            border-left: 4px solid var(--primary-color);
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .example h4 {
-            margin-top: 0;
-            color: var(--primary-color);
-        }
-
-        /* Warning Box */
-        .warning {
-            background-color: var(--warning-bg);
-            border: 1px solid var(--warning-border);
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 8px;
-        }
-
-        .warning strong {
-            color: #92400e;
-        }
-
-        /* Footer */
-        footer {
-            margin-top: 60px;
-            padding-top: 20px;
-            border-top: 1px solid var(--sidebar-border);
-            text-align: center;
-            color: #94a3b8;
-            font-size: 0.85rem;
-        }
-
-        /* Animation Demo */
-        .animation-demo {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .animation-card {
-            background: white;
-            border: 1px solid var(--sidebar-border);
-            border-radius: 8px;
-            padding: 15px;
-            transition: transform 0.2s;
-        }
-
-        .animation-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .animation-card h5 {
-            margin-top: 0;
-            color: var(--primary-color);
-        }
+        .tag.void { background: #f1f5f9; color: #64748b; }
+        .tag.return { background: #dcfce7; color: #166534; }
+        .tag.builder { background: #dbeafe; color: #1e40af; }
     </style>
 </head>
 <body>
 
 <aside>
-    <h1>NVLib <span style="font-size:0.8rem; color:#64748b;">v4.5</span></h1>
-    <nav>
-        <a href="#intro">Introduction</a>
-        <a href="#setup">Setup & Initialization</a>
-        <a href="#screens">Screen Management</a>
-        <a href="#canvas">Canvas Configuration</a>
-
-        <div class="section-title">Components</div>
+    <div class="brand">
+        <h1>NVLib Docs</h1>
+    </div>
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Find a component...">
+    </div>
+    <nav id="navLinks">
+        <div class="header">Setup</div>
+        <a href="#app_controller">AutoGUI App</a>
+        
+        <div class="header">Standard Components</div>
         <a href="#button">Button</a>
         <a href="#label">Label</a>
         <a href="#textbox">TextBox / TextArea</a>
+        <a href="#image">Image</a>
+        <a href="#cardview">CardView / Panel</a>
+        
+        <div class="header">Inputs & Controls</div>
         <a href="#checkbox">Checkbox</a>
-        <a href="#toggle">ToggleButton</a>
-        <a href="#spinner">Spinner</a>
+        <a href="#toggle">Toggle Switch</a>
         <a href="#slider">Slider</a>
         <a href="#progress">ProgressBar</a>
+        <a href="#spinner">Spinner</a>
         <a href="#dropdown">Dropdown</a>
         <a href="#radiogroup">RadioGroup</a>
-        <a href="#layout">Panel & CardView</a>
-        <a href="#image">Image</a>
 
-        <div class="section-title">Advanced Features <span class="badge v45">v4.5</span></div>
-        <a href="#animations">Animations</a>
-        <a href="#cloning">Component Cloning</a>
-        <a href="#clickgroups">Click Groups</a>
-        <a href="#scaling">Window Scaling</a>
-        <a href="#zindex">Z-Index & Layers</a>
+        <div class="header">Advanced Systems</div>
+        <a href="#animations">Animation System</a>
+        <a href="#cloning">Cloning System</a>
     </nav>
 </aside>
 
 <main>
-    <section id="intro">
-        <h2>Introduction</h2>
-        <p>
-            <strong>NVLib AutoGUI v4.5</strong> is a high-level wrapper around KivyMD that enables developers to create sophisticated, multi-screen applications with animations, component cloning, and advanced UI features using simple JSON definitions and Pythonic logic.
-        </p>
-        
-        <div class="warning">
-            <strong>⚠️ Important Note:</strong> NVLib v4.5 introduces significant changes from v4.0. The library now includes comprehensive animation support, component cloning, click groups, and proper z-index management.
-        </div>
+    <div class="content-wrapper">
 
-        <p>
-            <strong>Version 4.5 New Features:</strong>
-            <ul>
-                <li><strong>Advanced Animation System:</strong> Move, align, and animate components with offset support</li>
-                <li><strong>Component Cloning:</strong> Duplicate components dynamically at runtime</li>
-                <li><strong>Click Groups:</strong> Group components for collective click handling</li>
-                <li><strong>Automatic Window Scaling:</strong> UI scales proportionally with window resize</li>
-                <li><strong>Z-Index Management:</strong> Proper layer ordering with JSON support</li>
-                <li><strong>Hybrid CardViews:</strong> CardViews that act as clickable containers</li>
-                <li><strong>Animation Chains:</strong> Sequence multiple animations</li>
-            </ul>
-        </p>
-    </section>
+        <!-- APP CONTROLLER -->
+        <section id="app_controller">
+            <h2>AutoGUI Application</h2>
+            <p class="intro">The main entry point. Use the <code>app</code> object to configure the window, load screens, and handle global logic.</p>
 
-    <section id="setup">
-        <h2>Setup & Initialization</h2>
-        <p>Create a Python script and JSON layout files as shown below.</p>
-
-        <h3>Python Code (main.py)</h3>
-        <pre><code>from NVLib.Components.GUI.AutoGUI import AutoGUI
-
-# 1. Initialize the App with v4.5 features
-app = AutoGUI()
-
-# 2. Register Screens with attachments and hybrids
-# Hybrids are CardViews that act as clickable containers
-app.register_screen("home", "home.json", main=True)
-app.register_screen("dashboard", "dashboard.json")
-app.register_screen("settings", "settings.json")
-
-# 3. Configure Window
-app.set_title("NVLib v4.5 Demo")
-app.set_background("#ffffff")  # White background
-app.set_icon("logo.png")  # Optional icon
-
-# 4. Define Logic
-def navigate_to_dashboard():
-    # Access widgets via app.screenName.widgetId
-    username = app.home.txt_username.text()
-    print(f"User logged in: {username}")
-    app.switch_screen("dashboard")
-
-def show_settings():
-    app.switch_screen("settings")
-
-def go_back():
-    app.switch_screen("home")
-
-# 5. Bind Events
-app.home.btn_login.on_click(navigate_to_dashboard)
-app.home.btn_settings.on_click(show_settings)
-app.dashboard.btn_back.on_click(go_back)
-app.settings.btn_home.on_click(go_back)
-
-# 6. Setup Animations (v4.5 feature)
-def setup_animations():
-    # Move button with offset
-    app.animate("move to center")\
-        .apply_to("home.welcome_label")\
-        .end_at("home.btn_login")\
-        .offset_y(0.1)\
-        .with_duration(1.0)\
-        .start()
-    
-    # Create animation chain
-    chain = app.create_animation_chain()
-    chain.add(app.animate("move to center")\
-        .apply_to("dashboard.card1")\
-        .end_at("dashboard.card2")\
-        .with_duration(0.5))
-    chain.add(app.animate("move to center")\
-        .apply_to("dashboard.card2")\
-        .end_at("dashboard.card3")\
-        .with_duration(0.5))
-    chain.start()
-
-# 7. Setup Cloning (v4.5 feature)
-def setup_cloning():
-    # Clone buttons and place in grid
-    clones = app.clone("btn1,btn2,btn3")\
-        .id("cloned_")\
-        .execute()
-    
-    app.create(clones)\
-        .in_panel("dashboard.grid_panel")\
-        .execute()
-    
-    app.grid("dashboard.grid_panel")\
-        .cols(2)\
-        .h(20)\
-        .v(15)\
-        .execute()
-
-# 8. Run
-app.run()</code></pre>
-
-        <div class="example">
-            <h4>Example JSON Structure with v4.5 Features</h4>
-            <pre><code>{
-  "canvas": {
-    "width": 800,
-    "height": 600,
-    "title": "My App v4.5",
-    "backgroundColor": "#ffffff"
-  },
-  "attachments": [
-    ["btn_inside_card", "card_container"],
-    ["label_inside_card", "card_container"]
-  ],
-  "hybrids": ["card_container", "card_clickable"],
-  "components": [
-    {
-      "type": "CardView",
-      "id": "card_container",
-      "x": 50,
-      "y": 100,
-      "width": 300,
-      "height": 200,
-      "zIndex": 1,
-      "properties": {
-        "backgroundColor": "#f3f4f6",
-        "cornerRadius": 12,
-        "text": "Clickable Container"
-      }
-    },
-    {
-      "type": "Button",
-      "id": "btn_inside_card",
-      "x": 70,
-      "y": 150,
-      "width": 100,
-      "height": 40,
-      "zIndex": 2,
-      "properties": {
-        "text": "Click Me",
-        "backgroundColor": "#4f46e5",
-        "textColor": "#ffffff"
-      }
-    }
-  ]
-}</code></pre>
-        </div>
-    </section>
-
-    <section id="screens">
-        <h2>Screen Management</h2>
-        <p>NVLib v4.5 maintains the robust screen management system with enhanced features.</p>
-
-        <h3>1. Registering Screens</h3>
-        <pre><code># Syntax
-app.register_screen(name, json_path, main=False)
-
-# Example
-app.register_screen("login", "login.json", main=True)
-app.register_screen("dashboard", "dashboard.json")
-app.register_screen("profile", "profile.json")</code></pre>
-
-        <div class="warning">
-            <strong>Note:</strong> Screens are kept alive in memory. User input is preserved when switching between screens.
-        </div>
-
-        <h3>2. Switching Screens</h3>
-        <pre><code>app.switch_screen("dashboard")</code></pre>
-        <p>This method hides the current screen and shows the target screen while preserving all widget states.</p>
-
-        <h3>3. Accessing Widgets</h3>
-        <pre><code># Syntax: app.{screen_name}.{widget_id}
-app.login.username_input.text()  # Get text
-app.dashboard.logout_btn.on_click(logout_func)  # Bind event
-app.profile.avatar_image.opacity(0.8)  # Set opacity</code></pre>
-
-        <h3>4. Screen Proxy Pattern</h3>
-        <p>Use the screen proxy for cleaner access:</p>
-        <pre><code># Instead of app.widgets["login.username"]
-login_screen = app.login
-login_screen.username_input.text("John Doe")
-login_screen.password_input.text("secret")</code></pre>
-    </section>
-
-    <section id="canvas">
-        <h2>Canvas Configuration</h2>
-        <p>The root object in your JSON file defines the application window properties.</p>
-        
-        <pre><code>{
-  "canvas": {
-    "width": 800,              // Initial window width
-    "height": 600,             // Initial window height
-    "title": "My Application", // Window title
-    "backgroundColor": "#ffffff" // Window background color
-  },
-  "attachments": [ ... ],      // v4.5: Click group definitions
-  "hybrids": [ ... ],          // v4.5: Clickable CardView IDs
-  "components": [ ... ]        // UI components
-}</code></pre>
-    </section>
-
-    <hr>
-
-    <h2 id="components">Component Reference</h2>
-    <p>All components support JSON properties <span class="badge json">JSON</span> and Python methods <span class="badge py">Python</span>.</p>
-
-    <!-- BUTTON -->
-    <section id="button">
-        <h3>Button <span class="badge v45" style="transform: scale(0.8);">Enhanced</span></h3>
-        <p>A clickable button with ripple effects, scaling animations, and hover support.</p>
-
-        <h4>JSON Properties</h4>
-        <table>
-            <tr><th>Property</th><th>Type</th><th>Description</th><th>Default</th></tr>
-            <tr><td>type</td><td>String</td><td><code>"Button"</code></td><td>Required</td></tr>
-            <tr><td>text</td><td>String</td><td>Button label</td><td>""</td></tr>
-            <tr><td>backgroundColor</td><td>Hex</td><td>Background color</td><td>"#b4ddb1"</td></tr>
-            <tr><td>textColor</td><td>Hex</td><td>Text color</td><td>"#4b3f3f"</td></tr>
-            <tr><td>fontSize</td><td>Int</td><td>Font size</td><td>14</td></tr>
-            <tr><td>cornerRadius</td><td>Int</td><td>Rounded corners</td><td>0</td></tr>
-            <tr><td>bold</td><td>Bool</td><td>Bold text</td><td>false</td></tr>
-            <tr><td>opacity</td><td>Float</td><td>Opacity (0.0 to 1.0)</td><td>1.0</td></tr>
-            <tr><td>visible</td><td>Bool</td><td>Initial visibility</td><td>true</td></tr>
-            <tr><td>zIndex</td><td>Int</td><td>Layer order</td><td>0</td></tr>
-        </table>
-
-        <h4>Python API</h4>
-        <table>
-            <tr><th>Method</th><th>Description</th><th>Example</th></tr>
-            <tr><td><code>.on_click(func)</code></td><td>Bind click handler</td><td><code>btn.on_click(lambda: print("Clicked"))</code></td></tr>
-            <tr><td><code>.add_click_handler(func)</code></td><td>Add additional click handler</td><td><code>btn.add_click_handler(extra_func)</code></td></tr>
-            <tr><td><code>.clear_click_handlers()</code></td><td>Remove all click handlers</td><td><code>btn.clear_click_handlers()</code></td></tr>
-            <tr><td><code>.text(new_text=None)</code></td><td>Get/set button text</td><td><code>btn.text("New Text")</code></td></tr>
-            <tr><td><code>.set_visible(bool)</code></td><td>Show/hide button</td><td><code>btn.set_visible(False)</code></td></tr>
-            <tr><td><code>.set_enabled(bool)</code></td><td>Enable/disable button</td><td><code>btn.set_enabled(False)</code></td></tr>
-            <tr><td><code>.bg_color(hex)</code></td><td>Set background color</td><td><code>btn.bg_color("#4f46e5")</code></td></tr>
-            <tr><td><code>.text_color(hex)</code></td><td>Set text color</td><td><code>btn.text_color("#ffffff")</code></td></tr>
-            <tr><td><code>.opacity(value)</code></td><td>Set opacity</td><td><code>btn.opacity(0.5)</code></td></tr>
-            <tr><td><code>.on_hover(enter, leave)</code></td><td>Bind hover events</td><td><code>btn.on_hover(hover_in, hover_out)</code></td></tr>
-        </table>
-
-        <div class="example">
-            <h4>Button Example</h4>
-            <pre><code>// JSON Definition
-{
-  "type": "Button",
-  "id": "btn_submit",
-  "x": 100,
-  "y": 100,
-  "width": 120,
-  "height": 45,
-  "zIndex": 2,
-  "properties": {
-    "text": "Submit",
-    "backgroundColor": "#4f46e5",
-    "textColor": "#ffffff",
-    "cornerRadius": 8,
-    "bold": true,
-    "fontSize": 16
-  }
-}
-
-# Python Usage
-app.home.btn_submit.on_click(lambda: print("Submitted!"))
-app.home.btn_submit.bg_color("#10b981")  # Change to green
-app.home.btn_submit.on_hover(
-    lambda: app.home.btn_submit.bg_color("#3b82f6"),  # Blue on hover
-    lambda: app.home.btn_submit.bg_color("#4f46e5")   # Original on leave
-)</code></pre>
-        </div>
-    </section>
-
-    <!-- LABEL -->
-    <section id="label">
-        <h3>Label</h3>
-        <p>Text or icon display. Supports Material Symbols if <code class="inline">iconName</code> is set.</p>
-
-        <h4>JSON Properties</h4>
-        <table>
-            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
-            <tr><td>type</td><td>String</td><td>"Label"</td></tr>
-            <tr><td>text</td><td>String</td><td>Text content</td></tr>
-            <tr><td>iconName</td><td>String</td><td>Material icon name (e.g., "home", "settings")</td></tr>
-            <tr><td>textColor</td><td>Hex</td><td>Text/icon color</td></tr>
-            <tr><td>fontSize</td><td>Int</td><td>Font size</td></tr>
-            <tr><td>bold</td><td>Bool</td><td>Bold text</td></tr>
-            <tr><td>backgroundColor</td><td>Hex</td><td>Background color (optional)</td></tr>
-        </table>
-
-        <h4>Python API</h4>
-        <table>
-            <tr><th>Method</th><th>Description</th></tr>
-            <tr><td><code>.text(new_text=None)</code></td><td>Get or set label text</td></tr>
-            <tr><td><code>.text_color(hex)</code></td><td>Set text/icon color</td></tr>
-            <tr><td><code>.bg_color(hex)</code></td><td>Set background color</td></tr>
-            <tr><td><code>.font_size(size)</code></td><td>Set font size</td></tr>
-        </table>
-    </section>
-
-    <!-- TEXTBOX -->
-    <section id="textbox">
-        <h3>TextBox / TextArea</h3>
-        <p>Input fields. <code class="inline">TextBox</code> is single-line, <code class="inline">TextArea</code> is multi-line.</p>
-
-        <h4>JSON Properties</h4>
-        <table>
-            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
-            <tr><td>type</td><td>String</td><td>"TextBox" or "TextArea"</td></tr>
-            <tr><td>text</td><td>String</td><td>Initial text value</td></tr>
-            <tr><td>hintText</td><td>String</td><td>Placeholder text</td></tr>
-            <tr><td>textColor</td><td>Hex</td><td>Input text color</td></tr>
-            <tr><td>backgroundColor</td><td>Hex</td><td>Field background color</td></tr>
-            <tr><td>hintColor</td><td>Hex</td><td>Placeholder color</td></tr>
-        </table>
-
-        <h4>Python API</h4>
-        <table>
-            <tr><th>Method</th><th>Description</th></tr>
-            <tr><td><code>.text(new_text=None)</code></td><td>Get or set current text</td></tr>
-            <tr><td><code>.set_enabled(bool)</code></td><td>Enable or disable typing</td></tr>
-            <tr><td><code>.text_color(hex)</code></td><td>Set text color</td></tr>
-        </table>
-    </section>
-
-    <!-- IMAGE -->
-    <section id="image">
-        <h3>Image <span class="badge v45" style="transform: scale(0.8);">Enhanced</span></h3>
-        <p>Image display with support for base64 data URLs and file paths. Images now have transparent backgrounds by default.</p>
-
-        <h4>JSON Properties</h4>
-        <table>
-            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
-            <tr><td>type</td><td>String</td><td>"Image"</td></tr>
-            <tr><td>src</td><td>String</td><td>Base64 data URL or file path</td></tr>
-            <tr><td>fit</td><td>String</td><td>"fill", "contain", "cover", or "none"</td></tr>
-            <tr><td>cornerRadius</td><td>Int</td><td>Corner rounding radius</td></tr>
-            <tr><td>opacity</td><td>Float</td><td>Opacity level (0.0 to 1.0)</td></tr>
-        </table>
-
-        <h4>Python API</h4>
-        <table>
-            <tr><th>Method</th><th>Description</th></tr>
-            <tr><td><code>.set_visible(bool)</code></td><td>Show or hide image</td></tr>
-            <tr><td><code>.opacity(float)</code></td><td>Set image opacity</td></tr>
-            <tr><td><code>.bg_color(hex)</code></td><td>Set background color (container only)</td></tr>
-        </table>
-
-        <div class="example">
-            <h4>Image Examples</h4>
-            <pre><code>// Base64 Image
-{
-  "type": "Image",
-  "id": "logo",
-  "x": 50,
-  "y": 50,
-  "width": 200,
-  "height": 100,
-  "properties": {
-    "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
-    "fit": "contain",
-    "cornerRadius": 8
-  }
-}
-
-// File Image
-{
-  "type": "Image",
-  "id": "avatar",
-  "x": 100,
-  "y": 100,
-  "width": 100,
-  "height": 100,
-  "properties": {
-    "src": "images/avatar.png",
-    "fit": "cover",
-    "cornerRadius": 50  // Circular image
-  }
-}</code></pre>
-        </div>
-    </section>
-
-    <!-- ANIMATIONS -->
-    <section id="animations">
-        <h2>Animations <span class="badge v45">v4.5</span></h2>
-        <p>NVLib v4.5 introduces a comprehensive animation system with offset support, alignment options, and animation chains.</p>
-
-        <h3>Animation Types</h3>
-        <div class="animation-demo">
-            <div class="animation-card">
-                <h5>Move to Center</h5>
-                <p>Move component to another component's center</p>
-                <code>app.animate("move to center")</code>
+            <div class="method-card">
+                <div class="method-header">register_screen(name, json_path, main=False) <span class="tag void">Setup</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Loads a JSON layout file and assigns it a name. If <code>main=True</code>, this screen appears immediately.</div>
+                    <pre><code>app.register_screen("login", "login.json", main=True)</code></pre>
+                </div>
             </div>
-            <div class="animation-card">
-                <h5>Align With</h5>
-                <p>Align component edges</p>
-                <code>app.animate("align")</code>
-            </div>
-            <div class="animation-card">
-                <h5>Move to Position</h5>
-                <p>Move to absolute coordinates</p>
-                <code>app.animate("move to position")</code>
-            </div>
-            <div class="animation-card">
-                <h5>Center on Screen</h5>
-                <p>Center component on screen</p>
-                <code>app.animate("center on screen")</code>
-            </div>
-        </div>
 
-        <h3>Animation Builder Pattern</h3>
-        <p>Animations use a fluent builder pattern:</p>
-        <pre><code># Basic move animation
+            <div class="method-card">
+                <div class="method-header">switch_screen(screen_name) <span class="tag void">Action</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Switches the visible screen. User input on previous screens is preserved.</div>
+                    <pre><code>app.switch_screen("dashboard")</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">set_title(title) <span class="tag void">Config</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Sets the text in the window title bar.</div>
+                    <pre><code>app.set_title("My Secure App v1.0")</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">set_background(hex_color) <span class="tag void">Config</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Sets the background color of the main window.</div>
+                    <pre><code>app.set_background("#f0f2f5")</code></pre>
+                </div>
+            </div>
+
+             <div class="method-card">
+                <div class="method-header">set_icon(path) <span class="tag void">Config</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Sets the window icon (.ico or .png).</div>
+                    <pre><code>app.set_icon("assets/icon.png")</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- BUTTON -->
+        <section id="button">
+            <h2>Button</h2>
+            <p class="intro">A standard clickable button with ripple effects. Supports colors, text changes, and scaling.</p>
+
+            <div class="method-card">
+                <div class="method-header">on_click(callback) <span class="tag void">Event</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Runs a Python function when the button is clicked.</div>
+                    <pre><code>app.home.btn_login.on_click(lambda: print("Logging in..."))</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">text(new_text=None) <span class="tag return">Get/Set</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Gets current text (if empty) or sets new text.</div>
+                    <pre><code># Set
+app.home.btn1.text("Submit")
+# Get
+current = app.home.btn1.text()</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">bg_color(hex_code) <span class="tag void">Style</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Changes the button background color.</div>
+                    <pre><code>app.home.btn1.bg_color("#ef4444")</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">text_color(hex_code) <span class="tag void">Style</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Changes the text color.</div>
+                    <pre><code>app.home.btn1.text_color("#ffffff")</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">set_visible(bool) <span class="tag void">Visibility</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Show or hide the button. Hidden buttons cannot be clicked.</div>
+                    <pre><code>app.home.btn1.set_visible(False)</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">set_enabled(bool) <span class="tag void">State</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Enable or disable the button (grays it out).</div>
+                    <pre><code>app.home.btn1.set_enabled(False)</code></pre>
+                </div>
+            </div>
+            
+            <div class="method-card">
+                <div class="method-header">opacity(value) <span class="tag void">Style</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Sets transparency (0.0 to 1.0).</div>
+                    <pre><code>app.home.btn1.opacity(0.5)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- LABEL -->
+        <section id="label">
+            <h2>Label</h2>
+            <p class="intro">Displays text or Material Icons. Supports dynamic text updates.</p>
+
+            <div class="method-card">
+                <div class="method-header">text(new_text=None) <span class="tag return">Get/Set</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Updates the label text. If it is an Icon, this updates the icon code.</div>
+                    <pre><code>app.home.lbl_status.text("Connected")</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">text_color(hex_code) <span class="tag void">Style</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Changes the text or icon color.</div>
+                    <pre><code>app.home.lbl_error.text_color("#ff0000")</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">font_size(size) <span class="tag void">Style</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Sets the font size. This scales automatically with the window.</div>
+                    <pre><code>app.home.lbl_header.font_size(24)</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">set_visible(bool) <span class="tag void">Visibility</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Show or hide the label.</div>
+                    <pre><code>app.home.lbl_loading.set_visible(True)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- TEXTBOX -->
+        <section id="textbox">
+            <h2>TextBox / TextArea</h2>
+            <p class="intro">Input fields for user text. TextBox is single-line, TextArea is multi-line.</p>
+
+            <div class="method-card">
+                <div class="method-header">text(value=None) <span class="tag return">Get/Set</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Gets the typed text or sets the input field value.</div>
+                    <pre><code>username = app.login.txt_user.text()
+app.login.txt_user.text("") # Clear</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">set_enabled(bool) <span class="tag void">State</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Enable or disable typing.</div>
+                    <pre><code>app.login.txt_user.set_enabled(False)</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">text_color(hex_code) <span class="tag void">Style</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Changes the color of the typed text.</div>
+                    <pre><code>app.login.txt_user.text_color("#333333")</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- IMAGE -->
+        <section id="image">
+            <h2>Image</h2>
+            <p class="intro">Display images. Supports transparent backgrounds and loading from URLs.</p>
+
+            <div class="method-card">
+                <div class="method-header">from_url(url) <span class="tag void">Network</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Downloads and displays an image from the web.</div>
+                    <pre><code>app.profile.avatar.from_url("https://example.com/pic.png")</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">update_image(source) <span class="tag void">Update</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Updates image from local file path or Base64 string.</div>
+                    <pre><code>app.profile.avatar.update_image("assets/new_avatar.png")</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">set_fit(mode) <span class="tag void">Style</span></div>
+                <div class="method-body">
+                    <div class="method-desc">How image fits container: <code>"contain"</code>, <code>"cover"</code>, <code>"fill"</code>, or <code>"none"</code>.</div>
+                    <pre><code>app.profile.avatar.set_fit("cover")</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">set_visible(bool) <span class="tag void">Visibility</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Show or hide the image.</div>
+                    <pre><code>app.profile.avatar.set_visible(False)</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">opacity(value) <span class="tag void">Style</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Sets image transparency (0.0 to 1.0).</div>
+                    <pre><code>app.profile.avatar.opacity(0.8)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- CARDVIEW -->
+        <section id="cardview">
+            <h2>CardView / Panel</h2>
+            <p class="intro">Containers for layout. Can be made clickable if listed in "hybrids" in JSON.</p>
+
+            <div class="method-card">
+                <div class="method-header">bg_color(hex_code) <span class="tag void">Style</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Changes the card background color.</div>
+                    <pre><code>app.home.panel_main.bg_color("#ffffff")</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">border(width, hex_code) <span class="tag void">Style</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Adds a border to the card.</div>
+                    <pre><code>app.home.panel_main.border(2, "#e2e8f0")</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">on_click(callback) <span class="tag void">Event</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Bind a click event (Only works if component is a 'hybrid' or CardView).</div>
+                    <pre><code>app.home.panel_main.on_click(lambda: print("Card Clicked"))</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">set_visible(bool) <span class="tag void">Visibility</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Show or hide the entire panel and its children.</div>
+                    <pre><code>app.home.panel_main.set_visible(False)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHECKBOX -->
+        <section id="checkbox">
+            <h2>Checkbox</h2>
+            <p class="intro">Standard tick box for boolean selection.</p>
+
+            <div class="method-card">
+                <div class="method-header">is_checked() <span class="tag return">Boolean</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Returns True if checked, False otherwise.</div>
+                    <pre><code>if app.form.chk_agree.is_checked():
+    submit_form()</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">on_toggle(callback) <span class="tag void">Event</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Runs code when the box is checked or unchecked.</div>
+                    <pre><code>app.form.chk_agree.on_toggle(lambda: validate())</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- TOGGLE SWITCH -->
+        <section id="toggle">
+            <h2>Toggle Switch</h2>
+            <p class="intro">Modern sliding switch.</p>
+
+            <div class="method-card">
+                <div class="method-header">is_on() <span class="tag return">Boolean</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Returns True if switch is ON.</div>
+                    <pre><code>enabled = app.settings.sw_notify.is_on()</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">on_toggle(callback) <span class="tag void">Event</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Runs code when the switch is toggled.</div>
+                    <pre><code>app.settings.sw_notify.on_toggle(lambda: update_prefs())</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDER -->
+        <section id="slider">
+            <h2>Slider</h2>
+            <p class="intro">Draggable range selector.</p>
+
+            <div class="method-card">
+                <div class="method-header">get() <span class="tag return">Integer</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Returns the current slider value.</div>
+                    <pre><code>volume = app.settings.slider_vol.get()</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">set(value) <span class="tag void">Update</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Sets the slider position.</div>
+                    <pre><code>app.settings.slider_vol.set(50)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROGRESSBAR -->
+        <section id="progress">
+            <h2>ProgressBar</h2>
+            <p class="intro">Visual indicator of completion.</p>
+
+            <div class="method-card">
+                <div class="method-header">set(value) <span class="tag void">Update</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Sets the progress (0 to 100). If attached to a label, updates text to "X%".</div>
+                    <pre><code>app.loader.pbar.set(75)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- SPINNER -->
+        <section id="spinner">
+            <h2>Spinner</h2>
+            <p class="intro">Number input with up/down buttons.</p>
+
+            <div class="method-card">
+                <div class="method-header">get() <span class="tag return">Integer</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Returns the current number.</div>
+                    <pre><code>qty = app.cart.spin_qty.get()</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">set(value) <span class="tag void">Update</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Sets the number value.</div>
+                    <pre><code>app.cart.spin_qty.set(1)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- DROPDOWN -->
+        <section id="dropdown">
+            <h2>Dropdown</h2>
+            <p class="intro">Button that opens a selection menu.</p>
+
+            <div class="method-card">
+                <div class="method-header">get() <span class="tag return">String</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Returns the text of the currently selected item.</div>
+                    <pre><code>country = app.form.dropdown_country.get()</code></pre>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">on_select(callback) <span class="tag void">Event</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Runs code when an item is selected. Passes the selected value.</div>
+                    <pre><code>app.form.dropdown_country.on_select(lambda val: print(val))</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- RADIOGROUP -->
+        <section id="radiogroup">
+            <h2>RadioGroup</h2>
+            <p class="intro">A set of mutually exclusive options.</p>
+
+            <div class="method-card">
+                <div class="method-header">get() <span class="tag return">Value</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Returns the value of the selected option.</div>
+                    <pre><code>gender = app.form.radio_gender.get()</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- ANIMATIONS -->
+        <section id="animations">
+            <h2>Animation System</h2>
+            <p class="intro">Move and align widgets dynamically. Animations use a "Builder Pattern" where you chain commands together.</p>
+
+            <div class="method-card">
+                <div class="method-header">app.animate(type) <span class="tag builder">Start</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Starts an animation definition. Types: <code>"move to center"</code>, <code>"align"</code>, <code>"move to position"</code>, <code>"restore"</code>.</div>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">.apply_to(widget_id) <span class="tag builder">Source</span></div>
+                <div class="method-body">
+                    <div class="method-desc">The widget you want to move.</div>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">.end_at(widget_id) <span class="tag builder">Target</span></div>
+                <div class="method-body">
+                    <div class="method-desc">The widget you want to move towards.</div>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">.offset_x(val) / .offset_y(val) <span class="tag builder">Adjust</span></div>
+                <div class="method-body">
+                    <div class="method-desc">
+                        Offsets the final position relative to screen size.<br>
+                        <code>0.1</code> = 10% of screen size.<br>
+                        Positive X = Right, Negative X = Left.<br>
+                        Positive Y = Up, Negative Y = Down.
+                    </div>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-header">.start() <span class="tag builder">Execute</span></div>
+                <div class="method-body">
+                    <div class="method-desc">Runs the animation.</div>
+                    <pre><code># Full Example
 app.animate("move to center")\
-    .apply_to("source_widget")\
-    .end_at("target_widget")\
+    .apply_to("game.token")\
+    .end_at("game.slot_1")\
+    .offset_y(0.05)\
     .with_duration(0.5)\
-    .start()
-
-# With offsets
-app.animate("move to center")\
-    .apply_to("button1")\
-    .end_at("button2")\
-    .offset_x(0.1)\      # 10% right of center
-    .offset_y(-0.05)\    # 5% below center
-    .with_duration(1.0)\
-    .start()
-
-# Alignment with offsets
-app.animate("align")\
-    .apply_to("floating_button")\
-    .end_at("main_panel")\
-    .aligned("right")\   # "left", "right", "top", "bottom", "center"
-    .offset_x(-0.02)\    # 2% left of right edge
-    .offset_y(0.01)\     # 1% above bottom edge
-    .with_duration(0.7)\
     .start()</code></pre>
+                </div>
+            </div>
+        </section>
 
-        <h3>Animation Chains</h3>
-        <p>Create sequences of animations:</p>
-        <pre><code># Create animation chain
-chain = app.create_animation_chain()
+        <!-- CLONING -->
+        <section id="cloning">
+            <h2>Cloning System</h2>
+            <p class="intro">Dynamically duplicate components at runtime (e.g., for shop items or lists).</p>
 
-# Add animations to chain
-chain.add(
-    app.animate("move to center")\
-        .apply_to("card1")\
-        .end_at("card2")\
-        .with_duration(0.3)
-)
+            <div class="method-card">
+                <div class="method-header">app.clone(ids).on_base(base_id) <span class="tag builder">Template</span></div>
+                <div class="method-body">
+                    <div class="method-desc">
+                        Creates a template.
+                        <ul>
+                            <li><strong>ids:</strong> Comma-separated list of child widgets (buttons, labels).</li>
+                            <li><strong>base_id:</strong> The container ID (CardView) that holds the children. This is required for relative positioning.</li>
+                            <li><strong>id:</strong> Name your template.</li>
+                        </ul>
+                    </div>
+                    <pre><code># Define Template
+app.clone("btn_buy,lbl_price,img_item")\
+    .on_base("card_bg")\
+    .id("product_item")\
+    .execute()</code></pre>
+                </div>
+            </div>
 
-chain.add(
-    app.animate("move to center")\
-        .apply_to("card2")\
-        .end_at("card3")\
-        .with_duration(0.3)
-)
+            <div class="method-card">
+                <div class="method-header">app.create_clone(tmpl, panel) <span class="tag builder">Create</span></div>
+                <div class="method-body">
+                    <div class="method-desc">
+                        Instantiates the template into a target panel.
+                        <ul>
+                            <li><strong>.cols(n):</strong> Number of columns in the grid.</li>
+                            <li><strong>.h(px) / .v(px):</strong> Horizontal/Vertical spacing.</li>
+                            <li><strong>.scale(float):</strong> Resize clones (e.g., 0.8 for 80%).</li>
+                        </ul>
+                    </div>
+                    <pre><code># Create Grid
+app.create_clone("product_item", "shop.grid_panel")\
+    .cols(3)\
+    .h(15).v(15)\
+    .scale(0.8)\
+    .execute()</code></pre>
+                </div>
+            </div>
+        </section>
 
-chain.add(
-    app.animate("move to center")\
-        .apply_to("card3")\
-        .end_at("card1")\
-        .with_duration(0.3)
-)
-
-# Start chain
-chain.start()
-
-# Optional: Add completion callback
-chain.on_complete(lambda: print("Animation chain completed!"))</code></pre>
-
-        <h3>Offset Values</h3>
-        <p>Offset values are relative to the screen size:</p>
-        <ul>
-            <li><code>x_offset=0.1</code> = 10% of screen width to the right</li>
-            <li><code>x_offset=-0.05</code> = 5% of screen width to the left</li>
-            <li><code>y_offset=0.15</code> = 15% of screen height upward</li>
-            <li><code>y_offset=-0.1</code> = 10% of screen height downward</li>
-        </ul>
-
-        <div class="example">
-            <h4>Practical Animation Example</h4>
-            <pre><code>def animate_login_form():
-    # Hide form initially
-    app.login.form_panel.opacity(0)
-    
-    # Fade in form
-    Animation(opacity=1, duration=0.5).start(app.login.form_panel.widget)
-    
-    # Slide in username field from left
-    original_pos = app.login.username_input.widget.pos_hint.copy()
-    app.login.username_input.widget.pos_hint = {'x': -0.3, 'y': original_pos['y']}
-    Animation(pos_hint=original_pos, duration=0.5, t='out_back').start(
-        app.login.username_input.widget
-    )
-    
-    # Slide in password field from right (delayed)
-    Clock.schedule_once(lambda dt: 
-        Animation(pos_hint=original_pos, duration=0.5, t='out_back').start(
-            app.login.password_input.widget
-        ), 0.2)
-    
-    # Bounce login button
-    Clock.schedule_once(lambda dt:
-        app.animate("move to center")\
-            .apply_to("login.btn_submit")\
-            .end_at("login.btn_submit")\
-            .offset_y(0.05)\
-            .with_duration(0.3)\
-            .start(), 0.8)</code></pre>
-        </div>
-    </section>
-
-    <!-- CLONING -->
-    <section id="cloning">
-        <h2>Component Cloning <span class="badge v45">v4.5</span></h2>
-        <p>Dynamically clone components at runtime and arrange them in grids or other layouts.</p>
-
-        <h3>Cloning Basics</h3>
-        <pre><code># Clone single component
-clones = app.clone("original_button")\
-    .id("cloned_")\
-    .execute()  # Returns ["cloned_original_button"]
-
-# Clone multiple components
-clones = app.clone("btn1,btn2,btn3,btn4")\
-    .id("item_")\
-    .execute()  # Returns ["item_btn1", "item_btn2", ...]</code></pre>
-
-        <h3>Placing Clones in Panels</h3>
-        <pre><code># Place clones in a panel with automatic grid layout
-app.create(clones)\
-    .in_panel("dashboard.item_panel")\
-    .execute()
-
-# Configure grid layout
-app.grid("dashboard.item_panel")\
-    .cols(3)\        # 3 columns
-    .h(15)\          # 15px horizontal spacing
-    .v(10)\          # 10px vertical spacing
-    .execute()       # Auto-arrange components</code></pre>
-
-        <h3>Complete Example</h3>
-        <pre><code>def create_dynamic_grid(items):
-    """Create a grid of buttons from a list of items"""
-    
-    # Clear existing clones
-    app.cloner.clones.clear()
-    
-    # Clone template button for each item
-    all_clones = []
-    for i, item in enumerate(items):
-        # Clone the template
-        clones = app.clone("template_button")\
-            .id(f"item_{i}_")\
-            .execute()
-        
-        if clones:
-            clone_id = clones[0]
-            # Update clone text
-            app.widgets[clone_id].text(item["name"])
-            
-            # Bind click event
-            app.widgets[clone_id].on_click(
-                lambda item=item: select_item(item)
-            )
-            
-            all_clones.append(clone_id)
-    
-    # Place all clones in grid
-    if all_clones:
-        app.create(all_clones)\
-            .in_panel("main.grid_container")\
-            .execute()
-        
-        app.grid("main.grid_container")\
-            .cols(4)\
-            .h(20)\
-            .v(15)\
-            .execute()
-    
-    return all_clones
-
-# Usage
-items = [
-    {"name": "Item 1", "id": 1},
-    {"name": "Item 2", "id": 2},
-    # ... more items
-]
-create_dynamic_grid(items)</code></pre>
-
-        <div class="warning">
-            <strong>Note:</strong> Cloned components maintain the same properties as the original but can be modified independently. They're added to the global widgets dictionary and can be accessed like regular components.
-        </div>
-    </section>
-
-    <!-- CLICK GROUPS -->
-    <section id="clickgroups">
-        <h2>Click Groups <span class="badge v45">v4.5</span></h2>
-        <p>Group multiple components together so they act as a single clickable area. Perfect for CardViews containing buttons and labels.</p>
-
-        <h3>JSON Configuration</h3>
-        <pre><code>{
-  "attachments": [
-    ["btn_inside_card", "card_container"],
-    ["label_inside_card", "card_container"],
-    ["icon_inside_card", "card_container"]
-  ],
-  "hybrids": ["card_container", "another_card"],
-  "components": [
-    {
-      "type": "CardView",
-      "id": "card_container",
-      "x": 50,
-      "y": 50,
-      "width": 300,
-      "height": 200,
-      "properties": {
-        "backgroundColor": "#f3f4f6",
-        "cornerRadius": 12
-      }
-    },
-    {
-      "type": "Button",
-      "id": "btn_inside_card",
-      "x": 70,
-      "y": 100,
-      "width": 100,
-      "height": 40,
-      "properties": {
-        "text": "Button"
-      }
-    },
-    {
-      "type": "Label",
-      "id": "label_inside_card",
-      "x": 70,
-      "y": 150,
-      "width": 100,
-      "height": 30,
-      "properties": {
-        "text": "Description"
-      }
-    }
-  ]
-}</code></pre>
-
-        <h3>Python Usage</h3>
-        <pre><code># The CardView acts as a clickable container
-# Clicking anywhere on the card triggers the event
-app.home.card_container.on_click(lambda: print("Card clicked!"))
-
-# Individual components still work
-app.home.btn_inside_card.on_click(lambda: print("Button clicked!"))
-
-# But CardView click takes precedence for attached areas
-def handle_card_click():
-    print("Card or its attached components were clicked")
-    
-app.home.card_container.on_click(handle_card_click)</code></pre>
-
-        <h3>How It Works</h3>
-        <ol>
-            <li>Components listed in <code>attachments</code> are grouped under their parent</li>
-            <li>Parent components listed in <code>hybrids</code> become clickable containers</li>
-            <li>When you click on an attached component, both its own handler and the parent's handler fire</li>
-            <li>The parent (CardView) gets a special wrapper that manages click propagation</li>
-        </ol>
-    </section>
-
-    <!-- SCALING -->
-    <section id="scaling">
-        <h2>Window Scaling <span class="badge v45">v4.5</span></h2>
-        <p>Automatic proportional scaling when the window is resized. Fonts, buttons, and components scale appropriately.</p>
-
-        <h3>How Scaling Works</h3>
-        <pre><code># When window is resized from 800x600 to 1200x900:
-# Scale factor = sqrt((1200*900) / (800*600)) ≈ 1.5
-# 
-# Components will:
-# - Increase font sizes by 50%
-# - Scale button sizes proportionally
-# - Maintain aspect ratios
-# - Update corner radii</code></pre>
-
-        <h3>Custom Scaling Behavior</h3>
-        <pre><code># Access scaling in your widgets
-class CustomScalableWrapper(BaseWrapper):
-    def __init__(self, widget, original_font_size):
-        super().__init__(widget, original_font_size)
-        self.original_size = widget.size_hint
-    
-    def update_scale(self, scale_factor):
-        """Override scaling behavior"""
-        # Scale font
-        new_font_size = max(12, self.base_font_size * scale_factor)
-        self.widget.font_size = dp(new_font_size)
-        
-        # Scale size (custom logic)
-        new_width = self.original_size[0] * scale_factor
-        new_height = self.original_size[1] * scale_factor
-        self.widget.size_hint = (new_width, new_height)
-        
-        print(f"Scaled by {scale_factor:.2f}x")</code></pre>
-
-        <h3>Disabling Auto-Scaling</h3>
-        <pre><code># In your app initialization
-Window.bind(size=lambda w, size: None)  # Override default handler
-
-# Or use fixed sizes
-Window.size = (800, 600)
-Window.minimum_width = 800
-Window.minimum_height = 600
-Window.maximum_width = 800
-Window.maximum_height = 600</code></pre>
-    </section>
-
-    <!-- Z-INDEX -->
-    <section id="zindex">
-        <h2>Z-Index & Layers <span class="badge v45">v4.5</span></h2>
-        <p>Control the visual stacking order of components with z-index support.</p>
-
-        <h3>JSON zIndex Property</h3>
-        <pre><code>{
-  "type": "Panel",
-  "id": "background",
-  "x": 0,
-  "y": 0,
-  "width": 800,
-  "height": 600,
-  "zIndex": 0,  // Lowest layer - drawn first
-  "properties": {
-    "backgroundColor": "#f8fafc"
-  }
-},
-{
-  "type": "CardView",
-  "id": "content_card",
-  "x": 100,
-  "y": 100,
-  "width": 600,
-  "height": 400,
-  "zIndex": 1,  // Middle layer
-  "properties": {
-    "backgroundColor": "#ffffff"
-  }
-},
-{
-  "type": "Button",
-  "id": "floating_button",
-  "x": 700,
-  "y": 500,
-  "width": 60,
-  "height": 60,
-  "zIndex": 10,  // Highest layer - drawn last (on top)
-  "properties": {
-    "text": "+",
-    "backgroundColor": "#4f46e5"
-  }
-}</code></pre>
-
-        <h3>Z-Index Rules</h3>
-        <ul>
-            <li>Lower zIndex = drawn first (bottom layer)</li>
-            <li>Higher zIndex = drawn last (top layer)</li>
-            <li>Default zIndex = 0</li>
-            <li>Components with same zIndex are drawn in JSON order</li>
-            <li>Components are automatically sorted by zIndex during parsing</li>
-        </ul>
-
-        <h3>Dynamic Z-Index Manipulation</h3>
-        <pre><code># Bring component to front
-def bring_to_front(widget_id):
-    wrapper = app.widgets[widget_id]
-    widget = wrapper.widget
-    
-    # Remove from parent
-    parent = widget.parent
-    if parent:
-        parent.remove_widget(widget)
-        parent.add_widget(widget)  # Add back (puts on top)
-
-# Send component to back
-def send_to_back(widget_id):
-    wrapper = app.widgets[widget_id]
-    widget = wrapper.widget
-    
-    parent = widget.parent
-    if parent:
-        parent.remove_widget(widget)
-        parent.add_widget(widget, index=len(parent.children))</code></pre>
-    </section>
-
-    <!-- OTHER COMPONENTS -->
-    <section id="checkbox">
-        <h3>Checkbox</h3>
-        <p>A persistent toggle box.</p>
-        <pre><code># Python API
-is_checked = app.form.agree_checkbox.is_checked()
-app.form.agree_checkbox.on_toggle(lambda: print("Toggled!"))</code></pre>
-    </section>
-
-    <section id="toggle">
-        <h3>ToggleButton (Switch)</h3>
-        <p>A modern sliding switch.</p>
-        <pre><code># Python API
-is_on = app.settings.notify_toggle.is_on()
-app.settings.notify_toggle.on_toggle(lambda: print("Switch toggled"))</code></pre>
-    </section>
-
-    <section id="slider">
-        <h3>Slider</h3>
-        <p>A draggable slider range.</p>
-        <pre><code># Python API
-value = app.settings.volume_slider.get()
-app.settings.volume_slider.set(75)</code></pre>
-    </section>
-
-    <section id="dropdown">
-        <h3>Dropdown</h3>
-        <p>A button that opens a selection menu.</p>
-        <pre><code># Python API
-selected = app.form.country_dropdown.get()
-app.form.country_dropdown.on_select(lambda val: print(f"Selected: {val}"))</code></pre>
-    </section>
-
-    <section id="radiogroup">
-        <h3>RadioGroup</h3>
-        <p>Mutually exclusive options list.</p>
-        <pre><code># Python API
-selected = app.form.gender_radio.get()
-app.form.gender_radio.on_select(lambda val: print(f"Selected: {val}"))</code></pre>
-    </section>
-
-    <footer>
-        <p>NVLib AutoGUI v4.5 • Enhanced with Animations, Cloning & Advanced UI Features</p>
-        <p style="font-size: 0.8rem; margin-top: 5px;">Powered by KivyMD • © 2025 NVLib</p>
-    </footer>
+    </div>
 </main>
+
+<script>
+    // Search Functionality
+    const searchInput = document.getElementById('searchInput');
+    const navLinks = document.getElementById('navLinks').getElementsByTagName('a');
+    const headers = document.querySelectorAll('.header');
+
+    searchInput.addEventListener('keyup', function() {
+        const filter = searchInput.value.toLowerCase();
+        
+        // Filter links
+        for (let i = 0; i < navLinks.length; i++) {
+            const link = navLinks[i];
+            const text = link.textContent || link.innerText;
+            if (text.toLowerCase().indexOf(filter) > -1) {
+                link.style.display = "";
+            } else {
+                link.style.display = "none";
+            }
+        }
+
+        // Hide headers if all their children are hidden
+        if (filter !== "") {
+            headers.forEach(header => header.style.display = "none");
+        } else {
+            headers.forEach(header => header.style.display = "block");
+        }
+    });
+</script>
 
 </body>
 </html>
