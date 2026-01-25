@@ -58,17 +58,7 @@
             cursor: pointer !important;
         }
         
-        .resizer {
-            width: 10px;
-            height: 10px;
-            background: #2563eb;
-            border: 1px solid white;
-            position: absolute;
-            right: -5px;
-            bottom: -5px;
-            cursor: se-resize;
-            z-index: 10;
-        }
+        /* NEW: Component border minimization */
         .component-render-wrapper {
             width: 100%;
             height: 100%;
@@ -77,10 +67,47 @@
             justify-content: center;
             border: none;
             background-color: #fff;
-            padding: 0 8px;
             overflow: hidden;
             box-sizing: border-box;
+            position: relative;
         }
+        
+        /* Minimized borders */
+        .component:not(.panel-type):not(.cardview-type):not(.image-type):not(.progressbar-type):not(.hybrid-base) .component-render-wrapper {
+            border-top: 1px solid #e5e7eb;
+            border-left: 1px solid #e5e7eb;
+            border-right: none;
+            border-bottom: none;
+        }
+        
+        .component.panel-type .component-render-wrapper,
+        .component.cardview-type .component-render-wrapper,
+        .component.image-type .component-render-wrapper,
+        .component.progressbar-type .component-render-wrapper,
+        .component.hybrid-base .component-render-wrapper {
+            border: 1px solid #e5e7eb;
+        }
+        
+        /* Hybrid component styling */
+        .component.hybrid-base {
+            outline: 2px solid #f59e0b !important;
+        }
+        
+        /* Resizer styling */
+        .resizer {
+            width: 12px;
+            height: 12px;
+            background: #2563eb;
+            border: 2px solid white;
+            position: absolute;
+            right: -6px;
+            bottom: -6px;
+            cursor: se-resize;
+            z-index: 10;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
         .id-error {
             background-color: #fee2e2 !important;
             border-color: #ef4444 !important;
@@ -105,7 +132,7 @@
         
         /* --- CONTEXT MENU & NESTED SUBMENUS --- */
         #context-menu {
-            width: 200px;
+            width: 220px;
         }
         /* Allow nesting: submenu appearing to the right of a submenu item */
         .submenu-container {
@@ -122,7 +149,7 @@
             border-radius: 0.375rem;
             padding-top: 0.25rem;
             padding-bottom: 0.25rem;
-            width: 160px;
+            width: 180px;
             z-index: 60;
         }
         .submenu-container:hover > .submenu {
@@ -202,6 +229,97 @@
         }
         #grouping-control { background: #374151; }
         #alignment-control { background: #2563eb; }
+        #attachment-control { background: #8b5cf6; }
+
+        /* --- ATTACHMENT MODE --- */
+        .attachment-mode .component.attachment-base {
+            outline: 3px solid #8b5cf6 !important;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+        .attachment-mode .component.attachment-child {
+            outline: 2px dashed #8b5cf6 !important;
+        }
+        
+        /* --- LAYER TREE VIEW --- */
+        #layer-tree-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .layer-tree-container {
+            background: white;
+            border-radius: 12px;
+            width: 400px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        .layer-tree-header {
+            background: #4f46e5;
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .layer-tree-content {
+            padding: 16px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+        .layer-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+        .layer-item:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+        .layer-item.dragging {
+            opacity: 0.5;
+        }
+        .layer-item.selected {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+        .layer-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e5e7eb;
+            border-radius: 4px;
+            color: #4b5563;
+        }
+        .layer-children {
+            margin-left: 36px;
+            margin-top: 4px;
+            border-left: 2px solid #e5e7eb;
+            padding-left: 12px;
+        }
+        
+        /* --- COMPACT DESIGN MODE --- */
+        .compact-mode .component-render-wrapper {
+            padding: 0 4px;
+        }
+        .compact-mode .component:not(.panel-type):not(.cardview-type):not(.image-type):not(.progressbar-type):not(.hybrid-base) .component-render-wrapper span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -209,7 +327,17 @@
     <div class="flex flex-col h-screen">
         <!-- Header -->
         <header class="bg-white shadow-md p-4 flex justify-between items-center z-20">
-            <h1 class="text-2xl font-bold text-gray-800">NVLib v4</h1>
+            <div class="flex items-center gap-4">
+                <h1 class="text-2xl font-bold text-gray-800">NVLib v4</h1>
+                <button id="layer-tree-btn" class="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 flex items-center gap-2">
+                    <span class="material-symbols-outlined">layers</span>
+                    Layer Tree
+                </button>
+                <button id="compact-mode-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center gap-2">
+                    <span class="material-symbols-outlined">crop</span>
+                    Compact Mode
+                </button>
+            </div>
             <div class="flex items-center space-x-4">
                 <div class="flex items-center space-x-2">
                     <label for="window-title" class="text-sm font-medium">Window Title:</label>
@@ -265,8 +393,9 @@
                     <p class="text-sm text-gray-600 mt-2">
                         1. Select a component and click "Add Component".<br>
                         2. Right-click to <b>Group</b>, <b>Lock</b>, or <b>Align</b>.<br>
-                        3. Use "Align Relative" to snap to other objects.<br>
-                        4. Dragging a grouped component moves all in group.<br>
+                        3. Right-click Panel/CardView/ProgressBar/Image to <b>Attach</b>.<br>
+                        4. CardView can become a hybrid (base + component).<br>
+                        5. Components have minimized top/left borders.<br>
                     </p>
                 </div>
             </aside>
@@ -316,6 +445,13 @@
                     <div id="alignment-control" class="floating-control-bar">
                         <span class="text-sm font-medium">Select component to align to...</span>
                         <button id="cancel-alignment-btn" class="bg-white text-blue-600 hover:bg-gray-100 text-xs px-2 py-1 rounded-full font-bold">Cancel</button>
+                    </div>
+
+                    <!-- Floating Attachment Control -->
+                    <div id="attachment-control" class="floating-control-bar">
+                        <span class="text-sm font-medium">Select components to attach to base...</span>
+                        <button id="finish-attachment-btn" class="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full font-bold">Attach</button>
+                        <button id="cancel-attachment-btn" class="bg-gray-500 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded-full">&times;</button>
                     </div>
 
                     <div id="canvas" class="canvas shadow-lg relative show-locked-outlines" style="width: 800px; height: 600px;">
@@ -375,9 +511,17 @@
             <span class="material-symbols-outlined text-[18px]">grid_off</span> Break Group
         </a>
         
+        <!-- NEW: Attachment Action - ONLY SHOWN FOR BASE COMPONENTS AND HYBRIDS -->
+        <a href="#" id="ctx-attach" data-action="start-attachment" class="hidden px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">layers</span> Attach Components
+        </a>
+        <a href="#" id="ctx-detach" data-action="detach" class="hidden px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">layers_clear</span> Detach from Base
+        </a>
+        
         <div class="border-t my-1"></div>
 
-        <!-- NEW: ALIGN RELATIVE MENU (Nested) -->
+        <!-- ALIGN RELATIVE MENU (Nested) -->
         <div class="submenu-container relative">
             <a href="#" class="flex justify-between items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                 <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">align_horizontal_left</span> Align Relative...</span>
@@ -463,6 +607,24 @@
         </div>
     </div>
 
+    <!-- Layer Tree Modal -->
+    <div id="layer-tree-modal">
+        <div class="layer-tree-container">
+            <div class="layer-tree-header">
+                <h3 class="text-lg font-semibold">Layer Tree View</h3>
+                <button id="close-layer-tree" class="text-white hover:text-gray-200">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="layer-tree-content">
+                <div id="layer-tree-list"></div>
+            </div>
+            <div class="p-4 border-t bg-gray-50">
+                <button id="apply-layer-changes" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('canvas');
@@ -484,6 +646,12 @@
             const fullscreenPreviewBtn = document.getElementById('fullscreen-preview-btn');
             const contextMenu = document.getElementById('context-menu');
             const windowTitleInput = document.getElementById('window-title');
+            const layerTreeBtn = document.getElementById('layer-tree-btn');
+            const layerTreeModal = document.getElementById('layer-tree-modal');
+            const layerTreeList = document.getElementById('layer-tree-list');
+            const closeLayerTree = document.getElementById('close-layer-tree');
+            const applyLayerChanges = document.getElementById('apply-layer-changes');
+            const compactModeBtn = document.getElementById('compact-mode-btn');
             
             // Settings & Helper Variables
             const settingsBtn = document.getElementById('settings-btn');
@@ -508,8 +676,14 @@
             const alignmentControl = document.getElementById('alignment-control');
             const cancelAlignmentBtn = document.getElementById('cancel-alignment-btn');
             
+            // Attachment Variables
+            const attachmentControl = document.getElementById('attachment-control');
+            const finishAttachmentBtn = document.getElementById('finish-attachment-btn');
+            const cancelAttachmentBtn = document.getElementById('cancel-attachment-btn');
+            
             let alignmentHelperEnabled = true;
             const SNAP_THRESHOLD = 5;
+            let isCompactMode = false;
 
             let components = [];
             let selectedComponent = null;
@@ -519,14 +693,64 @@
             // --- STATE (LOCAL ONLY) ---
             const groupMap = new Map(); // Key: componentId, Value: groupId
             const lockedComponents = new Set(); // Value: componentId
+            const attachmentMap = new Map(); // Key: childId, Value: parentId (for z-index attachment)
+            const hybridBases = new Set(); // Value: componentId (components that are both base and child)
             let tempGroupSelection = new Set(); // Used during selection mode
+            let tempAttachmentSelection = new Set(); // Used during attachment mode
             let isGroupingMode = false;
+            let isAttachmentMode = false;
+            let attachmentBaseId = null;
             let groupIdCounter = 0;
             
             // --- ALIGNMENT MODE STATE ---
             let isAlignmentMode = false;
             let alignSourceId = null;
             let pendingAlignmentType = null;
+
+            // Define which components can be bases
+            const BASE_COMPONENTS = ['Panel', 'CardView', 'ProgressBar', 'Image'];
+            
+            // Define which components can be children (all except bases)
+            const CHILD_COMPONENTS = ['Button', 'Label', 'TextBox', 'TextArea', 'Checkbox', 
+                                      'RadioGroup', 'Dropdown', 'Slider', 'Spinner', 'ToggleButton'];
+            
+            // Define which components can become hybrids (CardView only)
+            const HYBRID_COMPONENTS = ['CardView'];
+
+            // Fix: Close context menu when clicking anywhere else
+            document.addEventListener('click', (e) => {
+                if (!contextMenu.contains(e.target) && !e.target.closest('[data-action]')) {
+                    contextMenu.classList.add('hidden');
+                }
+                if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+                    settingsMenu.classList.add('hidden');
+                }
+                if (!marginToolPopup.contains(e.target) && e.target.dataset.action !== 'smart-border' && e.target.tagName !== 'INPUT') {
+                   if(e.target === canvas) marginToolPopup.style.display = 'none';
+                }
+            });
+
+            // Also close on touch events for mobile
+            document.addEventListener('touchstart', (e) => {
+                if (!contextMenu.contains(e.target) && !e.target.closest('[data-action]')) {
+                    contextMenu.classList.add('hidden');
+                }
+            });
+
+            // Toggle Compact Mode
+            compactModeBtn.addEventListener('click', () => {
+                isCompactMode = !isCompactMode;
+                if (isCompactMode) {
+                    canvas.classList.add('compact-mode');
+                    compactModeBtn.classList.add('bg-indigo-500', 'text-white');
+                    compactModeBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                } else {
+                    canvas.classList.remove('compact-mode');
+                    compactModeBtn.classList.remove('bg-indigo-500', 'text-white');
+                    compactModeBtn.classList.add('bg-gray-200', 'text-gray-700');
+                }
+                renderAllComponents();
+            });
 
             // Toggle Settings Menu
             settingsBtn.addEventListener('click', (e) => {
@@ -548,23 +772,13 @@
                 }
             });
 
-            // Close menu when clicking elsewhere
-            document.addEventListener('click', (e) => {
-                if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) {
-                    settingsMenu.classList.add('hidden');
-                }
-                if (!marginToolPopup.contains(e.target) && e.target.dataset.action !== 'smart-border' && e.target.tagName !== 'INPUT') {
-                   if(e.target === canvas) marginToolPopup.style.display = 'none';
-                }
-            });
-
             const getComponentDefaults = (type) => {
                 const base = { textColor: '#000000', fontSize: 14, bold: false };
                 const textBase = { ...base, text: type };
-                const placeholderImg = 'data:image/svg+xml;base64,...';
+                const placeholderImg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2U1ZTVlNSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCI+RW1wdHkgSW1hZ2U8L3RleHQ+PC9zdmc+';
                 
                 switch (type) {
-                    case 'Button': return { ...textBase, backgroundColor: '#ffffff', cornerRadius: 4 };
+                    case 'Button': return { ...textBase, backgroundColor: '#f3f4f6', cornerRadius: 4 };
                     case 'Label': return { ...textBase, iconName: '' };
                     case 'TextBox': return { text: '', hintText: 'Enter text...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
                     case 'TextArea': return { text: '', hintText: 'Enter text...', hintColor: '#9ca3af', backgroundColor: '#ffffff', ...base };
@@ -621,14 +835,32 @@
             }
 
             function renderAllComponents() {
-                components.sort((a, b) => a.zIndex - b.zIndex);
+                // Sort by zIndex but respect attachment hierarchy
+                const sortedComponents = [...components];
+                sortedComponents.sort((a, b) => {
+                    // If attached to same parent, sort by their own zIndex
+                    const aParent = attachmentMap.get(a.id);
+                    const bParent = attachmentMap.get(b.id);
+                    
+                    if (aParent === bParent) {
+                        return a.zIndex - b.zIndex;
+                    }
+                    
+                    // If one is parent of another, parent should be lower
+                    if (aParent === b.id) return 1;
+                    if (bParent === a.id) return -1;
+                    
+                    // Otherwise sort normally
+                    return a.zIndex - b.zIndex;
+                });
                 
                 const preservedElements = [
                     document.getElementById('guide-x'),
                     document.getElementById('guide-y'),
                     document.getElementById('margin-tool-popup'),
                     document.getElementById('grouping-control'),
-                    document.getElementById('alignment-control')
+                    document.getElementById('alignment-control'),
+                    document.getElementById('attachment-control')
                 ];
                 
                 canvas.innerHTML = '';
@@ -636,7 +868,7 @@
                     if(el) canvas.appendChild(el);
                 });
 
-                components.forEach(comp => renderComponent(comp, true));
+                sortedComponents.forEach(comp => renderComponent(comp, true));
             }
 
             function renderComponent(comp, isBatchRender = false) {
@@ -645,6 +877,18 @@
                     el = document.createElement('div');
                     el.id = comp.id;
                     el.className = 'component';
+                    
+                    // Add type-specific classes for border styling
+                    if (comp.type === 'Panel') el.classList.add('panel-type');
+                    if (comp.type === 'CardView') el.classList.add('cardview-type');
+                    if (comp.type === 'Image') el.classList.add('image-type');
+                    if (comp.type === 'ProgressBar') el.classList.add('progressbar-type');
+                    
+                    // Check if component is a hybrid
+                    if (hybridBases.has(comp.id)) {
+                        el.classList.add('hybrid-base');
+                    }
+                    
                     canvas.appendChild(el);
                     
                     const resizer = document.createElement('div');
@@ -668,6 +912,36 @@
                             return;
                         }
                         
+                        // If in attachment mode, handle selection
+                        if (isAttachmentMode) {
+                            if (!attachmentBaseId) {
+                                // First click selects the base
+                                attachmentBaseId = comp.id;
+                                el.classList.add('attachment-base');
+                                attachmentControl.querySelector('span').textContent = `Base selected. Select children to attach...`;
+                            } else if (attachmentBaseId === comp.id) {
+                                // Clicking base again deselects it
+                                attachmentBaseId = null;
+                                el.classList.remove('attachment-base');
+                                attachmentControl.querySelector('span').textContent = `Select components to attach to base...`;
+                                tempAttachmentSelection.clear();
+                            } else {
+                                // Select children based on attachment rules
+                                if (canAttachAsChild(comp.id, attachmentBaseId)) {
+                                    if (tempAttachmentSelection.has(comp.id)) {
+                                        tempAttachmentSelection.delete(comp.id);
+                                        el.classList.remove('attachment-child');
+                                    } else {
+                                        tempAttachmentSelection.add(comp.id);
+                                        el.classList.add('attachment-child');
+                                    }
+                                } else {
+                                    alert(getAttachmentErrorMessage(comp.id, attachmentBaseId));
+                                }
+                            }
+                            return;
+                        }
+                        
                         // If in alignment mode, perform alignment
                         if (isAlignmentMode) {
                             performAlignment(comp.id);
@@ -681,7 +955,7 @@
                         e.preventDefault();
                         e.stopPropagation();
                         // Don't open context menu if in special modes
-                        if (isGroupingMode || isAlignmentMode) return;
+                        if (isGroupingMode || isAlignmentMode || isAttachmentMode) return;
                         
                         contextComponentId = comp.id;
                         contextMenu.style.top = `${e.clientY}px`;
@@ -690,12 +964,22 @@
                         // Update Context Menu Items based on state
                         const isLocked = lockedComponents.has(comp.id);
                         const isGrouped = groupMap.has(comp.id);
+                        const hasParent = attachmentMap.has(comp.id);
+                        const isHybrid = hybridBases.has(comp.id);
+                        const canBeBase = BASE_COMPONENTS.includes(comp.type);
+                        const canShowAttach = (canBeBase || isHybrid) && !hasParent;
                         
                         document.getElementById('ctx-lock').classList.toggle('hidden', isLocked);
                         document.getElementById('ctx-unlock').classList.toggle('hidden', !isLocked);
                         
                         document.getElementById('ctx-group').classList.toggle('hidden', isGrouped);
                         document.getElementById('ctx-ungroup').classList.toggle('hidden', !isGrouped);
+                        
+                        // Show "Attach Components" for base-compatible components and hybrids
+                        document.getElementById('ctx-attach').classList.toggle('hidden', !canShowAttach);
+                        
+                        // Show "Detach from Base" for child components (including hybrids)
+                        document.getElementById('ctx-detach').classList.toggle('hidden', !hasParent);
 
                         contextMenu.classList.remove('hidden');
                         selectComponent(comp.id);
@@ -713,6 +997,23 @@
                 
                 if (isAlignmentMode && comp.id !== alignSourceId) el.classList.add('align-target-selectable');
                 else el.classList.remove('align-target-selectable');
+                
+                if (isAttachmentMode) {
+                    if (attachmentBaseId === comp.id) el.classList.add('attachment-base');
+                    else if (tempAttachmentSelection.has(comp.id)) el.classList.add('attachment-child');
+                    else {
+                        el.classList.remove('attachment-base', 'attachment-child');
+                    }
+                } else {
+                    el.classList.remove('attachment-base', 'attachment-child');
+                }
+
+                // Update hybrid status
+                if (hybridBases.has(comp.id)) {
+                    el.classList.add('hybrid-base');
+                } else {
+                    el.classList.remove('hybrid-base');
+                }
 
                 el.style.left = `${comp.x}px`;
                 el.style.top = `${comp.y}px`;
@@ -726,6 +1027,61 @@
                 if (selectedComponent && selectedComponent.id === comp.id) {
                     el.classList.add('selected');
                 }
+            }
+
+            function canAttachAsChild(childId, parentId) {
+                const childComp = components.find(c => c.id === childId);
+                const parentComp = components.find(c => c.id === parentId);
+                
+                if (!childComp || !parentComp) return false;
+                
+                // Rule 1: Panel can attach CardView as child (CardView becomes hybrid)
+                if (parentComp.type === 'Panel' && childComp.type === 'CardView') {
+                    return true;
+                }
+                
+                // Rule 2: CardView (hybrid or base) can attach regular children
+                if ((parentComp.type === 'CardView' || hybridBases.has(parentId)) && 
+                    (CHILD_COMPONENTS.includes(childComp.type) || childComp.type === 'CardView')) {
+                    // CardView can attach another CardView as child (nested CardViews)
+                    return true;
+                }
+                
+                // Rule 3: Other bases (ProgressBar, Image) can only attach regular children
+                if (BASE_COMPONENTS.includes(parentComp.type) && CHILD_COMPONENTS.includes(childComp.type)) {
+                    return true;
+                }
+                
+                // Rule 4: Hybrid CardViews can attach regular children
+                if (hybridBases.has(parentId) && CHILD_COMPONENTS.includes(childComp.type)) {
+                    return true;
+                }
+                
+                return false;
+            }
+
+            function getAttachmentErrorMessage(childId, parentId) {
+                const childComp = components.find(c => c.id === childId);
+                const parentComp = components.find(c => c.id === parentId);
+                
+                if (!childComp || !parentComp) return "Invalid components.";
+                
+                // Panel cannot be attached as child to anything
+                if (childComp.type === 'Panel') {
+                    return "Panel cannot be attached as a child component. Panel can only be a base.";
+                }
+                
+                // ProgressBar and Image can only be bases, not children
+                if (childComp.type === 'ProgressBar' || childComp.type === 'Image') {
+                    return `${childComp.type} can only be a base, not a child component.`;
+                }
+                
+                // CardView attached to Panel becomes hybrid
+                if (parentComp.type === 'Panel' && childComp.type === 'CardView') {
+                    return "CardView can be attached to Panel and will become a hybrid (base + component).";
+                }
+                
+                return `Cannot attach ${childComp.type} as child of ${parentComp.type}.`;
             }
 
             function getComponentHTML(comp) {
@@ -810,19 +1166,46 @@
 
             deleteComponentBtn.addEventListener('click', () => {
                 if (!selectedComponent) return;
-                document.getElementById(selectedComponent.id)?.remove();
-                components = components.filter(c => c.id !== selectedComponent.id);
-                // Clean up state
-                lockedComponents.delete(selectedComponent.id);
-                groupMap.delete(selectedComponent.id);
+                
+                // Get group ID if component is grouped
+                const groupId = groupMap.get(selectedComponent.id);
+                
+                if (groupId !== undefined) {
+                    // Find all components in the same group
+                    const componentsToDelete = [];
+                    groupMap.forEach((gId, cId) => {
+                        if (gId === groupId) {
+                            componentsToDelete.push(cId);
+                        }
+                    });
+                    
+                    // Delete all components in the group
+                    componentsToDelete.forEach(id => {
+                        document.getElementById(id)?.remove();
+                        components = components.filter(c => c.id !== id);
+                        lockedComponents.delete(id);
+                        groupMap.delete(id);
+                        attachmentMap.delete(id);
+                        hybridBases.delete(id);
+                    });
+                } else {
+                    // Delete single component
+                    document.getElementById(selectedComponent.id)?.remove();
+                    components = components.filter(c => c.id !== selectedComponent.id);
+                    lockedComponents.delete(selectedComponent.id);
+                    groupMap.delete(selectedComponent.id);
+                    attachmentMap.delete(selectedComponent.id);
+                    hybridBases.delete(selectedComponent.id);
+                }
                 
                 selectedComponent = null;
                 propertyEditor.classList.add('hidden');
+                renderAllComponents();
             });
 
             function selectComponent(id) {
                 // If in special modes, don't change main selection or open property editor
-                if (isGroupingMode || isAlignmentMode) return;
+                if (isGroupingMode || isAlignmentMode || isAttachmentMode) return;
 
                 selectedComponent = components.find(c => c.id === id) || null;
                 document.querySelectorAll('.component').forEach(el => el.classList.remove('selected'));
@@ -836,12 +1219,11 @@
             }
 
             canvas.addEventListener('click', () => {
-                if (!isGroupingMode && !isAlignmentMode) selectComponent(null);
+                if (!isGroupingMode && !isAlignmentMode && !isAttachmentMode) selectComponent(null);
             });
 
             function populatePropertyEditor(component) {
                 propertiesForm.innerHTML = '';
-                // ... (Same property editor code as before) ...
                 const addField = (parent, type, label, value, key, options = {}) => {
                     const div = document.createElement('div');
                     const labelEl = document.createElement('label');
@@ -959,6 +1341,21 @@
                         groupMap.delete(id);
                         groupMap.set(value, grp);
                     }
+                    if (attachmentMap.has(id)) {
+                        const parent = attachmentMap.get(id);
+                        attachmentMap.delete(id);
+                        attachmentMap.set(value, parent);
+                    }
+                    if (hybridBases.has(id)) {
+                        hybridBases.delete(id);
+                        hybridBases.add(value);
+                    }
+                    // Update children references
+                    attachmentMap.forEach((parent, child) => {
+                        if (parent === id) {
+                            attachmentMap.set(child, value);
+                        }
+                    });
 
                     if(selectedComponent && selectedComponent.id === id) selectedComponent.id = value;
                     return;
@@ -981,7 +1378,6 @@
 
             // --- ALIGNMENT HELPER LOGIC (Snapping) ---
             function getSnapCoordinates(activeId, x, y, w, h) {
-                // ... (Snap logic same as before)
                 let snapX = null;
                 let snapY = null;
                 
@@ -1027,7 +1423,7 @@
                     // Prevent drag if resizer or locked
                     if (e.target.classList.contains('resizer')) return;
                     if (lockedComponents.has(element.id)) return; 
-                    if (isGroupingMode || isAlignmentMode) return; 
+                    if (isGroupingMode || isAlignmentMode || isAttachmentMode) return; 
 
                     e.preventDefault();
                     pos3 = e.clientX;
@@ -1125,25 +1521,26 @@
                     e.stopPropagation();
                     window.addEventListener('mousemove', resize);
                     window.addEventListener('mouseup', stopResize);
-                });
-                // ... (Resize logic same as before) ...
-                function resize(e) {
-                    let newWidth = (e.clientX - element.getBoundingClientRect().left);
-                    let newHeight = (e.clientY - element.getBoundingClientRect().top);
-                    if (newWidth < 20) newWidth = 20;
-                    if (newHeight < 20) newHeight = 20;
-                    element.style.width = `${newWidth}px`;
-                    element.style.height = `${newHeight}px`;
-                }
-                function stopResize() {
-                    window.removeEventListener('mousemove', resize);
-                    window.removeEventListener('mouseup', stopResize);
-                    const component = components.find(c => c.id === element.id);
-                    if (component) {
-                        component.width = element.offsetWidth;
-                        component.height = element.offsetHeight;
+                    
+                    function resize(e) {
+                        let newWidth = (e.clientX - element.getBoundingClientRect().left);
+                        let newHeight = (e.clientY - element.getBoundingClientRect().top);
+                        if (newWidth < 20) newWidth = 20;
+                        if (newHeight < 20) newHeight = 20;
+                        element.style.width = `${newWidth}px`;
+                        element.style.height = `${newHeight}px`;
                     }
-                }
+                    
+                    function stopResize() {
+                        window.removeEventListener('mousemove', resize);
+                        window.removeEventListener('mouseup', stopResize);
+                        const component = components.find(c => c.id === element.id);
+                        if (component) {
+                            component.width = element.offsetWidth;
+                            component.height = element.offsetHeight;
+                        }
+                    }
+                });
             }
             
             // --- CONTEXT MENU ACTIONS ---
@@ -1173,7 +1570,6 @@
                     case 'send-backward':
                     case 'bring-to-front':
                     case 'send-to-back':
-                        // ... (Z-Index logic reused)
                         const sorted = [...components].sort((a,b) => a.zIndex - b.zIndex);
                         const idx = sorted.findIndex(c => c.id === contextComponentId);
                         if(action === 'bring-forward' && idx < sorted.length - 1) [clickedComp.zIndex, sorted[idx+1].zIndex] = [sorted[idx+1].zIndex, clickedComp.zIndex];
@@ -1232,6 +1628,19 @@
                             const toRemove = [];
                             groupMap.forEach((v, k) => { if(v === grpId) toRemove.push(k); });
                             toRemove.forEach(k => groupMap.delete(k));
+                        }
+                        break;
+                        
+                    case 'start-attachment':
+                        if (BASE_COMPONENTS.includes(clickedComp.type) || hybridBases.has(contextComponentId)) {
+                            startAttachmentMode(contextComponentId);
+                        }
+                        break;
+                    case 'detach':
+                        attachmentMap.delete(contextComponentId);
+                        // If detaching a CardView from Panel, remove hybrid status
+                        if (hybridBases.has(contextComponentId) && clickedComp.type === 'CardView') {
+                            hybridBases.delete(contextComponentId);
                         }
                         break;
                 }
@@ -1324,6 +1733,57 @@
                 exitAlignmentMode();
             }
 
+            // --- ATTACHMENT MODE LOGIC ---
+            function startAttachmentMode(baseId) {
+                isAttachmentMode = true;
+                attachmentBaseId = baseId;
+                tempAttachmentSelection.clear();
+                
+                // Show controls
+                attachmentControl.style.display = 'flex';
+                propertyEditor.classList.add('hidden');
+                canvas.classList.add('attachment-mode');
+                
+                // Visual update for the base
+                document.getElementById(baseId)?.classList.add('attachment-base');
+            }
+
+            finishAttachmentBtn.addEventListener('click', () => {
+                if (attachmentBaseId && tempAttachmentSelection.size > 0) {
+                    tempAttachmentSelection.forEach(childId => {
+                        attachmentMap.set(childId, attachmentBaseId);
+                        // Ensure child zIndex is greater than parent
+                        const parent = components.find(c => c.id === attachmentBaseId);
+                        const child = components.find(c => c.id === childId);
+                        if (parent && child && child.zIndex <= parent.zIndex) {
+                            child.zIndex = parent.zIndex + 1;
+                        }
+                        
+                        // If CardView is attached to Panel, it becomes a hybrid
+                        if (parent.type === 'Panel' && child.type === 'CardView') {
+                            hybridBases.add(childId);
+                        }
+                        
+                        // If a component is attached to a hybrid CardView, the hybrid remains
+                        if (hybridBases.has(attachmentBaseId) && CHILD_COMPONENTS.includes(child.type)) {
+                            // Hybrid CardView can have children
+                        }
+                    });
+                }
+                exitAttachmentMode();
+            });
+
+            cancelAttachmentBtn.addEventListener('click', exitAttachmentMode);
+
+            function exitAttachmentMode() {
+                isAttachmentMode = false;
+                attachmentBaseId = null;
+                tempAttachmentSelection.clear();
+                attachmentControl.style.display = 'none';
+                canvas.classList.remove('attachment-mode');
+                renderAllComponents();
+            }
+
             // --- GROUPING FUNCTIONS ---
             function startGroupingMode(initialId) {
                 isGroupingMode = true;
@@ -1364,6 +1824,193 @@
                 groupingControl.style.display = 'none';
             }
 
+            // --- LAYER TREE VIEW ---
+            layerTreeBtn.addEventListener('click', () => {
+                renderLayerTree();
+                layerTreeModal.style.display = 'flex';
+            });
+
+            closeLayerTree.addEventListener('click', () => {
+                layerTreeModal.style.display = 'none';
+            });
+
+            applyLayerChanges.addEventListener('click', () => {
+                // Apply z-index changes from drag and drop
+                const layerItems = layerTreeList.querySelectorAll('.layer-item');
+                layerItems.forEach((item, index) => {
+                    const compId = item.dataset.id;
+                    const comp = components.find(c => c.id === compId);
+                    if (comp) {
+                        comp.zIndex = index;
+                    }
+                });
+                reorderZIndexes();
+                layerTreeModal.style.display = 'none';
+            });
+
+            function renderLayerTree() {
+                layerTreeList.innerHTML = '';
+                
+                // Create a map of parent to children
+                const childrenMap = new Map();
+                components.forEach(comp => {
+                    const parentId = attachmentMap.get(comp.id);
+                    if (parentId) {
+                        if (!childrenMap.has(parentId)) {
+                            childrenMap.set(parentId, []);
+                        }
+                        childrenMap.get(parentId).push(comp);
+                    }
+                });
+                
+                // Find root components (no parent or parent not in components)
+                const roots = components.filter(comp => {
+                    const parentId = attachmentMap.get(comp.id);
+                    return !parentId || !components.find(c => c.id === parentId);
+                });
+                
+                // Sort roots by zIndex
+                roots.sort((a, b) => a.zIndex - b.zIndex);
+                
+                roots.forEach(root => {
+                    renderLayerItem(root, childrenMap, 0);
+                });
+                
+                // Make items draggable
+                makeLayerItemsDraggable();
+            }
+
+            function renderLayerItem(component, childrenMap, level) {
+                const item = document.createElement('div');
+                item.className = 'layer-item';
+                item.dataset.id = component.id;
+                item.style.marginLeft = `${level * 20}px`;
+                
+                // Icon based on component type
+                let icon = 'widgets';
+                if (component.type === 'Button') icon = 'smart_button';
+                else if (component.type === 'Label') icon = 'label';
+                else if (component.type === 'TextBox') icon = 'text_fields';
+                else if (component.type === 'TextArea') icon = 'notes';
+                else if (component.type === 'Checkbox') icon = 'check_box';
+                else if (component.type === 'RadioGroup') icon = 'radio_button_checked';
+                else if (component.type === 'Dropdown') icon = 'arrow_drop_down_circle';
+                else if (component.type === 'Slider') icon = 'tune';
+                else if (component.type === 'Panel') icon = 'dashboard';
+                else if (component.type === 'ProgressBar') icon = 'linear_scale';
+                else if (component.type === 'Spinner') icon = 'refresh';
+                else if (component.type === 'CardView') icon = 'dashboard';
+                else if (component.type === 'ToggleButton') icon = 'toggle_on';
+                else if (component.type === 'Image') icon = 'image';
+                
+                // Show indicators
+                let indicators = '';
+                if (BASE_COMPONENTS.includes(component.type)) {
+                    indicators += ' (Base)';
+                }
+                if (hybridBases.has(component.id)) {
+                    indicators += ' (Hybrid)';
+                }
+                if (attachmentMap.has(component.id)) {
+                    indicators += ' (Child)';
+                }
+                
+                item.innerHTML = `
+                    <div class="layer-icon">
+                        <span class="material-symbols-outlined text-[16px]">${icon}</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-sm">${component.id}${indicators}</div>
+                        <div class="text-xs text-gray-500">${component.type}</div>
+                    </div>
+                    <div class="text-xs text-gray-400">z:${component.zIndex}</div>
+                `;
+                
+                layerTreeList.appendChild(item);
+                
+                // Add click handler
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('.layer-item').classList.contains('dragging')) {
+                        layerTreeList.querySelectorAll('.layer-item').forEach(el => el.classList.remove('selected'));
+                        item.classList.add('selected');
+                        selectComponent(component.id);
+                    }
+                });
+                
+                // Render children
+                const children = childrenMap.get(component.id) || [];
+                children.sort((a, b) => a.zIndex - b.zIndex);
+                
+                if (children.length > 0) {
+                    const childrenContainer = document.createElement('div');
+                    childrenContainer.className = 'layer-children';
+                    children.forEach(child => {
+                        renderLayerItem(child, childrenMap, level + 1);
+                    });
+                }
+            }
+
+            function makeLayerItemsDraggable() {
+                let draggedItem = null;
+                
+                layerTreeList.querySelectorAll('.layer-item').forEach(item => {
+                    item.setAttribute('draggable', 'true');
+                    
+                    item.addEventListener('dragstart', (e) => {
+                        draggedItem = item;
+                        setTimeout(() => {
+                            item.classList.add('dragging');
+                        }, 0);
+                    });
+                    
+                    item.addEventListener('dragend', () => {
+                        draggedItem.classList.remove('dragging');
+                        draggedItem = null;
+                        layerTreeList.querySelectorAll('.layer-item').forEach(el => {
+                            el.classList.remove('drag-over');
+                        });
+                    });
+                    
+                    item.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        const afterElement = getDragAfterElement(layerTreeList, e.clientY);
+                        layerTreeList.querySelectorAll('.layer-item').forEach(el => {
+                            el.classList.remove('drag-over');
+                        });
+                        if (afterElement) {
+                            afterElement.classList.add('drag-over');
+                        }
+                    });
+                    
+                    item.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        if (draggedItem && draggedItem !== item) {
+                            const afterElement = getDragAfterElement(layerTreeList, e.clientY);
+                            if (afterElement) {
+                                layerTreeList.insertBefore(draggedItem, afterElement);
+                            } else {
+                                layerTreeList.appendChild(draggedItem);
+                            }
+                        }
+                    });
+                });
+            }
+
+            function getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('.layer-item:not(.dragging)')];
+                
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+
             // --- MARGIN TOOL LOGIC ---
             closeMarginTool.addEventListener('click', () => { marginToolPopup.style.display = 'none'; });
             marginSlider.addEventListener('input', (e) => {
@@ -1381,7 +2028,6 @@
             });
 
             function duplicateComponent(id) {
-                // ... (Duplicate logic same as before) ...
                 const originalComp = components.find(c => c.id === id);
                 if (!originalComp) return;
                 const newComp = JSON.parse(JSON.stringify(originalComp));
@@ -1389,12 +2035,48 @@
                 let newId = `${originalComp.id}_copy_${copyCount}`;
                 while (components.some(c => c.id === newId)) { copyCount++; newId = `${originalComp.id}_copy_${copyCount}`; }
                 newComp.id = newId; newComp.x += 10; newComp.y += 10; newComp.zIndex = components.length;
+                
+                // If original has children, duplicate them too
+                const originalChildren = [];
+                attachmentMap.forEach((parent, child) => {
+                    if (parent === id) {
+                        originalChildren.push(child);
+                    }
+                });
+                
                 components.push(newComp);
+                
+                // Duplicate children and maintain attachment
+                originalChildren.forEach(childId => {
+                    const childComp = components.find(c => c.id === childId);
+                    if (childComp) {
+                        const newChild = JSON.parse(JSON.stringify(childComp));
+                        copyCount = 1;
+                        let newChildId = `${childComp.id}_copy_${copyCount}`;
+                        while (components.some(c => c.id === newChildId)) { copyCount++; newChildId = `${childComp.id}_copy_${copyCount}`; }
+                        newChild.id = newChildId; 
+                        newChild.x += 10; newChild.y += 10; 
+                        newChild.zIndex = components.length;
+                        components.push(newChild);
+                        attachmentMap.set(newChildId, newId);
+                        
+                        // Preserve hybrid status
+                        if (hybridBases.has(childId)) {
+                            hybridBases.add(newChildId);
+                        }
+                    }
+                });
+                
+                // Preserve hybrid status
+                if (hybridBases.has(id)) {
+                    hybridBases.add(newId);
+                }
+                
                 renderAllComponents();
                 selectComponent(newId);
             }
 
-            // ... (Live Preview, Save/Load JSON Logic - same as before) ...
+            // ... (Live Preview, Save/Load JSON Logic - same as before, but with hybrid support) ...
             function openPreview() {
                 previewCanvas.innerHTML = '';
                 previewCanvas.style.width = canvas.style.width;
@@ -1406,7 +2088,10 @@
                 dynamicStyles.id = 'dynamic-preview-styles';
                 document.head.appendChild(dynamicStyles);
 
-                components.forEach(comp => {
+                // Sort components by zIndex for proper rendering
+                const sortedComponents = [...components].sort((a, b) => a.zIndex - b.zIndex);
+                
+                sortedComponents.forEach(comp => {
                     const p = comp.properties;
                     const elWrapper = document.createElement('div');
                     elWrapper.className = 'preview-component';
@@ -1414,6 +2099,7 @@
                     elWrapper.style.top = `${comp.y}px`;
                     elWrapper.style.width = `${comp.width}px`;
                     elWrapper.style.height = `${comp.height}px`;
+                    elWrapper.style.zIndex = comp.zIndex;
 
                     let el;
                     switch(comp.type) {
@@ -1625,6 +2311,7 @@
             });
 
             saveJsonBtn.addEventListener('click', () => {
+                // Sort components by zIndex
                 const sortedComponents = [...components].sort((a,b) => a.zIndex - b.zIndex);
                 const layout = {
                     canvas: { 
@@ -1632,7 +2319,11 @@
                         height: canvas.offsetHeight,
                         title: windowTitleInput.value
                     },
-                    components: sortedComponents
+                    components: sortedComponents,
+                    groups: Array.from(groupMap.entries()),
+                    attachments: Array.from(attachmentMap.entries()),
+                    locked: Array.from(lockedComponents),
+                    hybrids: Array.from(hybridBases)
                 };
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(layout, null, 2));
                 const a = document.createElement('a');
@@ -1671,12 +2362,43 @@
                 canvas.appendChild(marginToolPopup);
                 canvas.appendChild(groupingControl);
                 canvas.appendChild(alignmentControl);
+                canvas.appendChild(attachmentControl);
                 
                 // Clear local states on load
                 groupMap.clear();
                 lockedComponents.clear();
+                attachmentMap.clear();
+                hybridBases.clear();
                 
                 components = layout.components;
+
+                // Restore groups
+                if (layout.groups) {
+                    layout.groups.forEach(([compId, groupId]) => {
+                        groupMap.set(compId, groupId);
+                    });
+                }
+                
+                // Restore attachments
+                if (layout.attachments) {
+                    layout.attachments.forEach(([childId, parentId]) => {
+                        attachmentMap.set(childId, parentId);
+                    });
+                }
+                
+                // Restore locked components
+                if (layout.locked) {
+                    layout.locked.forEach(compId => {
+                        lockedComponents.add(compId);
+                    });
+                }
+                
+                // Restore hybrids
+                if (layout.hybrids) {
+                    layout.hybrids.forEach(compId => {
+                        hybridBases.add(compId);
+                    });
+                }
 
                 const idSet = new Set();
                 const duplicateIds = new Set();
