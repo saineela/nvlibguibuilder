@@ -2030,49 +2030,194 @@
             function duplicateComponent(id) {
                 const originalComp = components.find(c => c.id === id);
                 if (!originalComp) return;
-                const newComp = JSON.parse(JSON.stringify(originalComp));
-                let copyCount = 1;
-                let newId = `${originalComp.id}_copy_${copyCount}`;
-                while (components.some(c => c.id === newId)) { copyCount++; newId = `${originalComp.id}_copy_${copyCount}`; }
-                newComp.id = newId; newComp.x += 10; newComp.y += 10; newComp.zIndex = components.length;
                 
-                // If original has children, duplicate them too
-                const originalChildren = [];
-                attachmentMap.forEach((parent, child) => {
-                    if (parent === id) {
-                        originalChildren.push(child);
-                    }
-                });
+                // Check if component is in a group
+                const originalGroupId = groupMap.get(id);
                 
-                components.push(newComp);
-                
-                // Duplicate children and maintain attachment
-                originalChildren.forEach(childId => {
-                    const childComp = components.find(c => c.id === childId);
-                    if (childComp) {
-                        const newChild = JSON.parse(JSON.stringify(childComp));
-                        copyCount = 1;
-                        let newChildId = `${childComp.id}_copy_${copyCount}`;
-                        while (components.some(c => c.id === newChildId)) { copyCount++; newChildId = `${childComp.id}_copy_${copyCount}`; }
-                        newChild.id = newChildId; 
-                        newChild.x += 10; newChild.y += 10; 
-                        newChild.zIndex = components.length;
-                        components.push(newChild);
-                        attachmentMap.set(newChildId, newId);
+                if (originalGroupId !== undefined) {
+                    // Find all components in the same group
+                    const groupMembers = [];
+                    groupMap.forEach((groupId, compId) => {
+                        if (groupId === originalGroupId) {
+                            groupMembers.push(compId);
+                        }
+                    });
+                    
+                    // Create a new group ID for the duplicated group
+                    const newGroupId = groupIdCounter++;
+                    
+                    // Map to track old IDs to new IDs for maintaining attachments
+                    const idMap = new Map();
+                    
+                    // Duplicate each member of the group
+                    groupMembers.forEach(oldId => {
+                        const originalMember = components.find(c => c.id === oldId);
+                        if (!originalMember) return;
+                        
+                        const newMember = JSON.parse(JSON.stringify(originalMember));
+                        let copyCount = 1;
+                        let newId = `${originalMember.id}_copy_${copyCount}`;
+                        while (components.some(c => c.id === newId)) { 
+                            copyCount++; 
+                            newId = `${originalMember.id}_copy_${copyCount}`; 
+                        }
+                        
+                        newMember.id = newId; 
+                        newMember.x += 10; 
+                        newMember.y += 10; 
+                        newMember.zIndex = components.length;
+                        
+                        // Store the mapping from old ID to new ID
+                        idMap.set(oldId, newId);
+                        
+                        // Add to components array
+                        components.push(newMember);
+                        
+                        // Add to the new group
+                        groupMap.set(newId, newGroupId);
                         
                         // Preserve hybrid status
-                        if (hybridBases.has(childId)) {
-                            hybridBases.add(newChildId);
+                        if (hybridBases.has(oldId)) {
+                            hybridBases.add(newId);
                         }
+                        
+                        // Preserve locked status
+                        if (lockedComponents.has(oldId)) {
+                            lockedComponents.add(newId);
+                        }
+                    });
+                    
+                    // Now handle attachments for the duplicated group
+                    groupMembers.forEach(oldId => {
+                        const newId = idMap.get(oldId);
+                        if (!newId) return;
+                        
+                        // Check if the original had a parent attachment
+                        const originalParentId = attachmentMap.get(oldId);
+                        if (originalParentId) {
+                            // If the parent is also in the duplicated group, use the new parent ID
+                            const newParentId = idMap.get(originalParentId);
+                            if (newParentId) {
+                                attachmentMap.set(newId, newParentId);
+                            } else {
+                                // Parent is outside the group - keep same parent
+                                attachmentMap.set(newId, originalParentId);
+                            }
+                        }
+                        
+                        // Find children of this component (could be inside or outside the group)
+                        attachmentMap.forEach((parent, child) => {
+                            if (parent === oldId) {
+                                // If child is in the duplicated group, update to new parent
+                                const newChildId = idMap.get(child);
+                                if (newChildId) {
+                                    attachmentMap.set(newChildId, newId);
+                                } else {
+                                    // Child is outside the group - keep original relationship
+                                    // (This might not be ideal, but maintains consistency)
+                                }
+                            }
+                        });
+                    });
+                    
+                } else {
+                    // Single component duplication (existing code with some improvements)
+                    const newComp = JSON.parse(JSON.stringify(originalComp));
+                    let copyCount = 1;
+                    let newId = `${originalComp.id}_copy_${copyCount}`;
+                    while (components.some(c => c.id === newId)) { 
+                        copyCount++; 
+                        newId = `${originalComp.id}_copy_${copyCount}`; 
                     }
-                });
-                
-                // Preserve hybrid status
-                if (hybridBases.has(id)) {
-                    hybridBases.add(newId);
+                    
+                    newComp.id = newId; 
+                    newComp.x += 10; 
+                    newComp.y += 10; 
+                    newComp.zIndex = components.length;
+                    
+                    // If original has children, duplicate them too
+                    const originalChildren = [];
+                    attachmentMap.forEach((parent, child) => {
+                        if (parent === id) {
+                            originalChildren.push(child);
+                        }
+                    });
+                    
+                    components.push(newComp);
+                    
+                    // Preserve group membership if any
+                    const groupId = groupMap.get(id);
+                    if (groupId !== undefined) {
+                        groupMap.set(newId, groupId);
+                    }
+                    
+                    // Preserve locked status
+                    if (lockedComponents.has(id)) {
+                        lockedComponents.add(newId);
+                    }
+                    
+                    // Preserve hybrid status
+                    if (hybridBases.has(id)) {
+                        hybridBases.add(newId);
+                    }
+                    
+                    // Duplicate children and maintain attachment
+                    originalChildren.forEach(childId => {
+                        const childComp = components.find(c => c.id === childId);
+                        if (childComp) {
+                            const newChild = JSON.parse(JSON.stringify(childComp));
+                            copyCount = 1;
+                            let newChildId = `${childComp.id}_copy_${copyCount}`;
+                            while (components.some(c => c.id === newChildId)) { 
+                                copyCount++; 
+                                newChildId = `${childComp.id}_copy_${copyCount}`; 
+                            }
+                            
+                            newChild.id = newChildId; 
+                            newChild.x += 10; 
+                            newChild.y += 10; 
+                            newChild.zIndex = components.length;
+                            components.push(newChild);
+                            attachmentMap.set(newChildId, newId);
+                            
+                            // Preserve group membership of children
+                            const childGroupId = groupMap.get(childId);
+                            if (childGroupId !== undefined) {
+                                groupMap.set(newChildId, childGroupId);
+                            }
+                            
+                            // Preserve hybrid status
+                            if (hybridBases.has(childId)) {
+                                hybridBases.add(newChildId);
+                            }
+                            
+                            // Preserve locked status
+                            if (lockedComponents.has(childId)) {
+                                lockedComponents.add(newChildId);
+                            }
+                        }
+                    });
                 }
                 
                 renderAllComponents();
+                
+                // Select the duplicated component (or first of duplicated group)
+                let newId;
+                if (originalGroupId !== undefined) {
+                    // Select the first component in the duplicated group
+                    const groupMembers = Array.from(groupMap.entries())
+                        .filter(([_, groupId]) => groupId === groupIdCounter - 1)
+                        .map(([compId]) => compId);
+                    
+                    if (groupMembers.length > 0) {
+                        newId = groupMembers[0];
+                    } else {
+                        newId = `${id}_copy_1`;
+                    }
+                } else {
+                    newId = `${id}_copy_1`;
+                }
+                
                 selectComponent(newId);
             }
 
